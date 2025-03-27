@@ -8,12 +8,15 @@ const Prescription = require('../models/Prescription');
 const Payment = require('../models/Payment');
 const logger = require('../utils/logger');
 
-// Sample data
+// Load environment variables
+require('dotenv').config();
+
+// Sample data with environment variables
 const sampleUsers = [
     {
-        username: 'admin',
-        email: 'admin@healthcare.com',
-        password: 'Admin123!',
+        username: process.env.ADMIN_USERNAME || 'admin',
+        email: process.env.ADMIN_EMAIL || 'admin@example.com',
+        password: process.env.ADMIN_PASSWORD || 'defaultAdminPass123!',
         role: 'admin',
         firstName: 'Admin',
         lastName: 'User',
@@ -22,9 +25,9 @@ const sampleUsers = [
         emailVerified: true
     },
     {
-        username: 'doctor1',
-        email: 'doctor1@healthcare.com',
-        password: 'Doctor123!',
+        username: process.env.DOCTOR_USERNAME || 'doctor1',
+        email: process.env.DOCTOR_EMAIL || 'doctor@example.com',
+        password: process.env.DOCTOR_PASSWORD || 'defaultDoctorPass123!',
         role: 'doctor',
         firstName: 'John',
         lastName: 'Smith',
@@ -33,9 +36,9 @@ const sampleUsers = [
         emailVerified: true
     },
     {
-        username: 'patient1',
-        email: 'patient1@healthcare.com',
-        password: 'Patient123!',
+        username: process.env.PATIENT_USERNAME || 'patient1',
+        email: process.env.PATIENT_EMAIL || 'patient@example.com',
+        password: process.env.PATIENT_PASSWORD || 'defaultPatientPass123!',
         role: 'patient',
         firstName: 'Jane',
         lastName: 'Doe',
