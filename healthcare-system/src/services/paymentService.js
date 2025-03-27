@@ -1,6 +1,6 @@
-const Payment = require('../Payment');
-const User = require('../User');
-const logger = require('../../utils/logger');
+const Payment = require('../models/Payment');
+const User = require('../models/User');
+const logger = require('../utils/logger');
 
 class PaymentService {
     /**

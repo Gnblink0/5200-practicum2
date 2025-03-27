@@ -1,6 +1,6 @@
-const AuditLog = require('../AuditLog');
-const Setting = require('../Setting');
-const logger = require('../../utils/logger');
+const AuditLog = require('../models/AuditLog');
+const Setting = require('../models/Setting');
+const logger = require('../utils/logger');
 
 /**
  * Get system audit logs

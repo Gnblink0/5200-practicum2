@@ -1,6 +1,6 @@
-const Prescription = require('../Prescription');
-const User = require('../User');
-const logger = require('../../utils/logger');
+const Prescription = require('../models/Prescription');
+const User = require('../models/User');
+const logger = require('../utils/logger');
 
 class PrescriptionService {
     /**

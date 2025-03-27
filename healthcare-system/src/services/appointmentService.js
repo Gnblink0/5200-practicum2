@@ -1,6 +1,6 @@
-const Appointment = require('../Appointment');
-const User = require('../User');
-const logger = require('../../utils/logger');
+const Appointment = require('../models/Appointment');
+const User = require('../models/User');
+const logger = require('../utils/logger');
 
 class AppointmentService {
     /**

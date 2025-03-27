@@ -1,6 +1,6 @@
 // src/api/controllers/adminController.js
 const { AdminCrud, UserCrud } = require('../../models/crud-operations');
-const adminService = require('../../models/services/adminService');
+const adminService = require('../../services/adminService');
 const logger = require('../../utils/logger');
 const User = require('../../models/User');
 const Appointment = require('../../models/Appointment');

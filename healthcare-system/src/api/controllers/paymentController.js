@@ -1,6 +1,6 @@
 // src/api/controllers/paymentController.js
 const { PaymentCrud, AppointmentCrud, PatientCrud } = require('../../models/crud-operations');
-const paymentService = require('../../models/services/paymentService');
+const paymentService = require('../../services/paymentService');
 const logger = require('../../utils/logger');
 
 /**

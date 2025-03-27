@@ -1,8 +1,8 @@
-const User = require('../User');
-const Appointment = require('../Appointment');
-const MedicalRecord = require('../MedicalRecord');
-const Prescription = require('../Prescription');
-const logger = require('../../utils/logger');
+const User = require('../models/User');
+const Appointment = require('../models/Appointment');
+const MedicalRecord = require('../models/MedicalRecord');
+const Prescription = require('../models/Prescription');
+const logger = require('../utils/logger');
 
 class PatientService {
     /**

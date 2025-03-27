@@ -1,6 +1,6 @@
 // src/api/controllers/appointmentController.js
 const { AppointmentCrud, PatientCrud, DoctorCrud } = require('../../models/crud-operations');
-const appointmentService = require('../../models/services/appointmentService');
+const appointmentService = require('../../services/appointmentService');
 const logger = require('../../utils/logger');
 
 /**

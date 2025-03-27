@@ -2,7 +2,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { UserCrud } = require('../../models/crud-operations');
-const authService = require('../../models/services/authService');
+const authService = require('../../services/authService');
 const logger = require('../../utils/logger');
 
 /**

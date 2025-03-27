@@ -1,8 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../User');
-const config = require('../../config/authConfig');
-const logger = require('../../utils/logger');
+const User = require('../models/User');
+const config = require('../config/authConfig');
+const logger = require('../utils/logger');
 
 class AuthService {
     /**

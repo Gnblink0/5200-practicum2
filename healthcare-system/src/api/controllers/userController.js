@@ -1,6 +1,6 @@
 // src/api/controllers/userController.js
 const { UserCrud } = require('../../models/crud-operations');
-const userService = require('../../models/services/userService');
+const userService = require('../../services/userService');
 const logger = require('../../utils/logger');
 
 /**

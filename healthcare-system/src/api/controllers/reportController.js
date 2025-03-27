@@ -1,6 +1,6 @@
 // src/api/controllers/reportController.js
 const { AdminCrud } = require('../../models/crud-operations');
-const reportService = require('../../models/services/reportService');
+const reportService = require('../../services/reportService');
 const logger = require('../../utils/logger');
 
 /**
