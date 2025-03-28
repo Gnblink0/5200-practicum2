@@ -1,5 +1,3 @@
-const { ObjectId } = require('mongodb');
-
 // Healthcare Appointment System Sample Data
 // Using MongoDB import format
 
@@ -7,7 +5,7 @@ const { ObjectId } = require('mongodb');
 const users = [
   // Patient Users (20)
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a01"),
     username: "patient1",
     email: "patient1@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99", // encrypted password
@@ -23,7 +21,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a02"),
     username: "patient2",
     email: "patient2@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -39,7 +37,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a03"),
     username: "patient3",
     email: "patient3@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -55,7 +53,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a04"),
     username: "patient4",
     email: "patient4@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -71,7 +69,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a05"),
     username: "patient5",
     email: "patient5@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -87,7 +85,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a06"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a06"),
     username: "patient6",
     email: "patient6@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -103,7 +101,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a07"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a07"),
     username: "patient7",
     email: "patient7@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -119,7 +117,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a08"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a08"),
     username: "patient8",
     email: "patient8@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -135,7 +133,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a09"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a09"),
     username: "patient9",
     email: "patient9@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -151,7 +149,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a10"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a10"),
     username: "patient10",
     email: "patient10@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -167,7 +165,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a11"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a11"),
     username: "patient11",
     email: "patient11@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -183,7 +181,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a12"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a12"),
     username: "patient12",
     email: "patient12@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -199,7 +197,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a13"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a13"),
     username: "patient13",
     email: "patient13@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -215,7 +213,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a14"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a14"),
     username: "patient14",
     email: "patient14@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -231,7 +229,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a15"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a15"),
     username: "patient15",
     email: "patient15@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -247,7 +245,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a16"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a16"),
     username: "patient16",
     email: "patient16@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -263,7 +261,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a17"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a17"),
     username: "patient17",
     email: "patient17@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -279,7 +277,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a18"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a18"),
     username: "patient18",
     email: "patient18@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -295,7 +293,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a19"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a19"),
     username: "patient19",
     email: "patient19@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -311,7 +309,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0a20"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0a20"),
     username: "patient20",
     email: "patient20@example.com",
     passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99",
@@ -329,7 +327,7 @@ const users = [
   
   // Doctor Users (10)
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b01"),
     username: "doctor1",
     email: "doctor1@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -345,7 +343,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b02"),
     username: "doctor2",
     email: "doctor2@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -361,7 +359,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b03"),
     username: "doctor3",
     email: "doctor3@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -377,7 +375,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b04"),
     username: "doctor4",
     email: "doctor4@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -393,7 +391,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b05"),
     username: "doctor5",
     email: "doctor5@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -409,7 +407,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b06"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b06"),
     username: "doctor6",
     email: "doctor6@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -425,7 +423,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b07"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b07"),
     username: "doctor7",
     email: "doctor7@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -441,7 +439,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b08"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b08"),
     username: "doctor8",
     email: "doctor8@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -457,7 +455,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b09"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b09"),
     username: "doctor9",
     email: "doctor9@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -473,7 +471,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0b10"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0b10"),
     username: "doctor10",
     email: "doctor10@hospital.com",
     passwordHash: "7c6a180b36896a0a8c02787eeafb0e4c",
@@ -491,7 +489,7 @@ const users = [
   
   // Admin Users (5)
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0c01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0c01"),
     username: "admin1",
     email: "admin1@hospital.com",
     passwordHash: "21232f297a57a5a743894a0e4a801fc3",
@@ -507,7 +505,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0c02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0c02"),
     username: "admin2",
     email: "admin2@hospital.com",
     passwordHash: "21232f297a57a5a743894a0e4a801fc3",
@@ -523,7 +521,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0c03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0c03"),
     username: "admin3",
     email: "admin3@hospital.com",
     passwordHash: "21232f297a57a5a743894a0e4a801fc3",
@@ -539,7 +537,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0c04"),
     username: "admin4",
     email: "admin4@hospital.com",
     passwordHash: "21232f297a57a5a743894a0e4a801fc3",
@@ -555,7 +553,7 @@ const users = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0c05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0c05"),
     username: "admin5",
     email: "admin5@hospital.com",
     passwordHash: "21232f297a57a5a743894a0e4a801fc3",
@@ -575,9 +573,9 @@ const users = [
 // 5. Appointment Collection Sample Data
 const appointments = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1001"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1001"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T09:30:00"),
     endTime: new Date("2025-04-07T10:00:00"),
@@ -587,9 +585,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1002"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1002"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T08:00:00"),
     endTime: new Date("2025-04-07T08:30:00"),
@@ -599,9 +597,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1003"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1003"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T10:30:00"),
     endTime: new Date("2025-04-08T11:00:00"),
@@ -611,9 +609,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1004"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1004"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T13:00:00"),
     endTime: new Date("2025-04-08T14:00:00"),
@@ -623,9 +621,9 @@ const appointments = [
     mode: "telehealth"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1005"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1005"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentDate: new Date("2025-04-10"),
     startTime: new Date("2025-04-10T09:00:00"),
     endTime: new Date("2025-04-10T09:30:00"),
@@ -635,9 +633,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1006"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e10"), // Dr. Elizabeth Taylor (Endocrinology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1006"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e10"), // Dr. Elizabeth Taylor (Endocrinology)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T10:00:00"),
     endTime: new Date("2025-04-07T10:30:00"),
@@ -647,9 +645,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1007"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1007"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T15:00:00"),
     endTime: new Date("2025-04-08T15:30:00"),
@@ -659,9 +657,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1008"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1008"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T14:00:00"),
     endTime: new Date("2025-04-08T15:00:00"),
@@ -671,9 +669,9 @@ const appointments = [
     mode: "telehealth"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1009"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1009"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentDate: new Date("2025-04-09"),
     startTime: new Date("2025-04-09T11:00:00"),
     endTime: new Date("2025-04-09T11:30:00"),
@@ -683,9 +681,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1010"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1010"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T13:30:00"),
     endTime: new Date("2025-04-07T14:00:00"),
@@ -695,9 +693,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1011"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e09"), // Dr. Richard Smith (Ophthalmology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1011"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e09"), // Dr. Richard Smith (Ophthalmology)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T08:30:00"),
     endTime: new Date("2025-04-08T09:00:00"),
@@ -707,9 +705,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1012"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1012"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
     appointmentDate: new Date("2025-04-09"),
     startTime: new Date("2025-04-09T13:00:00"),
     endTime: new Date("2025-04-09T13:30:00"),
@@ -719,9 +717,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1013"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1013"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentDate: new Date("2025-04-10"),
     startTime: new Date("2025-04-10T10:00:00"),
     endTime: new Date("2025-04-10T11:00:00"),
@@ -731,9 +729,9 @@ const appointments = [
     mode: "telehealth"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1014"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1014"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
     appointmentDate: new Date("2025-04-10"),
     startTime: new Date("2025-04-10T14:00:00"),
     endTime: new Date("2025-04-10T14:30:00"),
@@ -743,9 +741,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1015"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1015"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentDate: new Date("2025-04-09"),
     startTime: new Date("2025-04-09T13:30:00"),
     endTime: new Date("2025-04-09T14:00:00"),
@@ -755,9 +753,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1016"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1016"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T10:00:00"),
     endTime: new Date("2025-04-08T10:30:00"),
@@ -767,9 +765,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1017"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1017"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T10:00:00"),
     endTime: new Date("2025-04-07T10:30:00"),
@@ -779,9 +777,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1018"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1018"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
     appointmentDate: new Date("2025-04-08"),
     startTime: new Date("2025-04-08T09:30:00"),
     endTime: new Date("2025-04-08T10:00:00"),
@@ -791,9 +789,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1019"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1019"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentDate: new Date("2025-04-07"),
     startTime: new Date("2025-04-07T11:00:00"),
     endTime: new Date("2025-04-07T11:30:00"),
@@ -803,9 +801,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1020"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1020"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
     appointmentDate: new Date("2025-04-09"),
     startTime: new Date("2025-04-09T09:00:00"),
     endTime: new Date("2025-04-09T09:30:00"),
@@ -815,9 +813,9 @@ const appointments = [
     mode: "in-person"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1021"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1021"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentDate: new Date("2025-03-07"),
     startTime: new Date("2025-03-07T09:30:00"),
     endTime: new Date("2025-03-07T10:00:00"),
@@ -831,10 +829,10 @@ const appointments = [
 // 6. Prescription Collection Sample Data
 const prescriptions = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1101"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1021"), // Previous appointment
+    _id: ObjectId("60a1f25d3f1d9c001f3e1101"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1021"), // Previous appointment
     medications: [
       {
         name: "Lisinopril",
@@ -855,10 +853,10 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1102"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1002"), // Her recent appointment
+    _id: ObjectId("60a1f25d3f1d9c001f3e1102"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1002"), // Her recent appointment
     medications: [
       {
         name: "Albuterol",
@@ -879,9 +877,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1103"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1103"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentId: null, // Not related to a specific appointment
     medications: [
       {
@@ -903,9 +901,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1104"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1104"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentId: null,
     medications: [
       {
@@ -927,9 +925,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1105"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1105"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentId: null,
     medications: [
       {
@@ -957,9 +955,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1106"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e10"), // Dr. Elizabeth Taylor (Endocrinology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1106"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e10"), // Dr. Elizabeth Taylor (Endocrinology)
     appointmentId: null,
     medications: [
       {
@@ -975,9 +973,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1107"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1107"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
     appointmentId: null,
     medications: [
       {
@@ -993,9 +991,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1108"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1108"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentId: null,
     medications: [
       {
@@ -1017,9 +1015,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1109"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1109"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentId: null,
     medications: [
       {
@@ -1035,9 +1033,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1110"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1110"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
     appointmentId: null,
     medications: [
       {
@@ -1059,9 +1057,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1111"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1111"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentId: null,
     medications: [
       {
@@ -1077,9 +1075,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1112"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1112"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e02"), // Dr. Sarah Johnson (Pediatrics)
     appointmentId: null,
     medications: [
       {
@@ -1095,9 +1093,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1113"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1113"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e07"), // Dr. James Brown (Psychiatry)
     appointmentId: null,
     medications: [
       {
@@ -1113,9 +1111,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1114"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1114"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
     appointmentId: null,
     medications: [
       {
@@ -1131,9 +1129,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1115"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1115"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentId: null,
     medications: [
       {
@@ -1155,9 +1153,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1116"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1116"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e03"), // Dr. Michael Wilson (Orthopedics)
     appointmentId: null,
     medications: [
       {
@@ -1185,9 +1183,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1117"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1117"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e01"), // Dr. Robert Chen (Cardiology)
     appointmentId: null,
     medications: [
       {
@@ -1209,9 +1207,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1118"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1118"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e05"), // Dr. David Martinez (Neurology)
     appointmentId: null,
     medications: [
       {
@@ -1227,9 +1225,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1119"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1119"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e08"), // Dr. Linda Davis (Internal Medicine)
     appointmentId: null,
     medications: [],
     diagnosis: "Obstructive Sleep Apnea, managed with CPAP",
@@ -1238,9 +1236,9 @@ const prescriptions = [
     status: "active"
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1120"),
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
-    doctorId: new ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
+    _id: ObjectId("60a1f25d3f1d9c001f3e1120"),
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
+    doctorId: ObjectId("60a1f25d3f1d9c001f3e0e06"), // Dr. Patricia Rodriguez (OB/GYN)
     appointmentId: null,
     medications: [
       {
@@ -1266,9 +1264,9 @@ const prescriptions = [
 // 7. Payment Collection Sample Data
 const payments = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1201"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1001"), // John Smith's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
+    _id: ObjectId("60a1f25d3f1d9c001f3e1201"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1001"), // John Smith's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
     amount: 250,
     paymentMethod: "credit_card",
     status: "completed",
@@ -1279,9 +1277,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1202"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1002"), // Emily Johnson's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
+    _id: ObjectId("60a1f25d3f1d9c001f3e1202"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1002"), // Emily Johnson's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d02"), // Emily Johnson
     amount: 200,
     paymentMethod: "insurance",
     status: "completed",
@@ -1292,9 +1290,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1203"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1003"), // Michael Brown's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
+    _id: ObjectId("60a1f25d3f1d9c001f3e1203"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1003"), // Michael Brown's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d03"), // Michael Brown
     amount: 275,
     paymentMethod: "credit_card",
     status: "pending",
@@ -1305,9 +1303,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1204"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1004"), // Jessica Davis's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
+    _id: ObjectId("60a1f25d3f1d9c001f3e1204"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1004"), // Jessica Davis's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d04"), // Jessica Davis
     amount: 275,
     paymentMethod: "insurance",
     status: "completed",
@@ -1318,9 +1316,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1205"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1005"), // William Miller's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
+    _id: ObjectId("60a1f25d3f1d9c001f3e1205"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1005"), // William Miller's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d05"), // William Miller
     amount: 250,
     paymentMethod: "debit_card",
     status: "pending",
@@ -1331,9 +1329,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1206"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1006"), // Patricia Wilson's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
+    _id: ObjectId("60a1f25d3f1d9c001f3e1206"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1006"), // Patricia Wilson's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d06"), // Patricia Wilson
     amount: 275,
     paymentMethod: "insurance",
     status: "completed",
@@ -1344,9 +1342,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1207"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1007"), // James Anderson's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
+    _id: ObjectId("60a1f25d3f1d9c001f3e1207"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1007"), // James Anderson's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d07"), // James Anderson
     amount: 275,
     paymentMethod: "credit_card",
     status: "pending",
@@ -1357,9 +1355,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1208"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1008"), // Linda Thomas's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
+    _id: ObjectId("60a1f25d3f1d9c001f3e1208"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1008"), // Linda Thomas's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d08"), // Linda Thomas
     amount: 275,
     paymentMethod: "insurance",
     status: "completed",
@@ -1370,9 +1368,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1209"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1009"), // Robert Jackson's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
+    _id: ObjectId("60a1f25d3f1d9c001f3e1209"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1009"), // Robert Jackson's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d09"), // Robert Jackson
     amount: 200,
     paymentMethod: "credit_card",
     status: "pending",
@@ -1383,9 +1381,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1210"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1010"), // Mary White's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
+    _id: ObjectId("60a1f25d3f1d9c001f3e1210"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1010"), // Mary White's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d10"), // Mary White
     amount: 225,
     paymentMethod: "debit_card",
     status: "completed",
@@ -1396,9 +1394,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1211"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1011"), // Charles Harris's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
+    _id: ObjectId("60a1f25d3f1d9c001f3e1211"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1011"), // Charles Harris's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d11"), // Charles Harris
     amount: 250,
     paymentMethod: "insurance",
     status: "completed",
@@ -1409,9 +1407,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1212"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1012"), // Susan Clark's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
+    _id: ObjectId("60a1f25d3f1d9c001f3e1212"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1012"), // Susan Clark's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d12"), // Susan Clark
     amount: 200,
     paymentMethod: "insurance",
     status: "pending",
@@ -1422,9 +1420,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1213"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1013"), // Joseph Lewis's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
+    _id: ObjectId("60a1f25d3f1d9c001f3e1213"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1013"), // Joseph Lewis's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d13"), // Joseph Lewis
     amount: 275,
     paymentMethod: "credit_card",
     status: "pending",
@@ -1435,9 +1433,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1214"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1014"), // Jennifer Robinson's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
+    _id: ObjectId("60a1f25d3f1d9c001f3e1214"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1014"), // Jennifer Robinson's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d14"), // Jennifer Robinson
     amount: 300,
     paymentMethod: "insurance",
     status: "pending",
@@ -1448,9 +1446,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1215"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1015"), // David Walker's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
+    _id: ObjectId("60a1f25d3f1d9c001f3e1215"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1015"), // David Walker's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d15"), // David Walker
     amount: 200,
     paymentMethod: "insurance",
     status: "completed",
@@ -1461,9 +1459,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1216"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1016"), // Margaret Young's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
+    _id: ObjectId("60a1f25d3f1d9c001f3e1216"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1016"), // Margaret Young's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d16"), // Margaret Young
     amount: 275,
     paymentMethod: "debit_card",
     status: "pending",
@@ -1474,9 +1472,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1217"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1017"), // Richard Allen's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
+    _id: ObjectId("60a1f25d3f1d9c001f3e1217"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1017"), // Richard Allen's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d17"), // Richard Allen
     amount: 250,
     paymentMethod: "insurance",
     status: "pending",
@@ -1487,9 +1485,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1218"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1018"), // Barbara King's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
+    _id: ObjectId("60a1f25d3f1d9c001f3e1218"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1018"), // Barbara King's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d18"), // Barbara King
     amount: 300,
     paymentMethod: "insurance",
     status: "completed",
@@ -1500,9 +1498,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1219"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1019"), // Thomas Scott's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
+    _id: ObjectId("60a1f25d3f1d9c001f3e1219"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1019"), // Thomas Scott's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d19"), // Thomas Scott
     amount: 200,
     paymentMethod: "credit_card",
     status: "completed",
@@ -1513,9 +1511,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1220"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1020"), // Elizabeth Green's appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
+    _id: ObjectId("60a1f25d3f1d9c001f3e1220"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1020"), // Elizabeth Green's appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d20"), // Elizabeth Green
     amount: 225,
     paymentMethod: "insurance",
     status: "pending",
@@ -1526,9 +1524,9 @@ const payments = [
     }
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e1221"),
-    appointmentId: new ObjectId("60a1f25d3f1d9c001f3e1021"), // John Smith's previous appointment
-    patientId: new ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
+    _id: ObjectId("60a1f25d3f1d9c001f3e1221"),
+    appointmentId: ObjectId("60a1f25d3f1d9c001f3e1021"), // John Smith's previous appointment
+    patientId: ObjectId("60a1f25d3f1d9c001f3e0d01"), // John Smith
     amount: 250,
     paymentMethod: "credit_card",
     status: "completed",
@@ -1552,8 +1550,8 @@ const payments = [
 // 2. Patient Collection Sample Data
 const patients = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d01"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a01"), // 关联到用户
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d01"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a01"), // 关联到用户
     personalInfo: {
       firstName: "John",
       lastName: "Smith",
@@ -1588,8 +1586,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d02"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d02"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a02"),
     personalInfo: {
       firstName: "Emily",
       lastName: "Johnson",
@@ -1618,8 +1616,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d03"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d03"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a03"),
     personalInfo: {
       firstName: "Michael",
       lastName: "Brown",
@@ -1659,8 +1657,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d04"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d04"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a04"),
     personalInfo: {
       firstName: "Jessica",
       lastName: "Davis",
@@ -1689,8 +1687,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d05"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d05"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a05"),
     personalInfo: {
       firstName: "William",
       lastName: "Miller",
@@ -1729,8 +1727,8 @@ const patients = [
   },
   // More patient sample data
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d06"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a06"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d06"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a06"),
     personalInfo: {
       firstName: "Patricia",
       lastName: "Wilson",
@@ -1760,8 +1758,8 @@ const patients = [
   },
   // Add remaining patient data...up to 20
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d07"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a07"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d07"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a07"),
     personalInfo: {
       firstName: "James",
       lastName: "Anderson",
@@ -1790,8 +1788,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d08"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a08"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d08"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a08"),
     personalInfo: {
       firstName: "Linda",
       lastName: "Thomas",
@@ -1820,8 +1818,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d09"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a09"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d09"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a09"),
     personalInfo: {
       firstName: "Robert",
       lastName: "Jackson",
@@ -1850,8 +1848,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d10"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a10"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d10"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a10"),
     personalInfo: {
       firstName: "Mary",
       lastName: "White",
@@ -1880,8 +1878,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d11"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a11"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d11"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a11"),
     personalInfo: {
       firstName: "Charles",
       lastName: "Harris",
@@ -1921,8 +1919,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d12"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a12"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d12"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a12"),
     personalInfo: {
       firstName: "Susan",
       lastName: "Clark",
@@ -1951,8 +1949,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d13"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a13"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d13"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a13"),
     personalInfo: {
       firstName: "Joseph",
       lastName: "Lewis",
@@ -1981,8 +1979,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d14"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a14"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d14"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a14"),
     personalInfo: {
       firstName: "Jennifer",
       lastName: "Robinson",
@@ -2019,8 +2017,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d15"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a15"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d15"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a15"),
     personalInfo: {
       firstName: "David",
       lastName: "Walker",
@@ -2049,8 +2047,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d16"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a16"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d16"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a16"),
     personalInfo: {
       firstName: "Margaret",
       lastName: "Young",
@@ -2079,8 +2077,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d17"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a17"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d17"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a17"),
     personalInfo: {
       firstName: "Richard",
       lastName: "Allen",
@@ -2115,8 +2113,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d18"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a18"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d18"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a18"),
     personalInfo: {
       firstName: "Barbara",
       lastName: "King",
@@ -2150,8 +2148,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d19"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a19"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d19"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a19"),
     personalInfo: {
       firstName: "Thomas",
       lastName: "Scott",
@@ -2180,8 +2178,8 @@ const patients = [
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0d20"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0a20"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0d20"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0a20"),
     personalInfo: {
       firstName: "Elizabeth",
       lastName: "Green",
@@ -2214,8 +2212,8 @@ const patients = [
 // 3. Doctor Collection Sample Data
 const doctors = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e01"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e01"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b01"),
     personalInfo: {
       firstName: "Robert",
       lastName: "Chen"
@@ -2263,8 +2261,8 @@ const doctors = [
     consultationFee: 250
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e02"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e02"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b02"),
     personalInfo: {
       firstName: "Sarah",
       lastName: "Johnson"
@@ -2307,8 +2305,8 @@ const doctors = [
     consultationFee: 200
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e03"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e03"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b03"),
     personalInfo: {
       firstName: "Michael",
       lastName: "Wilson"
@@ -2351,8 +2349,8 @@ const doctors = [
     consultationFee: 275
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e04"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e04"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b04"),
     personalInfo: {
       firstName: "Jennifer",
       lastName: "Garcia"
@@ -2395,8 +2393,8 @@ const doctors = [
     consultationFee: 225
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e05"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e05"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b05"),
     personalInfo: {
       firstName: "David",
       lastName: "Martinez"
@@ -2439,8 +2437,8 @@ const doctors = [
     consultationFee: 300
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e06"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b06"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e06"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b06"),
     personalInfo: {
       firstName: "Patricia",
       lastName: "Rodriguez"
@@ -2483,8 +2481,8 @@ const doctors = [
     consultationFee: 225
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e07"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b07"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e07"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b07"),
     personalInfo: {
       firstName: "James",
       lastName: "Brown"
@@ -2527,8 +2525,8 @@ const doctors = [
     consultationFee: 275
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e08"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b08"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e08"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b08"),
     personalInfo: {
       firstName: "Linda",
       lastName: "Davis"
@@ -2571,8 +2569,8 @@ const doctors = [
     consultationFee: 200
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e09"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b09"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e09"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b09"),
     personalInfo: {
       firstName: "Richard",
       lastName: "Smith"
@@ -2615,8 +2613,8 @@ const doctors = [
     consultationFee: 250
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e10"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b10"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e10"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b10"),
     personalInfo: {
       firstName: "Elizabeth",
       lastName: "Taylor"
@@ -2660,8 +2658,8 @@ const doctors = [
   },
   // Continue adding more doctor information...up to 20
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e11"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e11"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b01"),
     personalInfo: {
       firstName: "William",
       lastName: "Anderson"
@@ -2704,8 +2702,8 @@ const doctors = [
     consultationFee: 250
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e12"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e12"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b02"),
     personalInfo: {
       firstName: "Mary",
       lastName: "Thomas"
@@ -2748,8 +2746,8 @@ const doctors = [
     consultationFee: 200
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e13"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e13"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b03"),
     personalInfo: {
       firstName: "Robert",
       lastName: "Jackson"
@@ -2792,8 +2790,8 @@ const doctors = [
     consultationFee: 275
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e14"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e14"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b04"),
     personalInfo: {
       firstName: "Susan",
       lastName: "White"
@@ -2836,8 +2834,8 @@ const doctors = [
     consultationFee: 225
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e15"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e15"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b05"),
     personalInfo: {
       firstName: "Joseph",
       lastName: "Harris"
@@ -2880,8 +2878,8 @@ const doctors = [
     consultationFee: 300
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e16"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b06"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e16"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b06"),
     personalInfo: {
       firstName: "Margaret",
       lastName: "Clark"
@@ -2924,8 +2922,8 @@ const doctors = [
     consultationFee: 225
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e17"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b07"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e17"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b07"),
     personalInfo: {
       firstName: "Charles",
       lastName: "Lewis"
@@ -2968,8 +2966,8 @@ const doctors = [
     consultationFee: 275
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e18"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b08"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e18"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b08"),
     personalInfo: {
       firstName: "Betty",
       lastName: "Moore"
@@ -3012,8 +3010,8 @@ const doctors = [
     consultationFee: 200
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e19"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b09"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e19"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b09"),
     personalInfo: {
       firstName: "Donald",
       lastName: "Young"
@@ -3056,8 +3054,8 @@ const doctors = [
     consultationFee: 250
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0e20"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0b10"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0e20"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0b10"),
     personalInfo: {
       firstName: "Dorothy",
       lastName: "Allen"
@@ -3104,8 +3102,8 @@ const doctors = [
 // 4. Admin Collection Sample Data
 const admins = [
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f01"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f01"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c01"),
     personalInfo: {
       firstName: "John",
       lastName: "Adams"
@@ -3123,10 +3121,10 @@ const admins = [
         action: "User account created",
         timestamp: new Date("2025-03-15T10:30:00"),
         details: {
-          targetUser: new ObjectId("60a1f25d3f1d9c001f3e0a20"),
+          targetUser: ObjectId("60a1f25d3f1d9c001f3e0a20"),
           changes: "Created new patient account"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c01")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c01")
       },
       {
         action: "System configuration updated",
@@ -3135,13 +3133,13 @@ const admins = [
           category: "Email Notifications",
           changes: "Updated appointment reminder templates"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c01")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c01")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f02"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f02"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c02"),
     personalInfo: {
       firstName: "Lisa",
       lastName: "Wong"
@@ -3159,13 +3157,13 @@ const admins = [
           reportType: "Monthly Billing Summary",
           period: "February 2025"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c02")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c02")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f03"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f03"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c03"),
     personalInfo: {
       firstName: "Mark",
       lastName: "Johnson"
@@ -3179,16 +3177,16 @@ const admins = [
         action: "Medical record accessed",
         timestamp: new Date("2025-03-19T11:05:00"),
         details: {
-          patientId: new ObjectId("60a1f25d3f1d9c001f3e0d05"),
+          patientId: ObjectId("60a1f25d3f1d9c001f3e0d05"),
           reason: "Compliance review"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c03")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c03")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f04"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f04"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c04"),
     personalInfo: {
       firstName: "Emily",
       lastName: "Garcia"
@@ -3202,16 +3200,16 @@ const admins = [
         action: "Payment processed",
         timestamp: new Date("2025-03-17T15:30:00"),
         details: {
-          paymentId: new ObjectId("60a1f25d3f1d9c001f3e1105"),
+          paymentId: ObjectId("60a1f25d3f1d9c001f3e1105"),
           amount: 200
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c04")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c04")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f05"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f05"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c05"),
     personalInfo: {
       firstName: "Michael",
       lastName: "Patel"
@@ -3225,17 +3223,17 @@ const admins = [
         action: "User permission updated",
         timestamp: new Date("2025-03-16T13:45:00"),
         details: {
-          targetUser: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+          targetUser: ObjectId("60a1f25d3f1d9c001f3e0c04"),
           changes: "Added reporting permission"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0c05")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0c05")
       }
     ]
   },
   // Add more admin data...up to 20
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f06"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f06"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c01"),
     personalInfo: {
       firstName: "Sarah",
       lastName: "Miller"
@@ -3249,16 +3247,16 @@ const admins = [
         action: "User account updated",
         timestamp: new Date("2025-03-21T10:15:00"),
         details: {
-          targetUser: new ObjectId("60a1f25d3f1d9c001f3e0a10"),
+          targetUser: ObjectId("60a1f25d3f1d9c001f3e0a10"),
           changes: "Updated contact information"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f06")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f06")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f07"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f07"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c02"),
     personalInfo: {
       firstName: "David",
       lastName: "Wilson"
@@ -3275,13 +3273,13 @@ const admins = [
           reportType: "Patient Demographics Analysis",
           period: "Q1 2025"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f07")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f07")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f08"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f08"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c03"),
     personalInfo: {
       firstName: "Jennifer",
       lastName: "Brown"
@@ -3295,16 +3293,16 @@ const admins = [
         action: "Billing dispute resolved",
         timestamp: new Date("2025-03-19T09:45:00"),
         details: {
-          paymentId: new ObjectId("60a1f25d3f1d9c001f3e1103"),
+          paymentId: ObjectId("60a1f25d3f1d9c001f3e1103"),
           resolution: "Adjusted bill amount due to insurance coverage"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f08")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f08")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f09"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f09"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c04"),
     personalInfo: {
       firstName: "Robert",
       lastName: "Martinez"
@@ -3321,13 +3319,13 @@ const admins = [
           backupType: "Full system database",
           status: "Completed successfully"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f09")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f09")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f10"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f10"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c05"),
     personalInfo: {
       firstName: "Patricia",
       lastName: "Thomas"
@@ -3345,13 +3343,13 @@ const admins = [
           auditType: "HIPAA compliance check",
           findings: "No critical issues found"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f10")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f10")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f11"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f11"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c01"),
     personalInfo: {
       firstName: "James",
       lastName: "Taylor"
@@ -3369,13 +3367,13 @@ const admins = [
           reportType: "Quarterly Revenue Analysis",
           period: "Q1 2025"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f11")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f11")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f12"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f12"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c02"),
     personalInfo: {
       firstName: "Mary",
       lastName: "Anderson"
@@ -3389,16 +3387,16 @@ const admins = [
         action: "New doctor account created",
         timestamp: new Date("2025-03-22T09:30:00"),
         details: {
-          targetUser: new ObjectId("60a1f25d3f1d9c001f3e0b10"),
+          targetUser: ObjectId("60a1f25d3f1d9c001f3e0b10"),
           department: "Endocrinology"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f12")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f12")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f13"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f13"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c03"),
     personalInfo: {
       firstName: "Richard",
       lastName: "Moore"
@@ -3412,16 +3410,16 @@ const admins = [
         action: "Patient record updated",
         timestamp: new Date("2025-03-19T13:45:00"),
         details: {
-          patientId: new ObjectId("60a1f25d3f1d9c001f3e0d07"),
+          patientId: ObjectId("60a1f25d3f1d9c001f3e0d07"),
           changes: "Added new allergy information"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f13")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f13")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f14"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f14"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c04"),
     personalInfo: {
       firstName: "Linda",
       lastName: "Jackson"
@@ -3435,17 +3433,17 @@ const admins = [
         action: "Insurance claim processed",
         timestamp: new Date("2025-03-23T10:30:00"),
         details: {
-          patientId: new ObjectId("60a1f25d3f1d9c001f3e0d12"),
+          patientId: ObjectId("60a1f25d3f1d9c001f3e0d12"),
           claimAmount: 450,
           status: "Approved"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f14")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f14")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f15"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f15"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c05"),
     personalInfo: {
       firstName: "Charles",
       lastName: "White"
@@ -3462,13 +3460,13 @@ const admins = [
           updateType: "Security patch",
           components: ["Authentication module", "Data encryption"]
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f15")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f15")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f16"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c01"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f16"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c01"),
     personalInfo: {
       firstName: "Barbara",
       lastName: "Harris"
@@ -3485,13 +3483,13 @@ const admins = [
           trainingType: "HIPAA Compliance",
           attendees: 15
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f16")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f16")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f17"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c02"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f17"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c02"),
     personalInfo: {
       firstName: "Susan",
       lastName: "Martin"
@@ -3508,13 +3506,13 @@ const admins = [
           reportType: "Monthly audit summary",
           distribution: ["Management", "Compliance Officer"]
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f17")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f17")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f18"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c03"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f18"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c03"),
     personalInfo: {
       firstName: "Edward",
       lastName: "Clark"
@@ -3531,13 +3529,13 @@ const admins = [
           maintenanceType: "Database optimization",
           downtime: "30 minutes"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f18")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f18")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f19"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c04"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f19"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c04"),
     personalInfo: {
       firstName: "Thomas",
       lastName: "Lewis"
@@ -3554,13 +3552,13 @@ const admins = [
           moduleName: "Telehealth Integration",
           status: "Live"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f19")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f19")
       }
     ]
   },
   {
-    _id: new ObjectId("60a1f25d3f1d9c001f3e0f20"),
-    userId: new ObjectId("60a1f25d3f1d9c001f3e0c05"),
+    _id: ObjectId("60a1f25d3f1d9c001f3e0f20"),
+    userId: ObjectId("60a1f25d3f1d9c001f3e0c05"),
     personalInfo: {
       firstName: "Margaret",
       lastName: "Walker"
@@ -3578,7 +3576,7 @@ const admins = [
           reviewType: "Patient data management",
           findings: "Compliant with all regulations"
         },
-        performedBy: new ObjectId("60a1f25d3f1d9c001f3e0f20")
+        performedBy: ObjectId("60a1f25d3f1d9c001f3e0f20")
       }
     ]
   }
