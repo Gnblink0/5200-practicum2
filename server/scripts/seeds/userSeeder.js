@@ -6,9 +6,9 @@ require("dotenv").config();
 const USERS_TO_GENERATE = 20;
 
 const generateFakeUser = () => ({
+  uid: faker.string.uuid(),
   username: faker.internet.userName(),
   email: faker.internet.email(),
-  passwordHash: faker.internet.password(), // TODO: Use hashed password in production
   role: faker.helpers.arrayElement(["patient", "doctor", "admin"]),
   contactInfo: {
     phone: faker.phone.number("###-###-####"),
@@ -26,9 +26,10 @@ async function seedUsers() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    // Clear existing data
+    // Clear existing data, comment out in production
     await User.deleteMany({});
     console.log("Cleared existing users");
+
 
     // Generate new users
     const fakeUsers = Array.from(

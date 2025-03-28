@@ -74,3 +74,6 @@ document/
 
 # MacOS
 .DS_Store
+
+# Firebase Admin SDK
+*-adminsdk-*.json

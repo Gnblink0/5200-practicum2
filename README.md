@@ -56,7 +56,14 @@ Before you begin, ensure you have installed:
    # Update CORS_ORIGIN in .env if different
    ```
 
-4. Start the Application
+4. Seed the Database (Optional)
+   ```bash
+   cd server
+   npm run seed
+   ```
+   This will generate 20 fake users.
+
+5. Start the Application
 
    Development mode (runs both frontend and backend):
    ```bash
