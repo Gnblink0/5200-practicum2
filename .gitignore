@@ -68,3 +68,6 @@ coverage/
 dist/
 build/
 out/ 
+
+# documents
+document/
