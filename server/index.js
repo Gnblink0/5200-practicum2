@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const User = require("./models/User");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +22,9 @@ app.use(express.json());
 // Database connection
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Basic health check route

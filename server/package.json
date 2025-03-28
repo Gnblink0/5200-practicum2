@@ -7,7 +7,8 @@
         "dev": "nodemon index.js",
         "init-db": "node db/init-db.js",
         "import-data": "node scripts/importSampleData.js",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "seed": "node scripts/seeds/userSeeder.js"
     },
     "keywords": [
         "healthcare",
@@ -29,6 +30,7 @@
         "morgan": "^1.10.0"
     },
     "devDependencies": {
+        "@faker-js/faker": "^9.6.0",
         "eslint": "^8.36.0",
         "nodemon": "^2.0.21"
     },
