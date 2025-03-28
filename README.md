@@ -32,9 +32,14 @@ Before you begin, ensure you have installed:
    cp .env.example .env
    ```
 
-   The default MongoDB connection string is already configured. You only need to:
+   You need to:
 
-   1. Create a MongoDB Atlas account and get your connection string and replace the MONGODB_URI in your .env file with your connection string
+   1. Create a MongoDB Atlas account and get your connection string. Replace the MONGODB_URI in your .env file with your connection string, making sure to:
+      - Replace <username> and <password> with your credentials
+      - Specify the database name (healthcare_system) in the URI
+      ```
+      MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/healthcare_system?retryWrites=true&w=majority
+      ```
 
    2. Generate and set JWT_SECRET:
    ```bash
@@ -51,7 +56,14 @@ Before you begin, ensure you have installed:
    # Update CORS_ORIGIN in .env if different
    ```
 
-4. Start the Application
+4. Seed the Database (Optional)
+   ```bash
+   cd server
+   npm run seed
+   ```
+   This will generate 20 fake users.
+
+5. Start the Application
 
    Development mode (runs both frontend and backend):
    ```bash
