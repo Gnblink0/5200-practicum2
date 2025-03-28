@@ -71,3 +71,6 @@ out/
 
 # documents
 document/
+
+# MacOS
+.DS_Store
