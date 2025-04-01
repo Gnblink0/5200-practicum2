@@ -4,7 +4,7 @@ const { faker } = require("@faker-js/faker");
 const mongoose = require("mongoose");
 const DoctorSchedule = require("../../models/DoctorSchedule");
 
-const doctorIds = ["67eb4eca1e4d7ca13728b851", "67eb4eca1e4d7ca13728b854"];
+const doctorIds = ["67eb530452e17619ef5c2d8c", "67eb530452e17619ef5c2d8d"];
 
 const generateScheduleForDoctor = (doctorId) => {
   // Generate a random date in the future
@@ -20,7 +20,6 @@ const generateScheduleForDoctor = (doctorId) => {
     doctorId,
     startTime,
     endTime,
-    isAvailable: true,
   };
 };
 
@@ -42,13 +41,13 @@ async function seedSchedules() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    // 清除现有数据
+    // Clear existing data
     await DoctorSchedule.deleteMany({
       doctorId: { $in: doctorIds },
     });
     console.log("Cleared existing schedules");
 
-    // 生成并插入新数据
+    // Generate and insert new data
     const schedules = await generateSchedules();
     await DoctorSchedule.insertMany(schedules);
 
@@ -59,5 +58,9 @@ async function seedSchedules() {
     await mongoose.connection.close();
   }
 }
+
+module.exports = {
+  seedSchedules,
+};
 
 seedSchedules();

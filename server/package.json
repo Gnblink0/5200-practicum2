@@ -8,7 +8,7 @@
         "init-db": "node db/init-db.js",
         "import-data": "node scripts/importSampleData.js",
         "lint": "eslint .",
-        "seed": "node scripts/seeds/userSeeder.js"
+        "seed": "node scripts/seeds/index.js"
     },
     "keywords": [
         "healthcare",

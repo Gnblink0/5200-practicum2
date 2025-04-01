@@ -108,7 +108,7 @@ const generateAdmin = () => {
 };
 
 const generateUsers = async (
-  counts = { patients: 10, doctors: 5, admins: 2 }
+  counts = { patients: 4, doctors: 2, admins: 1 }
 ) => {
   const patients = Array.from(
     { length: counts.patients },
@@ -160,5 +160,3 @@ module.exports = {
   generateUsers,
   seedUsers,
 };
-
-seedUsers();
