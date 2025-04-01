@@ -12,8 +12,9 @@ const PrescriptionSchema = new mongoose.Schema({
         required: [true, 'Doctor ID is required']
     },
     appointmentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Appointment'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Appointment",
+      required: [true, "Appointment ID is required"],
     },
     medications: [{
         name: {
