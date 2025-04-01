@@ -1,81 +1,70 @@
 const mongoose = require('mongoose');
 
-const PrescriptionSchema = new mongoose.Schema({
+const PaymentSchema = new mongoose.Schema({
+    appointmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Appointment',
+        required: [true, 'Appointment ID is required']
+    },
     patientId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Patient',
         required: [true, 'Patient ID is required']
     },
-    doctorId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Doctor',
-        required: [true, 'Doctor ID is required']
+    amount: {
+        type: Number,
+        required: [true, 'Payment amount is required'],
+        min: [0, 'Payment amount cannot be negative']
     },
-    appointmentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Appointment'
-    },
-    medications: [{
-        name: {
-            type: String,
-            required: [true, 'Medication name is required']
-        },
-        dosage: {
-            type: String,
-            required: [true, 'Medication dosage is required']
-        },
-        frequency: {
-            type: String,
-            required: [true, 'Medication frequency is required']
-        },
-        duration: {
-            type: String,
-            required: [true, 'Medication duration is required']
-        }
-    }],
-    diagnosis: {
+    paymentMethod: {
         type: String,
-        required: [true, 'Diagnosis is required'],
-        trim: true
-    },
-    issuedDate: {
-        type: Date,
-        default: Date.now
-    },
-    expiryDate: {
-        type: Date,
-        required: [true, 'Expiry date is required']
+        enum: ['credit_card', 'debit_card', 'insurance', 'cash'],
+        required: [true, 'Payment method is required']
     },
     status: {
         type: String,
-        enum: ['active', 'expired', 'cancelled'],
-        default: 'active'
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
+    },
+    transactionDate: {
+        type: Date,
+        default: Date.now
+    },
+    paymentDetails: {
+        cardLastFour: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^\d{4}$/.test(v);
+                },
+                message: 'Card last four digits must be a 4-digit number'
+            }
+        },
+        transactionId: {
+            type: String,
+            unique: true
+        }
     }
 }, {
     timestamps: true
 });
 
 // Index for faster queries
-PrescriptionSchema.index({ patientId: 1, status: 1 });
-PrescriptionSchema.index({ doctorId: 1, issuedDate: -1 });
+PaymentSchema.index({ patientId: 1, status: 1 });
+PaymentSchema.index({ appointmentId: 1 });
 
-// Validation to ensure expiry date is after issued date
-PrescriptionSchema.pre('validate', function(next) {
-    if (this.issuedDate && this.expiryDate && this.issuedDate >= this.expiryDate) {
-        next(new Error('Expiry date must be after issued date'));
-    }
-    next();
-});
-
-// Static method to find active prescriptions
-PrescriptionSchema.statics.findActivePrescriptions = function(patientId) {
-    return this.find({
-        patientId,
-        status: 'active',
-        expiryDate: { $gte: new Date() }
-    });
+// Static method to find payments by patient
+PaymentSchema.statics.findByPatient = function(patientId, status) {
+    const query = { patientId };
+    if (status) query.status = status;
+    return this.find(query).populate('appointmentId');
 };
 
-const Prescription = mongoose.model('Prescription', PrescriptionSchema);
+// Method to generate a unique transaction ID
+PaymentSchema.methods.generateTransactionId = function() {
+    return `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
 
-module.exports = Prescription;
+const Payment = mongoose.model('Payment', PaymentSchema);
+
+module.exports = Payment;
