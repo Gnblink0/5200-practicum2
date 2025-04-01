@@ -2,25 +2,12 @@ const mongoose = require('mongoose');
 const User = require('./User');
 
 const AdminSchema = User.discriminator('Admin', new mongoose.Schema({
-    personalInfo: {
-        firstName: {
-            type: String,
-            required: [true, 'First name is required'],
-            trim: true
-        },
-        lastName: {
-            type: String,
-            required: [true, 'Last name is required'],
-            trim: true
-        }
-    },
     permissions: {
         type: [String],
         enum: [
             'user_management',
             'system_configuration', 
             'reporting',
-            'billing_management',
             'audit_logs',
             'medical_record_review'
         ],
