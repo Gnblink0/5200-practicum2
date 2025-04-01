@@ -32,19 +32,4 @@ const AdminSchema = User.discriminator('Admin', new mongoose.Schema({
     timestamps: true
 }));
 
-// Method to log admin activity
-AdminSchema.methods.logActivity = function(action, details) {
-    this.activityLog.push({
-        action,
-        details,
-        performedBy: this._id
-    });
-    return this.save();
-};
-
-// Static method to find admins with specific permissions
-AdminSchema.statics.findByPermission = function(permission) {
-    return this.find({ permissions: permission });
-};
-
-module.exports = mongoose.model('Admin', AdminSchema);
+module.exports = AdminSchema;

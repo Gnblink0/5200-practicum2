@@ -23,9 +23,4 @@ const DoctorSchema = User.discriminator(
   )
 );
 
-// Static method to find by specialization
-DoctorSchema.statics.findBySpecialization = function (specialization) {
-  return this.find({ specialization: new RegExp(specialization, "i") });
-};
-
-module.exports = mongoose.model("Doctor", DoctorSchema);
+module.exports = DoctorSchema;

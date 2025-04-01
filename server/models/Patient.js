@@ -54,4 +54,4 @@ const PatientSchema = User.discriminator(
   )
 );
 
-module.exports = mongoose.model("Patient", PatientSchema);
+module.exports = PatientSchema;
