@@ -34,20 +34,30 @@ Before you begin, ensure you have installed:
 
    You need to:
 
-   1. Create a MongoDB Atlas account and get your connection string. Replace the MONGODB_URI in your .env file with your connection string, making sure to:
-      - Replace <username> and <password> with your credentials
-      - Specify the database name (healthcare_system) in the URI
+   1. Create a cluster in MongoDB Atlas:
+      - Log in to MongoDB Atlas (https://cloud.mongodb.com)
+      - Create a new cluster or use an existing one
+      - Click "Connect" on your cluster
+      - Choose "Connect your application"
+      - Copy the connection string
+
+   2. Update your .env file with the connection string:
       ```
-      MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/healthcare_system?retryWrites=true&w=majority
+      # Replace the following with your actual values:
+      # - <username>: Your MongoDB Atlas username
+      # - <password>: Your MongoDB Atlas password
+      # - <cluster>: Your cluster address (normally it already filled by mongodb)
+      
+      MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/healthcare_system?retryWrites=true&w=majority
       ```
 
-   2. Generate and set JWT_SECRET:
+   3. Generate and set JWT_SECRET:
    ```bash
    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    ```
    Copy the output and replace `JWT_SECRET` in your .env file.
 
-   3. Verify frontend port:
+   4. Verify frontend port:
    ```bash
    # Start the frontend to check its port
    cd ../client
