@@ -108,7 +108,7 @@ const generateAdmin = () => {
 };
 
 const generateUsers = async (
-  counts = { patients: 10, doctors: 5, admins: 2 }
+  counts = { patients: 4, doctors: 2, admins: 1 }
 ) => {
   const patients = Array.from(
     { length: counts.patients },
@@ -128,7 +128,7 @@ const generateUsers = async (
 
 async function seedUsers() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB");
 
     await Promise.all([
@@ -156,9 +156,12 @@ async function seedUsers() {
   }
 }
 
+// Run the seeder if this file is executed directly
+if (require.main === module) {
+  seedUsers();
+}
+
 module.exports = {
   generateUsers,
   seedUsers,
 };
-
-seedUsers();

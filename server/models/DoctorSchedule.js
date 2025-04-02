@@ -19,10 +19,6 @@ const DoctorScheduleSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    unavailableReason: {
-      type: String,
-      trim: true,
-    },
   },
   {
     timestamps: true,

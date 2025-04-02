@@ -3,34 +3,45 @@ require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 const { faker } = require("@faker-js/faker");
 const mongoose = require("mongoose");
 const DoctorSchedule = require("../../models/DoctorSchedule");
+const Doctor = require("../../models/Doctor");
 
-const doctorIds = ["67eb4eca1e4d7ca13728b851", "67eb4eca1e4d7ca13728b854"];
-
-const generateScheduleForDoctor = (doctorId) => {
-  // Generate a random date in the future
-  const date = faker.date.future({ days: 30 });
-  date.setHours(9, 0, 0, 0); // Set to 9 AM
-
-  // Generate a 4-hour work period
-  const startTime = new Date(date);
-  const endTime = new Date(date);
-  endTime.setHours(startTime.getHours() + 4);
-
-  return {
-    doctorId,
-    startTime,
-    endTime,
-    isAvailable: true,
-  };
-};
+const TOTAL_SCHEDULES = 20;
 
 const generateSchedules = async () => {
-  const schedules = [];
+  // Get all doctors
+  const doctors = await Doctor.find();
 
-  for (const doctorId of doctorIds) {
-    // Generate 10 schedules for each doctor
-    for (let i = 0; i < 10; i++) {
-      schedules.push(generateScheduleForDoctor(doctorId));
+  if (doctors.length === 0) {
+    throw new Error("No doctors found in the database");
+  }
+
+  console.log(`Found ${doctors.length} doctors`);
+
+  const schedules = [];
+  const schedulesPerDoctor = Math.floor(TOTAL_SCHEDULES / doctors.length);
+
+  // Generate schedules for each doctor
+  for (const doctor of doctors) {
+    for (let i = 0; i < schedulesPerDoctor; i++) {
+      // Generate a random date in the next 30 days
+      const startTime = faker.date.future({ years: 0.1 }); // Within next 30 days
+      
+      // Set hours between 9 AM and 4 PM (to ensure end time is on the same day)
+      startTime.setHours(faker.number.int({ min: 9, max: 16 }), 0, 0, 0);
+      
+      // Create end time 1 hour after start time
+      const endTime = new Date(startTime);
+      endTime.setHours(startTime.getHours() + 1);
+
+      const schedule = {
+        doctorId: doctor._id,
+        startTime,
+        endTime,
+        status: faker.helpers.arrayElement(['available', 'available', 'available', 'booked', 'cancelled']),
+        notes: faker.lorem.paragraph(),
+      };
+
+      schedules.push(schedule);
     }
   }
 
@@ -39,20 +50,17 @@ const generateSchedules = async () => {
 
 async function seedSchedules() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB");
 
-    // 清除现有数据
-    await DoctorSchedule.deleteMany({
-      doctorId: { $in: doctorIds },
-    });
+    // Clear existing schedules
+    await DoctorSchedule.deleteMany({});
     console.log("Cleared existing schedules");
 
-    // 生成并插入新数据
+    // Generate and insert new schedules
     const schedules = await generateSchedules();
-    await DoctorSchedule.insertMany(schedules);
-
-    console.log(`Successfully seeded ${schedules.length} schedules`);
+    const insertedSchedules = await DoctorSchedule.insertMany(schedules);
+    console.log(`Successfully seeded ${insertedSchedules.length} schedules`);
   } catch (error) {
     console.error("Error seeding schedules:", error);
   } finally {
@@ -60,4 +68,7 @@ async function seedSchedules() {
   }
 }
 
-seedSchedules();
+// Run the seeder if this file is executed directly
+if (require.main === module) {
+  seedSchedules();
+}
