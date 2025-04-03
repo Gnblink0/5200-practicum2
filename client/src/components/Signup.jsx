@@ -1,108 +1,247 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { userApi } from '../services/api';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Grid
+} from '@mui/material';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 export default function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    }
+  });
   const [error, setError] = useState('');
-  const { signup, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (password !== confirmPassword) {
-      return setError('Passwords do not match');
-    }
+    setLoading(true);
 
     try {
-      await signup(email, password);
+      // Validate password
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error('Passwords do not match');
+      }
+
+      // Firebase signup
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      
+      // Create user in backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Email': formData.email,
+          'X-User-UID': userCredential.user.uid
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          uid: userCredential.user.uid,
+          username: formData.email, // Using email as username
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          address: {
+            street: formData.address.street,
+            city: formData.address.city,
+            state: formData.address.state,
+            zipCode: formData.address.zipCode
+          },
+          isActive: true,
+          role: 'Admin' // Note: capital 'A' for discriminator
+        })
+      });
+
+      if (!response.ok) {
+        // If backend registration fails, delete the Firebase user
+        await userCredential.user.delete();
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create user profile');
+      }
+
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
       setError(error.message || 'Failed to create an account');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h5">
+          Create Admin Account
+        </Typography>
+        {error && <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{error}</Alert>}
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                required
+                fullWidth
+                name="firstName"
+                label="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                required
+                fullWidth
+                name="lastName"
+                label="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
                 name="email"
+                label="Email Address"
                 type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
               />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
                 name="password"
+                label="Password"
                 type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
               />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                name="confirmPassword"
+                label="Confirm Password"
                 type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={handleChange}
               />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="phone"
+                label="Phone Number"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="address.street"
+                label="Street Address"
+                value={formData.address.street}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                name="address.city"
+                label="City"
+                value={formData.address.city}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                name="address.state"
+                label="State"
+                value={formData.address.state}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="address.zipCode"
+                label="ZIP/Postal Code"
+                value={formData.address.zipCode}
+                onChange={handleChange}
+                helperText="Enter a US ZIP code (12345 or 12345-6789) or Canadian postal code (e.g., V6X 0M9)"
+                error={formData.address.zipCode && 
+                  !(
+                    /^\d{5}(-\d{4})?$/.test(formData.address.zipCode) || // US format
+                    /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/.test(formData.address.zipCode) // Canadian format
+                  )
+                }
+              />
+            </Grid>
+          </Grid>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={loading}
+          >
+            {loading ? 'Creating Account...' : 'Sign Up'}
+          </Button>
+        </Box>
+      </Box>
+    </Container>
   );
 } 
