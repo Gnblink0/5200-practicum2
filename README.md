@@ -51,13 +51,7 @@ Before you begin, ensure you have installed:
       MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/healthcare_system?retryWrites=true&w=majority
       ```
 
-   3. Generate and set JWT_SECRET:
-   ```bash
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   ```
-   Copy the output and replace `JWT_SECRET` in your .env file.
-
-   4. Verify frontend port:
+   3. Verify frontend port:
    ```bash
    # Start the frontend to check its port
    cd ../client
