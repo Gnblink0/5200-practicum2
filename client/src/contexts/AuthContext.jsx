@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../config/firebase';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 const AuthContext = createContext();
 
@@ -16,99 +17,129 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  async function signup(email, password) {
+  async function signup(email, password, userData = {}) {
     try {
-      setLoading(true);
-      // First create user in Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
-
-      // Then register in our backend with Firebase UID
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      // After Firebase auth, create user in our backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-User-Email': email,
+          'X-User-UID': userCredential.user.uid
         },
         body: JSON.stringify({
           email,
-          password,
-          uid: firebaseUser.uid // Use Firebase UID
+          uid: userCredential.user.uid,
+          username: email,
+          ...userData
         })
       });
-
+      
       if (!response.ok) {
-        const errorData = await response.json();
         // If backend registration fails, delete the Firebase user
-        await firebaseUser.delete();
-        throw new Error(errorData.error || 'Failed to register');
+        await userCredential.user.delete();
+        throw new Error('Failed to create user in backend');
       }
 
-      const data = await response.json();
-      setCurrentUser({
-        ...data.user,
-        firebaseUser
-      });
-      return data;
+      const responseData = await response.json();
+      setCurrentUser({ ...userCredential.user, ...responseData });
     } catch (error) {
-      console.error('Signup error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   }
 
   async function login(email, password) {
     try {
-      setLoading(true);
-      // First authenticate with Firebase
+      // Firebase authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
-
-      // Then login to our backend
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          uid: firebaseUser.uid
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to login');
+      
+      // Get user data from backend
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-User-Email': email,
+              'X-User-UID': userCredential.user.uid
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser({ ...userCredential.user, ...userData });
+            return userCredential;
+          } else {
+            console.error('Failed to fetch profile:', response.status);
+            retries--;
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          retries--;
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+          }
+        }
       }
-
-      const data = await response.json();
-      setCurrentUser({
-        ...data.user,
-        firebaseUser
-      });
-      return data;
+      
+      if (retries === 0) {
+        console.error('Failed to fetch user profile after all retries');
+        setCurrentUser(userCredential.user); // Set only Firebase user data if backend fails
+        return userCredential;
+      }
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   }
 
-  async function logout() {
-    try {
-      await signOut(auth);
-      setCurrentUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
+  function logout() {
+    return signOut(auth);
   }
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Get user data from our backend with retry mechanism
+        let retries = 3;
+        while (retries > 0) {
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'X-User-Email': user.email,
+                'X-User-UID': user.uid
+              }
+            });
+            if (response.ok) {
+              const userData = await response.json();
+              setCurrentUser({ ...user, ...userData });
+              break;
+            } else {
+              console.error('Failed to fetch profile:', response.status);
+              retries--;
+              if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            retries--;
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+            }
+          }
+        }
+        if (retries === 0) {
+          console.error('Failed to fetch user profile after all retries');
+          setCurrentUser(user); // Set only Firebase user data if backend fails
+        }
+      } else {
+        setCurrentUser(null);
+      }
       setLoading(false);
     });
 
@@ -119,8 +150,7 @@ export function AuthProvider({ children }) {
     currentUser,
     signup,
     login,
-    logout,
-    loading
+    logout
   };
 
   return (
