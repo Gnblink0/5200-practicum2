@@ -90,10 +90,9 @@ const generateAdmin = () => {
     permissions: faker.helpers.arrayElements(
       [
         "user_management",
-        "system_configuration",
-        "reporting",
+        "appointment_management",
+        "prescription_management",
         "audit_logs",
-        "medical_record_review",
       ],
       { min: 2, max: 5 }
     ),
