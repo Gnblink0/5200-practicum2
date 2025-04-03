@@ -43,7 +43,7 @@ touch .env
 Add the following to client/.env:
 ```env
 # API URL
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000/api
 
 # Firebase Configuration
 VITE_FIREBASE_API_KEY=<your_firebase_api_key>
