@@ -25,10 +25,10 @@ const generateSchedules = async () => {
     for (let i = 0; i < schedulesPerDoctor; i++) {
       // Generate a random date in the next 30 days
       const startTime = faker.date.future({ years: 0.1 }); // Within next 30 days
-      
+
       // Set hours between 9 AM and 4 PM (to ensure end time is on the same day)
       startTime.setHours(faker.number.int({ min: 9, max: 16 }), 0, 0, 0);
-      
+
       // Create end time 1 hour after start time
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 1);
@@ -37,7 +37,7 @@ const generateSchedules = async () => {
         doctorId: doctor._id,
         startTime,
         endTime,
-        status: faker.helpers.arrayElement(['available', 'available', 'available', 'booked', 'cancelled']),
+        isAvailable: faker.datatype.boolean({ probability: 0.7 }), // 70% probability of being available
         notes: faker.lorem.paragraph(),
       };
 
@@ -50,7 +50,7 @@ const generateSchedules = async () => {
 
 async function seedSchedules() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
     // Clear existing schedules

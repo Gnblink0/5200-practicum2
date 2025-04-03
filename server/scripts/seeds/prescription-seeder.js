@@ -10,11 +10,13 @@ const PRESCRIPTIONS_TO_GENERATE = 20;
 const generatePrescriptions = async () => {
   // Get completed and confirmed appointments
   const appointments = await Appointment.find({
-    status: { $in: ['completed', 'confirmed'] }
+    status: { $in: ["completed", "confirmed"] },
   });
 
   if (appointments.length === 0) {
-    throw new Error("No completed or confirmed appointments found in the database");
+    throw new Error(
+      "No completed or confirmed appointments found in the database"
+    );
   }
 
   console.log(`Found ${appointments.length} completed/confirmed appointments`);
@@ -35,34 +37,45 @@ const generatePrescriptions = async () => {
       appointmentId: appointment._id,
       patientId: appointment.patientId,
       doctorId: appointment.doctorId,
-      medications: Array.from({ length: faker.number.int({ min: 1, max: 3 }) }, () => ({
-        name: faker.science.chemicalElement().name,
-        dosage: `${faker.number.int({ min: 50, max: 500 })}mg`,
-        frequency: faker.helpers.arrayElement([
-          'Once daily',
-          'Twice daily',
-          'Three times daily',
-          'Every 4 hours',
-          'Every 6 hours',
-          'Every 8 hours',
-          'As needed'
-        ]),
-        duration: `${faker.number.int({ min: 1, max: 30 })} days`,
-        instructions: faker.lorem.sentence(),
-      })),
+      medications: Array.from(
+        { length: faker.number.int({ min: 1, max: 3 }) },
+        () => ({
+          name: faker.science.chemicalElement().name,
+          dosage: `${faker.number.int({ min: 50, max: 500 })}mg`,
+          frequency: faker.helpers.arrayElement([
+            "Once daily",
+            "Twice daily",
+            "Three times daily",
+            "Every 4 hours",
+            "Every 6 hours",
+            "Every 8 hours",
+            "As needed",
+          ]),
+          duration: `${faker.number.int({ min: 1, max: 30 })} days`,
+          instructions: faker.lorem.sentence(),
+        })
+      ),
       diagnosis: faker.helpers.arrayElement([
-        'Upper respiratory infection',
-        'Hypertension',
-        'Type 2 diabetes',
-        'Hyperlipidemia',
-        'Asthma',
-        'Major depressive disorder',
-        'Generalized anxiety disorder',
-        'Acute bronchitis',
-        'Urinary tract infection',
-        'Seasonal allergies'
+        "Upper respiratory infection",
+        "Hypertension",
+        "Type 2 diabetes",
+        "Hyperlipidemia",
+        "Asthma",
+        "Major depressive disorder",
+        "Generalized anxiety disorder",
+        "Acute bronchitis",
+        "Urinary tract infection",
+        "Seasonal allergies",
       ]),
-      status: faker.helpers.arrayElement(['active', 'active', 'active', 'active', 'expired', 'expired', 'cancelled']),
+      status: faker.helpers.arrayElement([
+        "active",
+        "active",
+        "active",
+        "active",
+        "expired",
+        "expired",
+        "cancelled",
+      ]),
       notes: faker.lorem.paragraph(),
       issuedDate,
       expiryDate,
@@ -76,7 +89,7 @@ const generatePrescriptions = async () => {
 
 async function seedPrescriptions() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
     // Clear existing prescriptions
@@ -86,7 +99,9 @@ async function seedPrescriptions() {
     // Generate and insert new prescriptions
     const prescriptions = await generatePrescriptions();
     const insertedPrescriptions = await Prescription.insertMany(prescriptions);
-    console.log(`Successfully inserted ${insertedPrescriptions.length} prescriptions`);
+    console.log(
+      `Successfully inserted ${insertedPrescriptions.length} prescriptions`
+    );
   } catch (error) {
     console.error("Error seeding prescriptions:", error);
   } finally {
@@ -97,4 +112,4 @@ async function seedPrescriptions() {
 // Run the seeder if this file is executed directly
 if (require.main === module) {
   seedPrescriptions();
-} 
+}

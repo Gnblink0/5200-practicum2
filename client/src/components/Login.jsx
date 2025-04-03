@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -14,12 +14,12 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      setError('');
+      setError("");
       setLoading(true);
       await login(email, password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error) {
-      setError('Failed to sign in: ' + error.message);
+      setError("Failed to sign in: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,10 @@ export default function Login() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <div
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              role="alert"
+            >
               <span className="block sm:inline">{error}</span>
             </div>
           )}
@@ -80,11 +83,23 @@ export default function Login() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Sign up here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
-} 
+}

@@ -32,19 +32,9 @@ CORS_ORIGIN=http://localhost:5173
 
 # MongoDB Configuration
 MONGODB_URI=mongodb+srv://<username>:<password>@healthcare-clust.vfwvhkj.mongodb.net/healthcare?retryWrites=true&w=majority
-
-# JWT Configuration
-JWT_SECRET=your_generated_secret_here
-JWT_EXPIRES_IN=24h
 ```
 
-3. Generate JWT_SECRET:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-Copy the output and replace JWT_SECRET in your .env file.
-
-4. Create and configure the client/.env file:
+3. Create and configure the client/.env file:
 ```bash
 cd ../client
 touch .env
