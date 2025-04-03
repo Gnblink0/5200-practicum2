@@ -28,8 +28,10 @@ export default function Login() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        setError('Invalid email or password');
+      if (error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password' || 
+          error.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please check your credentials and try again.');
       } else if (error.message === 'Account not found or has been deleted') {
         setError('This account has been deleted. Please contact an administrator if you believe this is a mistake.');
       } else if (error.message === 'Failed to fetch user data') {
