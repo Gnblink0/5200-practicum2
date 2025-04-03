@@ -72,3 +72,7 @@ async function seedSchedules() {
 if (require.main === module) {
   seedSchedules();
 }
+
+module.exports = {
+  seedSchedules,
+};

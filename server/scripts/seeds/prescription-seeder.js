@@ -113,3 +113,7 @@ async function seedPrescriptions() {
 if (require.main === module) {
   seedPrescriptions();
 }
+
+module.exports = {
+  seedPrescriptions,
+};
