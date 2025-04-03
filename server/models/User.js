@@ -5,9 +5,16 @@ const UserSchema = new mongoose.Schema(
   {
     uid: {
       type: String,
-      required: false, // Making it optional since we might not always have it
-      sparse: true,    // This allows null values while maintaining uniqueness
-      index: true
+      required: true,
+      unique: true, // from Firebase
+    },
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      unique: true,
+      trim: true,
+      minlength: [4, "Username must be at least 4 characters long"],
+      maxlength: [50, "Username cannot exceed 50 characters"],
     },
     email: {
       type: String,
@@ -20,22 +27,29 @@ const UserSchema = new mongoose.Schema(
         "Please fill a valid email address",
       ],
     },
-    password: {
-      type: String,
-      required: [true, "Password is required"]
-    },
     firstName: {
       type: String,
+      required: [true, "First name is required"],
       trim: true,
     },
     lastName: {
       type: String,
+      required: [true, "Last name is required"],
       trim: true,
     },
-    role: {
+    phone: {
       type: String,
-      enum: ['user', 'admin', 'doctor', 'patient'],
-      default: 'user'
+      trim: true,
+      match: [/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number"],
+    },
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: {
+        type: String,
+        match: [/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"],
+      },
     },
     isActive: {
       type: Boolean,
@@ -43,18 +57,16 @@ const UserSchema = new mongoose.Schema(
     },
     lastLogin: {
       type: Date,
-    }
+    },
   },
   {
-    timestamps: true // This will automatically manage createdAt and updatedAt
+    timestamps: true,
+    discriminatorKey: "role",
   }
 );
 
 UserSchema.virtual("fullName").get(function () {
-  if (this.firstName && this.lastName) {
-    return `${this.firstName} ${this.lastName}`;
-  }
-  return undefined;
+  return `${this.firstName} ${this.lastName}`;
 });
 
 const User = mongoose.model("User", UserSchema);
