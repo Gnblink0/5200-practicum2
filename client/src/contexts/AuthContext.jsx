@@ -55,41 +55,28 @@ export function AuthProvider({ children }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       // Get user data from backend
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-User-Email': email,
-              'X-User-UID': userCredential.user.uid
-            }
-          });
-          
-          if (response.ok) {
-            const userData = await response.json();
-            setCurrentUser({ ...userCredential.user, ...userData });
-            return userCredential;
-          } else {
-            console.error('Failed to fetch profile:', response.status);
-            retries--;
-            if (retries > 0) {
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-            }
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Email': email,
+            'X-User-UID': userCredential.user.uid
           }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          retries--;
-          if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setCurrentUser({ ...userCredential.user, ...userData });
+          return userCredential;
+        } else {
+          // If user not found in backend, log out from Firebase
+          await signOut(auth);
+          throw new Error('Account not found or has been deleted');
         }
-      }
-      
-      if (retries === 0) {
-        console.error('Failed to fetch user profile after all retries');
-        setCurrentUser(userCredential.user); // Set only Firebase user data if backend fails
-        return userCredential;
+      } catch (error) {
+        // If backend request fails, log out from Firebase
+        await signOut(auth);
+        throw error;
       }
     } catch (error) {
       throw error;
@@ -103,39 +90,28 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Get user data from our backend with retry mechanism
-        let retries = 3;
-        while (retries > 0) {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'X-User-Email': user.email,
-                'X-User-UID': user.uid
-              }
-            });
-            if (response.ok) {
-              const userData = await response.json();
-              setCurrentUser({ ...user, ...userData });
-              break;
-            } else {
-              console.error('Failed to fetch profile:', response.status);
-              retries--;
-              if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-              }
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-User-Email': user.email,
+              'X-User-UID': user.uid
             }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-            retries--;
-            if (retries > 0) {
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser({ ...user, ...userData });
+          } else {
+            // If user not found in backend, log out
+            await signOut(auth);
+            setCurrentUser(null);
           }
-        }
-        if (retries === 0) {
-          console.error('Failed to fetch user profile after all retries');
-          setCurrentUser(user); // Set only Firebase user data if backend fails
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // On error, log out user
+          await signOut(auth);
+          setCurrentUser(null);
         }
       } else {
         setCurrentUser(null);

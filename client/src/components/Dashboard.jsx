@@ -18,14 +18,21 @@ import {
   Alert,
   AppBar,
   Toolbar,
-  IconButton
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { auth } from '../config/firebase';
 
 export default function Dashboard() {
   const [admins, setAdmins] = useState([]);
   const [error, setError] = useState('');
   const { currentUser, logout } = useAuth();
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, admin: null });
 
   useEffect(() => {
     if (currentUser) {
@@ -78,6 +85,46 @@ export default function Dashboard() {
     }
   }
 
+  const handleDeleteClick = (admin) => {
+    setDeleteDialog({ open: true, admin });
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, admin: null });
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const admin = deleteDialog.admin;
+      setError('');
+      
+      // Show loading state
+      const loadingMessage = 'Deleting admin account...';
+      setError(loadingMessage);
+      
+      // Delete from backend (which will also delete from Firebase)
+      await adminApi.deleteAdmin(admin._id);
+      
+      // Update local state
+      setAdmins(prevAdmins => prevAdmins.filter(a => a._id !== admin._id));
+      setDeleteDialog({ open: false, admin: null });
+      
+      // Show success message
+      setError('Admin account successfully deleted');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        if (setError) {  // Check if component is still mounted
+          setError('');
+        }
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      setError(`Failed to delete admin: ${error.message}`);
+    }
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -125,11 +172,17 @@ export default function Dashboard() {
                   <TableCell>Email</TableCell>
                   <TableCell>Permissions</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {admins.map((admin) => (
-                  <TableRow key={admin._id}>
+                  <TableRow 
+                    key={admin._id}
+                    sx={{ 
+                      backgroundColor: !admin.isActive ? '#ffebee' : 'inherit'
+                    }}
+                  >
                     <TableCell>
                       {admin.firstName} {admin.lastName}
                     </TableCell>
@@ -154,12 +207,54 @@ export default function Dashboard() {
                         disabled={admin._id === currentUser?._id}
                       />
                     </TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDeleteClick(admin)}
+                        disabled={admin._id === currentUser?._id || !admin.isActive}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialog.open}
+          onClose={handleDeleteCancel}
+        >
+          <DialogTitle sx={{ color: 'error.main' }}>
+            Confirm Deletion
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" gutterBottom>
+              You are about to delete the following admin account:
+            </Typography>
+            <Box sx={{ mt: 2, mb: 2, pl: 2 }}>
+              <Typography><strong>Name:</strong> {deleteDialog.admin?.firstName} {deleteDialog.admin?.lastName}</Typography>
+              <Typography><strong>Email:</strong> {deleteDialog.admin?.email}</Typography>
+            </Box>
+            <Typography color="error" variant="body1" gutterBottom>
+              This action cannot be undone. The account will be permanently deleted.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

@@ -52,6 +52,16 @@ export const adminApi = {
     });
     if (!response.ok) throw new Error('Failed to update status');
     return response.json();
+  },
+
+  // Delete admin
+  async deleteAdmin(id) {
+    const response = await fetch(`${API_URL}/admins/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to delete admin');
+    return response.json();
   }
 };
 

@@ -70,4 +70,26 @@ router.put('/:id/status', auth, async (req, res) => {
   }
 });
 
+// Delete admin permanently
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const adminToDelete = await Admin.findById(req.params.id);
+    if (!adminToDelete) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    // Don't allow self-deletion
+    if (adminToDelete._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    // Delete from MongoDB
+    await Admin.findByIdAndDelete(adminToDelete._id);
+    res.json({ message: 'Admin deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router; 
