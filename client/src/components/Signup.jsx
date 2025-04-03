@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { userApi } from '../services/api';
 import {
   Container,
@@ -240,6 +240,19 @@ export default function Signup() {
           >
             {loading ? 'Creating Account...' : 'Sign Up'}
           </Button>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Already have an account?{' '}
+              <Button
+                component={Link}
+                to="/login"
+                color="primary"
+                sx={{ textTransform: 'none' }}
+              >
+                Sign In
+              </Button>
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Container>

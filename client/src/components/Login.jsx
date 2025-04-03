@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Container,
@@ -92,6 +92,19 @@ export default function Login() {
           >
             Sign In
           </Button>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Don't have an account?{' '}
+              <Button
+                component={Link}
+                to="/signup"
+                color="primary"
+                sx={{ textTransform: 'none' }}
+              >
+                Sign Up
+              </Button>
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Container>
