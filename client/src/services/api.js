@@ -1,15 +1,15 @@
-import { auth } from '../config/firebase';
+import { auth } from "../config/firebase";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 async function getAuthHeaders() {
   const user = auth.currentUser;
-  if (!user) return { 'Content-Type': 'application/json' };
-  
+  if (!user) return { "Content-Type": "application/json" };
+
   return {
-    'Content-Type': 'application/json',
-    'X-User-Email': user.email,
-    'X-User-UID': user.uid
+    "Content-Type": "application/json",
+    "X-User-Email": user.email,
+    "X-User-UID": user.uid,
   };
 }
 
@@ -17,87 +17,87 @@ export const adminApi = {
   // Get all admins
   async getAllAdmins() {
     const response = await fetch(`${API_URL}/admins`, {
-      headers: await getAuthHeaders()
+      headers: await getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch admins');
+    if (!response.ok) throw new Error("Failed to fetch admins");
     return response.json();
   },
 
   // Get single admin
   async getAdmin(id) {
     const response = await fetch(`${API_URL}/admins/${id}`, {
-      headers: await getAuthHeaders()
+      headers: await getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch admin');
+    if (!response.ok) throw new Error("Failed to fetch admin");
     return response.json();
   },
 
   // Update admin permissions
   async updatePermissions(id, permissions) {
     const response = await fetch(`${API_URL}/admins/${id}/permissions`, {
-      method: 'PUT',
+      method: "PUT",
       headers: await getAuthHeaders(),
-      body: JSON.stringify({ permissions })
+      body: JSON.stringify({ permissions }),
     });
-    if (!response.ok) throw new Error('Failed to update permissions');
+    if (!response.ok) throw new Error("Failed to update permissions");
     return response.json();
   },
 
   // Update admin status
   async updateStatus(id, isActive) {
     const response = await fetch(`${API_URL}/admins/${id}/status`, {
-      method: 'PUT',
+      method: "PUT",
       headers: await getAuthHeaders(),
-      body: JSON.stringify({ isActive })
+      body: JSON.stringify({ isActive }),
     });
-    if (!response.ok) throw new Error('Failed to update status');
+    if (!response.ok) throw new Error("Failed to update status");
     return response.json();
   },
 
   // Delete admin
   async deleteAdmin(id) {
     const response = await fetch(`${API_URL}/admins/${id}`, {
-      method: 'DELETE',
-      headers: await getAuthHeaders()
+      method: "DELETE",
+      headers: await getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete admin');
+    if (!response.ok) throw new Error("Failed to delete admin");
     return response.json();
-  }
+  },
 };
 
 export const userApi = {
   // Register new user
   async register(userData) {
-    console.log('Registering user with data:', userData);
-    console.log('API URL:', API_URL);
+    console.log("Registering user with data:", userData);
+    console.log("API URL:", API_URL);
     try {
       const response = await fetch(`${API_URL}/users/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       });
 
       const data = await response.text();
-      console.log('Server response:', data);
+      console.log("Server response:", data);
 
       if (!response.ok) {
         try {
           const error = JSON.parse(data);
-          throw new Error(error.error || 'Failed to register user');
+          throw new Error(error.error || "Failed to register user");
         } catch (e) {
-          throw new Error('Server error: ' + data);
+          throw new Error(`Server error: ${data} (${e.message})`);
         }
       }
 
       try {
         return JSON.parse(data);
       } catch (e) {
-        throw new Error('Invalid JSON response from server');
+        throw new Error(`Invalid JSON response from server: ${e.message}`);
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       throw error;
     }
   },
@@ -105,20 +105,20 @@ export const userApi = {
   // Get user profile
   async getProfile() {
     const response = await fetch(`${API_URL}/users/profile`, {
-      headers: await getAuthHeaders()
+      headers: await getAuthHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch profile');
+    if (!response.ok) throw new Error("Failed to fetch profile");
     return response.json();
   },
 
   // Update user profile
   async updateProfile(userData) {
     const response = await fetch(`${API_URL}/users/profile`, {
-      method: 'PUT',
+      method: "PUT",
       headers: await getAuthHeaders(),
-      body: JSON.stringify(userData)
+      body: JSON.stringify(userData),
     });
-    if (!response.ok) throw new Error('Failed to update profile');
+    if (!response.ok) throw new Error("Failed to update profile");
     return response.json();
-  }
-}; 
+  },
+};
