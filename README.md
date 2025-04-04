@@ -105,6 +105,22 @@ cd server && npm start
 cd client && npm run dev
 ```
 
+### Additional Commands
+
+```bash
+# Install all dependencies
+npm run install:all
+
+# Run tests
+npm test
+
+# Build frontend
+cd client && npm run build
+
+# Check for linting errors
+npm run lint
+```
+
 ## Features
 
 - User Authentication (Firebase Authentication)
@@ -137,21 +153,6 @@ cd client && npm run dev
 - Git
 
 
-## Additional Commands
-
-```bash
-# Install all dependencies
-npm run install:all
-
-# Run tests
-npm test
-
-# Build frontend
-cd client && npm run build
-
-# Check for linting errors
-npm run lint
-```
 
 ## Project Structure
 
@@ -177,7 +178,7 @@ healthcare-appointment-system/
 
 #### Register User
 - **POST** `/api/users/register`
-- Request:
+- Request (Basic User) :
 ```json
 {
   "email": "user@example.com",
@@ -194,7 +195,7 @@ healthcare-appointment-system/
   "username": "johndoe"
 }
 ```
-- Response:
+- Response (Admin) :
 ```json
 {
   "email": "user@example.com",
