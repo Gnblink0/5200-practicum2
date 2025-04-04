@@ -4,9 +4,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const appointmentRoutes = require('./routes/appointments');
-const prescriptionRoutes = require('./routes/prescriptions');
+const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,10 +15,10 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Email', 'X-User-UID']
 }));
 
-// Body parser middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,43 +30,71 @@ app.get('/', (req, res) => {
 app.get('/test', (req, res) => {
   res.json({ 
     message: 'Server is running',
-    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    mongoDetails: {
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host,
+      port: mongoose.connection.port,
+      name: mongoose.connection.name,
+      uri: process.env.MONGODB_URI
+    },
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT
+    }
   });
+});
+
+// Connect to MongoDB
+console.log('Attempting to connect to MongoDB with URI:', process.env.MONGODB_URI);
+
+// Add connection options
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // 5 second timeout
+  socketTimeoutMS: 45000, // 45 second timeout
+  family: 4 // Use IPv4, skip trying IPv6
+};
+
+mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
+  .then(() => {
+    console.log('Successfully connected to MongoDB');
+    console.log('Database name:', mongoose.connection.name);
+    console.log('Host:', mongoose.connection.host);
+    console.log('Port:', mongoose.connection.port);
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    console.error('Error name:', err.name);
+    console.error('Error code:', err.code);
+    console.error('Error message:', err.message);
+    console.error('MongoDB URI:', process.env.MONGODB_URI);
+    process.exit(1);
+  });
+
+mongoose.connection.on('error', err => {
+  console.error('MongoDB connection error:', err);
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB connected');
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/admins', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    error: 'Server error', 
-    message: err.message 
-  });
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(async () => {
-    console.log('MongoDB Connected Successfully');
-    
-    // Drop the users collection if it exists
-    try {
-      await mongoose.connection.db.dropCollection('users');
-      console.log('Dropped users collection');
-    } catch (error) {
-      console.log('No users collection to drop');
-    }
-    
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Test URL: http://localhost:${PORT}/test`);
-    });
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

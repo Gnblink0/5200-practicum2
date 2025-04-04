@@ -48,7 +48,10 @@ const UserSchema = new mongoose.Schema(
       state: String,
       zipCode: {
         type: String,
-        match: [/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"],
+        match: [
+          /^(\d{5}(-\d{4})?|[A-Z]\d[A-Z]\s?\d[A-Z]\d)$/,
+          "Please enter a valid ZIP code (12345 or 12345-6789) or Canadian postal code (e.g., V6X 0M9)"
+        ],
       },
     },
     isActive: {
