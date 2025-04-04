@@ -172,109 +172,87 @@ healthcare-appointment-system/
     └── .env            # Backend environment variables
 ```
 
-## API Documentation
+## API Routes Documentation
 
-### Authentication Endpoints
+### User Routes
+Base path: `/api/users`
 
-#### Register User
-- **POST** `/api/users/register`
-- Request (Basic User) :
-```json
-{
-  "email": "user@example.com",
-  "firstName": "John",
-  "lastName": "Doe",
-  "phone": "1234567890",
-  "address": {
-    "street": "123 Main St",
-    "city": "Boston",
-    "state": "MA",
-    "zipCode": "02108"
-  },
-  "uid": "firebase_uid",
-  "username": "johndoe"
-}
-```
-- Response (Admin) :
-```json
-{
-  "email": "user@example.com",
-  "firstName": "John",
-  "lastName": "Doe",
-  "phone": "1234567890",
-  "address": {
-    "street": "123 Main St",
-    "city": "Boston",
-    "state": "MA",
-    "zipCode": "02108"
-  },
-  "uid": "firebase_uid",
-  "username": "johndoe",
-  "isActive": true,
-  "permissions": ["user_management"]
-}
-```
+### Profile Management
+- **GET** `/profile`
+  - Auth: Required
+  - Get current user's profile
 
-### User Profile Endpoints
+- **PUT** `/profile`
+  - Auth: Required
+  - Update current user's profile
+  - Body:
+    ```json
+    {
+      "firstName": "string",
+      "lastName": "string",
+      "phone": "string",
+      "address": {
+        "street": "string",
+        "city": "string",
+        "state": "string",
+        "zipCode": "string"
+      }
+    }
+    ```
 
-#### Get User Profile
-- **GET** `/api/users/profile`
-- Auth: Required (Firebase Authentication)
-- Headers:
-  - X-User-Email: user's email
-  - X-User-UID: user's Firebase UID
+- **DELETE** `/profile`
+  - Auth: Required
+  - Delete current user's account (both Firebase and backend)
 
-#### Update User Profile
-- **PUT** `/api/users/profile`
-- Auth: Required (Firebase Authentication)
-- Headers:
-  - X-User-Email: user's email
-  - X-User-UID: user's Firebase UID
-- Request:
-```json
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "phone": "1234567890",
-  "address": {
-    "street": "123 Main St",
-    "city": "Boston",
-    "state": "MA",
-    "zipCode": "02108"
-  }
-}
-```
+### Registration
+- **POST** `/register`
+  - Register new user (as admin)
+  - Body:
+    ```json
+    {
+      "email": "string",
+      "uid": "string",
+      "username": "string",
+      "firstName": "string",
+      "lastName": "string",
+      "phone": "string",
+      "address": {
+        "street": "string",
+        "city": "string",
+        "state": "string",
+        "zipCode": "string"
+      }
+    }
+    ```
 
-### Admin Endpoints
+### Admin Routes
+Base path: `/api/admins`
 
-#### Get All Admins
-- **GET** `/api/admins`
-- Auth: Required (Admin only)
+### Admin Management
+- **GET** `/`
+  - Auth: Required
+  - Get all admins
 
-#### Get Single Admin
-- **GET** `/api/admins/:id`
-- Auth: Required (Admin only)
+- **GET** `/:id`
+  - Auth: Required
+  - Get single admin by ID
 
-#### Update Admin Permissions
-- **PUT** `/api/admins/:id/permissions`
-- Auth: Required (Admin only)
-- Request:
-```json
-{
-  "permissions": ["user_management", "appointment_management"]
-}
-```
+- **PUT** `/:id/permissions`
+  - Auth: Required
+  - Update admin permissions
+  - Body:
+    ```json
+    {
+      "permissions": ["user_management", "appointment_management", "prescription_management", "audit_logs"]
+    }
+    ```
 
-#### Update Admin Status
-- **PUT** `/api/admins/:id/status`
-- Auth: Required (Admin only)
-- Request:
-```json
-{
-  "isActive": true
-}
-```
-
-#### Delete Admin
-- **DELETE** `/api/admins/:id`
-- Auth: Required (Admin only)
+- **PUT** `/:id/status`
+  - Auth: Required
+  - Update admin active status
+  - Body:
+    ```json
+    {
+      "isActive": true
+    }
+    ```
