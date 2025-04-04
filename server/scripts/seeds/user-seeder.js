@@ -130,12 +130,13 @@ async function seedUsers() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    await Promise.all([
-      Patient.deleteMany({}),
-      Doctor.deleteMany({}),
-      Admin.deleteMany({}),
-    ]);
-    console.log("Cleared existing users");
+    // // Clear existing users
+    // await Promise.all([
+    //   Patient.deleteMany({}),
+    //   Doctor.deleteMany({}),
+    //   Admin.deleteMany({}),
+    // ]);
+    // console.log("Cleared existing users");
 
     const { patients, doctors, admins } = await generateUsers();
 

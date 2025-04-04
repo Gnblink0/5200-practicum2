@@ -53,16 +53,6 @@ export const adminApi = {
     if (!response.ok) throw new Error("Failed to update status");
     return response.json();
   },
-
-  // Delete admin
-  async deleteAdmin(id) {
-    const response = await fetch(`${API_URL}/admins/${id}`, {
-      method: "DELETE",
-      headers: await getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to delete admin");
-    return response.json();
-  },
 };
 
 export const userApi = {
@@ -119,6 +109,14 @@ export const userApi = {
       body: JSON.stringify(userData),
     });
     if (!response.ok) throw new Error("Failed to update profile");
+    return response.json();
+  },
+
+  async getAllUsers() {
+    const response = await fetch(`${API_URL}/users`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error("Failed to fetch users");
     return response.json();
   },
 };

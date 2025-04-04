@@ -1,11 +1,13 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { 
+import React, { createContext, useState, useContext, useEffect } from "react";
+import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
-} from 'firebase/auth';
-import { auth } from '../config/firebase';
+  onAuthStateChanged,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { auth } from "../config/firebase";
 
 const AuthContext = createContext();
 
@@ -19,27 +21,34 @@ export function AuthProvider({ children }) {
 
   async function signup(email, password, userData = {}) {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       // After Firebase auth, create user in our backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Email': email,
-          'X-User-UID': userCredential.user.uid
-        },
-        body: JSON.stringify({
-          email,
-          uid: userCredential.user.uid,
-          username: email,
-          ...userData
-        })
-      });
-      
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": email,
+            "X-User-UID": userCredential.user.uid,
+          },
+          body: JSON.stringify({
+            email,
+            uid: userCredential.user.uid,
+            username: email,
+            ...userData,
+          }),
+        }
+      );
+
       if (!response.ok) {
         // If backend registration fails, delete the Firebase user
         await userCredential.user.delete();
-        throw new Error('Failed to create user in backend');
+        throw new Error("Failed to create user in backend");
       }
 
       const responseData = await response.json();
@@ -52,18 +61,25 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     try {
       // Firebase authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       // Get user data from backend
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Email': email,
-            'X-User-UID': userCredential.user.uid
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/profile`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-User-Email": email,
+              "X-User-UID": userCredential.user.uid,
+            },
           }
-        });
-        
+        );
+
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser({ ...userCredential.user, ...userData });
@@ -71,7 +87,7 @@ export function AuthProvider({ children }) {
         } else {
           // If user not found in backend, log out from Firebase
           await signOut(auth);
-          throw new Error('Account not found or has been deleted');
+          throw new Error("Account not found or has been deleted");
         }
       } catch (error) {
         // If backend request fails, log out from Firebase
@@ -87,18 +103,53 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  async function deleteAccount(password) {
+    try {
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        password
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+
+      await auth.currentUser.delete();
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/profile`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": currentUser.email,
+            "X-User-UID": currentUser.uid,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete user profile");
+      }
+
+      setCurrentUser(null);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-User-Email': user.email,
-              'X-User-UID': user.uid
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/users/profile`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-User-Email": user.email,
+                "X-User-UID": user.uid,
+              },
             }
-          });
-          
+          );
+
           if (response.ok) {
             const userData = await response.json();
             setCurrentUser({ ...user, ...userData });
@@ -108,7 +159,7 @@ export function AuthProvider({ children }) {
             setCurrentUser(null);
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error fetching user data:", error);
           // On error, log out user
           await signOut(auth);
           setCurrentUser(null);
@@ -126,7 +177,8 @@ export function AuthProvider({ children }) {
     currentUser,
     signup,
     login,
-    logout
+    logout,
+    deleteAccount,
   };
 
   return (
@@ -134,4 +186,4 @@ export function AuthProvider({ children }) {
       {!loading && children}
     </AuthContext.Provider>
   );
-} 
+}
