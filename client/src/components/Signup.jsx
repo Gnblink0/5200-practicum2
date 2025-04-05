@@ -11,11 +11,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  FormControlLabel
+  MenuItem
 } from '@mui/material';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -34,24 +30,7 @@ export default function Signup() {
       city: '',
       state: '',
       zipCode: ''
-    },
-    // Patient-specific fields
-    dateOfBirth: '',
-    gender: '',
-    insuranceInfo: {
-      provider: '',
-      policyNumber: '',
-      coverageDetails: ''
-    },
-    emergencyContacts: [{
-      name: '',
-      relationship: '',
-      phone: ''
-    }],
-    // Doctor-specific fields
-    specialization: '',
-    licenseNumber: '',
-    qualifications: ''
+    }
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -76,22 +55,8 @@ export default function Signup() {
     }
   };
 
-  const handleEmergencyContactChange = (e) => {
-    const { name, value } = e.target;
-    const [subfield] = name.split('.');
-    setFormData(prev => ({
-      ...prev,
-      emergencyContacts: [
-        {
-          ...prev.emergencyContacts[0],
-          [subfield]: value
-        }
-      ]
-    }));
-  };
-
   const handleSubmit = async (e) => {
-    console.log('Form data before submitting:', formData); 
+    console.log('Form data before submitting:', formData);
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -122,17 +87,6 @@ export default function Signup() {
         isActive: true,
         role: formData.role
       };
-      // Add role-specific fields
-      if (formData.role === 'Patient') {
-        userData.dateOfBirth = formData.dateOfBirth;
-        userData.gender = formData.gender;
-        userData.insuranceInfo = formData.insuranceInfo;
-        userData.emergencyContacts = formData.emergencyContacts;
-      } else if (formData.role === 'Doctor') {
-        userData.specialization = formData.specialization;
-        userData.licenseNumber = formData.licenseNumber;
-        userData.qualifications = formData.qualifications.split(',').map(q => q.trim());
-      }
 
       // Create user in backend
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
@@ -154,7 +108,7 @@ export default function Signup() {
 
       // Get the user data from response
       const createdUser = await response.json();
-      console.log(`${formData.role} account created successfully:`, createdUser);
+      console.log('Account created successfully:', createdUser);
       
       // Store role in localStorage for use in the app
       localStorage.setItem('userRole', formData.role);
@@ -166,152 +120,6 @@ export default function Signup() {
       setError(error.message || 'Failed to create an account');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Additional fields based on selected role
-  const renderRoleSpecificFields = () => {
-    switch(formData.role) {
-      case 'Patient':
-        return (
-          <>
-            {/* Required Patient fields */}
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                type="date"
-                name="dateOfBirth"
-                label="Date of Birth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl required component="fieldset">
-                <FormLabel component="legend">Gender</FormLabel>
-                <RadioGroup
-                  row
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                >
-                  <FormControlLabel value="male" control={<Radio />} label="Male" />
-                  <FormControlLabel value="female" control={<Radio />} label="Female" />
-                  <FormControlLabel value="other" control={<Radio />} label="Other" />
-                  <FormControlLabel value="prefer not to say" control={<Radio />} label="Prefer not to say" />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>Emergency Contact</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                name="emergencyContacts.name"
-                label="Emergency Contact Name"
-                value={formData.emergencyContacts[0].name}
-                onChange={handleEmergencyContactChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                name="emergencyContacts.relationship"
-                label="Relationship"
-                value={formData.emergencyContacts[0].relationship}
-                onChange={handleEmergencyContactChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="emergencyContacts.phone"
-                label="Emergency Contact Phone"
-                value={formData.emergencyContacts[0].phone}
-                onChange={handleEmergencyContactChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>Insurance Information</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="insuranceInfo.provider"
-                label="Insurance Provider"
-                value={formData.insuranceInfo.provider}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="insuranceInfo.policyNumber"
-                label="Policy Number"
-                value={formData.insuranceInfo.policyNumber}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="insuranceInfo.coverageDetails"
-                label="Coverage Details"
-                value={formData.insuranceInfo.coverageDetails}
-                onChange={handleChange}
-                multiline
-                rows={2}
-              />
-            </Grid>
-          </>
-        );
-      case 'Doctor':
-        return (
-          <>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="specialization"
-                label="Medical Specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="licenseNumber"
-                label="License Number"
-                value={formData.licenseNumber}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                name="qualifications"
-                label="Qualifications (comma separated)"
-                value={formData.qualifications}
-                onChange={handleChange}
-                helperText="Enter qualifications separated by commas"
-                multiline
-                rows={2}
-              />
-            </Grid>
-          </>
-        );
-      case 'Admin':
-        return null; // No additional required fields for admin
-      default:
-        return null;
     }
   };
 
@@ -410,10 +218,8 @@ export default function Signup() {
                 onChange={handleChange}
               />
             </Grid>
-            
-            {/* Role-specific fields */}
-            {renderRoleSpecificFields()}
-            
+
+            {/* Address Information */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" gutterBottom>Address Information</Typography>
             </Grid>
@@ -452,12 +258,6 @@ export default function Signup() {
                 value={formData.address.zipCode}
                 onChange={handleChange}
                 helperText="Enter a US ZIP code (12345 or 12345-6789) or Canadian postal code (e.g., V6X 0M9)"
-                error={formData.address.zipCode && 
-                  !(
-                    /^\d{5}(-\d{4})?$/.test(formData.address.zipCode) || // US format
-                    /^[A-Z]\d[A-Z] ?\d[A-Z]\d$/.test(formData.address.zipCode) // Canadian format
-                  )
-                }
               />
             </Grid>
           </Grid>

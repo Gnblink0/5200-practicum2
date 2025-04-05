@@ -68,17 +68,21 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          medicalHistory: [],
-          appointments: [],
+          dateOfBirth: new Date(), 
+          gender: 'prefer not to say', 
           insuranceInfo: {
-            provider: "",
-            policyNumber: "",
-            groupNumber: ""
-          }
+            provider: "default",
+            policyNumber: "default",
+            coverageDetails: "default"
+          },
+          emergencyContacts: [],
+          medicalHistory: [],
+          appointments: []
         });
+      
         savedUser = await patient.save();
         console.log("Patient saved successfully:", savedUser);
-        break;
+        break;       
 
       case 'Doctor':
         const doctor = new Doctor({
@@ -90,8 +94,8 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          specialization: "123",
-          licenseNumber: "123",
+          specialization: "default",
+          licenseNumber: "default",
           availability: [],
           patients: [],
           appointments: []
