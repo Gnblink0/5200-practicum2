@@ -83,7 +83,7 @@ export function AuthProvider({ children }) {
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser({ ...userCredential.user, ...userData });
-          return userCredential;
+          return { userCredential, role: userData.role };
         } else {
           // If user not found in backend, log out from Firebase
           await signOut(auth);

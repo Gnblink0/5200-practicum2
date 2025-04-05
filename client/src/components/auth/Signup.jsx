@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Container,
   Box,
@@ -11,65 +11,69 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
-} from '@mui/material';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../config/firebase';
+  MenuItem,
+} from "@mui/material";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../config/firebase";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    phone: '',
-    role: 'Patient', // Default role
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    role: "Patient", // Default role
     address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: ''
-    }
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+    },
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setFormData((prev) => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: value
-        }
+          [child]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleSubmit = async (e) => {
-    console.log('Form data before submitting:', formData);
+    console.log("Form data before submitting:", formData);
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       // Validate password
       if (formData.password !== formData.confirmPassword) {
-        throw new Error('Passwords do not match');
+        throw new Error("Passwords do not match");
       }
 
       // Firebase signup
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
       // Prepare data for backend based on role
       const userData = {
         email: formData.email,
@@ -82,42 +86,49 @@ export default function Signup() {
           street: formData.address.street,
           city: formData.address.city,
           state: formData.address.state,
-          zipCode: formData.address.zipCode
+          zipCode: formData.address.zipCode,
         },
         isActive: true,
-        role: formData.role
+        role: formData.role,
       };
 
       // Create user in backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Email': formData.email,
-          'X-User-UID': userCredential.user.uid
-        },
-        body: JSON.stringify(userData)
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": formData.email,
+            "X-User-UID": userCredential.user.uid,
+          },
+          body: JSON.stringify(userData),
+        }
+      );
 
       if (!response.ok) {
         // If backend registration fails, delete the Firebase user
         await userCredential.user.delete();
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create user profile');
+        throw new Error(errorData.error || "Failed to create user profile");
       }
 
       // Get the user data from response
       const createdUser = await response.json();
-      console.log('Account created successfully:', createdUser);
-      
+      console.log("Account created successfully:", createdUser);
+
       // Store role in localStorage for use in the app
-      localStorage.setItem('userRole', formData.role);
-      
-      // Redirect to dashboard
-      navigate('/dashboard');
+      localStorage.setItem("userRole", formData.role);
+
+      navigate("/login", {
+        state: {
+          message: "Account created successfully! Please login to continue.",
+          severity: "success",
+        },
+      });
     } catch (error) {
-      console.error('Signup error:', error);
-      setError(error.message || 'Failed to create an account');
+      console.error("Signup error:", error);
+      setError(error.message || "Failed to create an account");
     } finally {
       setLoading(false);
     }
@@ -128,15 +139,19 @@ export default function Signup() {
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <Typography component="h1" variant="h5">
           Create New Account
         </Typography>
-        {error && <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mt: 2, width: "100%" }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -221,7 +236,9 @@ export default function Signup() {
 
             {/* Address Information */}
             <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>Address Information</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Address Information
+              </Typography>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -268,16 +285,16 @@ export default function Signup() {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? "Creating Account..." : "Sign Up"}
           </Button>
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Button
                 component={Link}
                 to="/login"
                 color="primary"
-                sx={{ textTransform: 'none' }}
+                sx={{ textTransform: "none" }}
               >
                 Sign In
               </Button>

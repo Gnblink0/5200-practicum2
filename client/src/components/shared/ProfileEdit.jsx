@@ -11,8 +11,8 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { userApi } from "../services/api";
-import { useAuth } from "../contexts/AuthContext";
+import { userApi } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfileEdit({ open, onClose, currentUser }) {
