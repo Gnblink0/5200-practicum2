@@ -1,9 +1,16 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Dashboard from './components/Dashboard';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import PrivateRoute from "./components/shared/PrivateRoute";
+import Login from "./components/auth/Login";
+import Signup from "./components/auth/Signup";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import PatientDashboard from "./pages/patient/PatientDashboard";
 
 function App() {
   return (
@@ -13,14 +20,30 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route
-            path="/dashboard"
+            path="/admin-dashboard"
             element={
-              <PrivateRoute>
-                <Dashboard />
+              <PrivateRoute allowedRoles={["Admin"]}>
+                <AdminDashboard />
               </PrivateRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route
+            path="/doctor-dashboard"
+            element={
+              <PrivateRoute allowedRoles={["Doctor"]}>
+                <DoctorDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/patient-dashboard"
+            element={
+              <PrivateRoute allowedRoles={["Patient"]}>
+                <PatientDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </AuthProvider>
     </Router>

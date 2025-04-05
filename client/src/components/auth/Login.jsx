@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Container,
   Box,
   TextField,
   Button,
   Typography,
-  Alert
-} from '@mui/material';
+  Alert,
+} from "@mui/material";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -22,22 +22,42 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      setError('');
+      setError("");
       setLoading(true);
-      await login(email, password);
-      navigate('/dashboard');
+      const { role } = await login(email, password);
+
+      // 根据角色导航到不同的仪表板
+      switch (role) {
+        case "Admin":
+          navigate("/admin-dashboard");
+          break;
+        case "Doctor":
+          navigate("/doctor-dashboard");
+          break;
+        case "Patient":
+          navigate("/patient-dashboard");
+          break;
+        default:
+          navigate("/dashboard");
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/user-not-found' || 
-          error.code === 'auth/wrong-password' || 
-          error.code === 'auth/invalid-credential') {
-        setError('Invalid email or password. Please check your credentials and try again.');
-      } else if (error.message === 'Account not found or has been deleted') {
-        setError('This account has been deleted. Please contact an administrator if you believe this is a mistake.');
-      } else if (error.message === 'Failed to fetch user data') {
-        setError('Failed to load user profile. Please try again.');
+      console.error("Login error:", error);
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/invalid-credential"
+      ) {
+        setError(
+          "Invalid email or password. Please check your credentials and try again."
+        );
+      } else if (error.message === "Account not found or has been deleted") {
+        setError(
+          "This account has been deleted. Please contact an administrator if you believe this is a mistake."
+        );
+      } else if (error.message === "Failed to fetch user data") {
+        setError("Failed to load user profile. Please try again.");
       } else {
-        setError('Failed to sign in: ' + error.message);
+        setError("Failed to sign in: " + error.message);
       }
     } finally {
       setLoading(false);
@@ -49,15 +69,19 @@ export default function Login() {
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        {error && <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mt: 2, width: "100%" }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <TextField
             margin="normal"
@@ -92,14 +116,14 @@ export default function Login() {
           >
             Sign In
           </Button>
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Button
                 component={Link}
                 to="/signup"
                 color="primary"
-                sx={{ textTransform: 'none' }}
+                sx={{ textTransform: "none" }}
               >
                 Sign Up
               </Button>
