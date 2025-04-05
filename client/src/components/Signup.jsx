@@ -7,7 +7,11 @@ import {
   Button,
   Typography,
   Alert,
-  Grid
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -20,6 +24,7 @@ export default function Signup() {
     firstName: '',
     lastName: '',
     phone: '',
+    role: 'Patient', // Default role
     address: {
       street: '',
       city: '',
@@ -86,7 +91,7 @@ export default function Signup() {
             zipCode: formData.address.zipCode
           },
           isActive: true,
-          role: 'Admin' // Note: capital 'A' for discriminator
+          role: formData.role // Using the selected role from dropdown
         })
       });
 
@@ -117,11 +122,28 @@ export default function Signup() {
         }}
       >
         <Typography component="h1" variant="h5">
-          Create Admin Account
+          Create New Account
         </Typography>
         {error && <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{error}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
+          <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel id="role-select-label">Account Type</InputLabel>
+                <Select
+                  labelId="role-select-label"
+                  id="role-select"
+                  name="role"
+                  value={formData.role}
+                  label="Account Type"
+                  onChange={handleChange}
+                >
+                  <MenuItem value="Patient">Patient</MenuItem>
+                  <MenuItem value="Doctor">Doctor</MenuItem>
+                  <MenuItem value="Admin">Admin</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 required
@@ -254,4 +276,4 @@ export default function Signup() {
       </Box>
     </Container>
   );
-} 
+}
