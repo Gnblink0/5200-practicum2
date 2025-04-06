@@ -105,14 +105,14 @@ export function AuthProvider({ children }) {
 
   async function deleteAccount(password) {
     try {
+      // 1. Reauthenticate user
       const credential = EmailAuthProvider.credential(
         auth.currentUser.email,
         password
       );
       await reauthenticateWithCredential(auth.currentUser, credential);
 
-      await auth.currentUser.delete();
-
+      // 2. Delete user data from MongoDB
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/users/profile`,
         {
@@ -126,11 +126,31 @@ export function AuthProvider({ children }) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to delete user profile");
+        const errorData = await response.json();
+        console.error("Delete account response:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+        });
+        throw new Error(
+          errorData.error || "Failed to delete user profile from database"
+        );
       }
 
+      // 3. Delete Firebase user
+      await auth.currentUser.delete();
+
+      // 4. Clear local state
       setCurrentUser(null);
     } catch (error) {
+      console.error("Delete account error details:", {
+        error: error.message,
+        currentUser: {
+          email: currentUser.email,
+          uid: currentUser.uid,
+          role: currentUser.role,
+        },
+      });
       throw error;
     }
   }

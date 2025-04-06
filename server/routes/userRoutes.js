@@ -176,16 +176,19 @@ router.put("/profile", auth, async (req, res) => {
   }
 });
 
-// Delete user
-router.delete("/:id", auth, async (req, res) => {
+// Delete current user's profile
+router.delete("/profile", auth, async (req, res) => {
   try {
-    const user = await Admin.findById(req.params.id);
-    if (!user) {
+    const { email, uid } = req.user;
+    const deletedUser = await User.findOneAndDelete({ email, uid });
+
+    if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    await user.remove();
-    res.json({ message: "User deleted successfully" });
+
+    res.json({ message: "User profile deleted successfully" });
   } catch (error) {
+    console.error("Delete profile error:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -200,17 +203,6 @@ router.get("/", auth, async (req, res) => {
 
     const users = await User.find({});
     res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Delete current user's profile
-router.delete("/profile", auth, async (req, res) => {
-  try {
-    const user = req.user;
-    await user.remove();
-    res.json({ message: "User profile deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
