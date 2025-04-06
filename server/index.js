@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 // Import routes
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const doctorScheduleRoutes = require("./routes/doctorScheduleRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -100,6 +101,7 @@ mongoose.connection.on("disconnected", () => {
 // API routes
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/schedules", doctorScheduleRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

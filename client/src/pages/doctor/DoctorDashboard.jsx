@@ -6,6 +6,8 @@ import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
+import { scheduleService } from "../../services/scheduleService";
+import ScheduleManager from "../../components/doctor/ScheduleManager";
 
 export default function DoctorDashboard() {
   const [error, setError] = useState("");
@@ -13,11 +15,13 @@ export default function DoctorDashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [schedules, setSchedules] = useState([]);
 
   useEffect(() => {
     if (currentUser) {
       loadAppointments();
       loadPatients();
+      loadSchedules();
     }
   }, [currentUser]);
 
@@ -42,6 +46,42 @@ export default function DoctorDashboard() {
       setPatients(data);
     } catch (error) {
       setError("Failed to load patients: " + error.message);
+    }
+  }
+
+  async function loadSchedules() {
+    try {
+      const data = await scheduleService.getSchedules();
+      setSchedules(data);
+    } catch (error) {
+      setError("Failed to load schedules: " + error.message);
+    }
+  }
+
+  async function handleAddSchedule(scheduleData) {
+    try {
+      await scheduleService.createSchedule(scheduleData);
+      loadSchedules();
+    } catch (error) {
+      setError("Failed to create schedule: " + error.message);
+    }
+  }
+
+  async function handleUpdateSchedule(id, scheduleData) {
+    try {
+      await scheduleService.updateSchedule(id, scheduleData);
+      loadSchedules();
+    } catch (error) {
+      setError("Failed to update schedule: " + error.message);
+    }
+  }
+
+  async function handleDeleteSchedule(id) {
+    try {
+      await scheduleService.deleteSchedule(id);
+      loadSchedules();
+    } catch (error) {
+      setError("Failed to delete schedule: " + error.message);
     }
   }
 
@@ -119,6 +159,16 @@ export default function DoctorDashboard() {
                 <TableCell>{patient.lastVisit}</TableCell>
               </TableRow>
             )}
+          />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <ScheduleManager
+            schedules={schedules}
+            onAdd={handleAddSchedule}
+            onUpdate={handleUpdateSchedule}
+            onDelete={handleDeleteSchedule}
+            error={error}
           />
         </Box>
 
