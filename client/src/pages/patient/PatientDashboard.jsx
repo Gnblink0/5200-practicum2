@@ -234,7 +234,14 @@ export default function PatientDashboard() {
                   {new Date(appointment.startTime).toLocaleTimeString()} - 
                   {new Date(appointment.endTime).toLocaleTimeString()}
                 </TableCell>
-                <TableCell>{appointment.doctorId?.firstName} {appointment.doctorId?.lastName}</TableCell>
+                <TableCell>
+                  <Box>
+                    <Typography>Dr. {appointment.doctorId?.firstName} {appointment.doctorId?.lastName}</Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      License: {appointment.doctorId?.licenseNumber}
+                    </Typography>
+                  </Box>
+                </TableCell>
                 <TableCell>{appointment.status}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -333,7 +340,10 @@ export default function PatientDashboard() {
             >
               {doctors.map((doctor) => (
                 <MenuItem key={doctor._id} value={doctor._id}>
-                  {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                  Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                  <Typography variant="caption" display="block" color="textSecondary">
+                    License: {doctor.licenseNumber}
+                  </Typography>
                 </MenuItem>
               ))}
             </TextField>
@@ -467,7 +477,10 @@ export default function PatientDashboard() {
                 Doctor
               </Typography>
               <Typography>
-                {selectedAppointment?.doctorId?.firstName} {selectedAppointment?.doctorId?.lastName}
+                Dr. {selectedAppointment?.doctorId?.firstName} {selectedAppointment?.doctorId?.lastName}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                License Number: {selectedAppointment?.doctorId?.licenseNumber}
               </Typography>
             </Box>
 
@@ -527,6 +540,9 @@ export default function PatientDashboard() {
               </Typography>
               <Typography variant="body1">
                 Dr. {selectedPrescription?.doctorId?.firstName} {selectedPrescription?.doctorId?.lastName}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                License Number: {selectedPrescription?.doctorId?.licenseNumber}
               </Typography>
             </Box>
 

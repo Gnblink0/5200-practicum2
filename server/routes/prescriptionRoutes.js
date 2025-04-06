@@ -19,7 +19,7 @@ router.get("/:role/:userId", auth, async (req, res) => {
 
     const prescriptions = await Prescription.find(query)
       .populate("patientId", "firstName lastName")
-      .populate("doctorId", "firstName lastName")
+      .populate("doctorId", "firstName lastName licenseNumber")
       .sort({ issuedDate: -1 });
 
     res.json(prescriptions);
@@ -41,7 +41,7 @@ router.post("/", auth, async (req, res) => {
     
     const populatedPrescription = await Prescription.findById(prescription._id)
       .populate("patientId", "firstName lastName")
-      .populate("doctorId", "firstName lastName");
+      .populate("doctorId", "firstName lastName licenseNumber");
 
     res.status(201).json(populatedPrescription);
   } catch (error) {

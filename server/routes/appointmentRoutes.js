@@ -110,6 +110,7 @@ router.get("/doctor/:doctorId", auth, async (req, res) => {
 
     const appointments = await Appointment.find({ doctorId: req.params.doctorId })
       .populate("patientId", "firstName lastName email")
+      .populate("doctorId", "firstName lastName email specialization licenseNumber")
       .sort({ startTime: 1 });
     res.json(appointments);
   } catch (error) {

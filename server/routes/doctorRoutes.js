@@ -8,7 +8,8 @@ const Appointment = require("../models/Appointment");
 // Get all doctors
 router.get("/", auth, async (req, res) => {
   try {
-    const doctors = await Doctor.find({ isActive: true });
+    const doctors = await Doctor.find({ isActive: true })
+      .select("firstName lastName email specialization licenseNumber");
     res.json(doctors);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -19,7 +20,7 @@ router.get("/", auth, async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const doctor = await Doctor.findById(req.params.id)
-      .select("firstName lastName email specialization");
+      .select("firstName lastName email specialization licenseNumber");
     if (!doctor) {
       return res.status(404).json({ error: "Doctor not found" });
     }
