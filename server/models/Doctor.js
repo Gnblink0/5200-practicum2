@@ -15,7 +15,6 @@ const DoctorSchema = User.discriminator(
         unique: true,
         default: "",
       },
-      qualifications: [String],
     },
     {
       timestamps: true,

@@ -37,9 +37,6 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
         ...baseData,
         specialization: currentUser.specialization || "",
         licenseNumber: currentUser.licenseNumber || "",
-        qualifications: Array.isArray(currentUser.qualifications)
-          ? currentUser.qualifications
-          : [],
       };
     }
 
@@ -272,16 +269,6 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
                       value={formData.licenseNumber}
                       onChange={handleChange}
                       required
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Qualifications (comma-separated)"
-                      name="qualifications"
-                      value={formData.qualifications.join(", ")}
-                      onChange={handleChange}
-                      helperText="Enter qualifications separated by commas"
                     />
                   </Grid>
                 </>

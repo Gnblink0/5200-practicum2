@@ -94,7 +94,6 @@ router.post("/register", async (req, res) => {
           isActive: true,
           specialization: "",
           licenseNumber: "",
-          qualifications: [],
           availability: [],
           patients: [],
           appointments: [],
@@ -136,7 +135,7 @@ router.put("/profile", auth, async (req, res) => {
 
     // if user is doctor, add doctor specific fields
     if (req.user.role === "Doctor") {
-      allowedUpdates.push("specialization", "licenseNumber", "qualifications");
+      allowedUpdates.push("specialization", "licenseNumber");
     }
 
     // check if update fields are valid

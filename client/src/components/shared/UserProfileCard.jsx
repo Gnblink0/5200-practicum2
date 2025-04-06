@@ -15,9 +15,6 @@ export default function UserProfileCard({ user, onEditClick }) {
             <>
               <Typography>Specialization: {user?.specialization}</Typography>
               <Typography>License Number: {user?.licenseNumber}</Typography>
-              <Typography>
-                Qualifications: {user?.qualifications?.join(", ")}
-              </Typography>
             </>
           )}
         </Box>
