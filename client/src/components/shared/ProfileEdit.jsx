@@ -38,6 +38,30 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
         specialization: currentUser.specialization || "",
         licenseNumber: currentUser.licenseNumber || "",
       };
+    } else if (currentUser?.role === "Patient") {
+      return {
+        ...baseData,
+        dateOfBirth: currentUser.dateOfBirth || "",
+        gender: currentUser.gender || "",
+        insuranceInfo: {
+          provider: currentUser.insuranceInfo?.provider || "",
+          policyNumber: currentUser.insuranceInfo?.policyNumber || "",
+          groupNumber: currentUser.insuranceInfo?.groupNumber || "",
+          coverageDetails: currentUser.insuranceInfo?.coverageDetails || "",
+        },
+        emergencyContacts: currentUser.emergencyContacts || [{ 
+          name: "", 
+          relationship: "", 
+          phone: "" 
+        }],
+        medicalHistory: {
+          allergies: currentUser.medicalHistory?.allergies || "",
+          chronicConditions: currentUser.medicalHistory?.chronicConditions || "",
+          currentMedications: currentUser.medicalHistory?.currentMedications || "",
+          pastSurgeries: currentUser.medicalHistory?.pastSurgeries || "",
+          familyHistory: currentUser.medicalHistory?.familyHistory || "",
+        }
+      };
     }
 
     return baseData;
@@ -177,6 +201,7 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
               </Alert>
             )}
             <Grid container spacing={2}>
+              {/* Basic Information - For All Users */}
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -251,6 +276,8 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   onChange={handleChange}
                 />
               </Grid>
+
+              {/* Doctor-Specific Fields */}
               {currentUser?.role === "Doctor" && (
                 <>
                   <Grid item xs={12}>
@@ -275,79 +302,180 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   </Grid>
                 </>
               )}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  name="dateOfBirth"
-                  label="Date of Birth"
-                  value={medicalInfo.dateOfBirth}
-                  onChange={handleChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="gender"
-                  label="Gender"
-                  value={medicalInfo.gender}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="insuranceInfo.provider"
-                  label="Insurance Provider"
-                  value={medicalInfo.insuranceInfo.provider}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="insuranceInfo.policyNumber"
-                  label="Policy Number"
-                  value={medicalInfo.insuranceInfo.policyNumber}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  name="insuranceInfo.coverageDetails"
-                  label="Coverage Details"
-                  value={medicalInfo.insuranceInfo.coverageDetails}
-                  onChange={handleChange}
-                  multiline
-                  rows={2}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <h3>Emergency Contact</h3>
-                <TextField
-                  fullWidth
-                  name="emergencyContacts.0.name"
-                  label="Emergency Contact Name"
-                  value={medicalInfo.emergencyContacts[0].name}
-                  onChange={handleChange}
-                />
-                <TextField
-                  fullWidth
-                  name="emergencyContacts.0.relationship"
-                  label="Relationship"
-                  value={medicalInfo.emergencyContacts[0].relationship}
-                  onChange={handleChange}
-                />
-                <TextField
-                  fullWidth
-                  name="emergencyContacts.0.phone"
-                  label="Emergency Contact Phone"
-                  value={medicalInfo.emergencyContacts[0].phone}
-                  onChange={handleChange}
-                />
-              </Grid>
+
+              {/* Patient-Specific Fields */}
+              {currentUser?.role === "Patient" && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                      Medical Information
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      name="dateOfBirth"
+                      label="Date of Birth"
+                      value={formData.dateOfBirth || ""}
+                      onChange={handleChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      name="gender"
+                      label="Gender"
+                      value={formData.gender || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                      Insurance Information
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="insuranceInfo.provider"
+                      label="Insurance Provider"
+                      value={formData.insuranceInfo?.provider || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      name="insuranceInfo.policyNumber"
+                      label="Policy Number"
+                      value={formData.insuranceInfo?.policyNumber || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      name="insuranceInfo.groupNumber"
+                      label="Group Number"
+                      value={formData.insuranceInfo?.groupNumber || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="insuranceInfo.coverageDetails"
+                      label="Coverage Details"
+                      value={formData.insuranceInfo?.coverageDetails || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                      Emergency Contact
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="emergencyContacts.0.name"
+                      label="Emergency Contact Name"
+                      value={formData.emergencyContacts?.[0]?.name || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      name="emergencyContacts.0.relationship"
+                      label="Relationship"
+                      value={formData.emergencyContacts?.[0]?.relationship || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      name="emergencyContacts.0.phone"
+                      label="Emergency Contact Phone"
+                      value={formData.emergencyContacts?.[0]?.phone || ""}
+                      onChange={handleChange}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                      Medical History
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="medicalHistory.allergies"
+                      label="Allergies"
+                      value={formData.medicalHistory?.allergies || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                      placeholder="List any allergies, separated by commas"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="medicalHistory.chronicConditions"
+                      label="Chronic Conditions"
+                      value={formData.medicalHistory?.chronicConditions || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                      placeholder="List any chronic conditions, separated by commas"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="medicalHistory.currentMedications"
+                      label="Current Medications"
+                      value={formData.medicalHistory?.currentMedications || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                      placeholder="List current medications, dosage, and frequency"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="medicalHistory.pastSurgeries"
+                      label="Past Surgeries"
+                      value={formData.medicalHistory?.pastSurgeries || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                      placeholder="List past surgeries with dates"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="medicalHistory.familyHistory"
+                      label="Family Medical History"
+                      value={formData.medicalHistory?.familyHistory || ""}
+                      onChange={handleChange}
+                      multiline
+                      rows={2}
+                      placeholder="Notable medical conditions in immediate family"
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </DialogContent>
           <DialogActions>
