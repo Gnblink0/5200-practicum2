@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const { auth } = require("../middleware/auth");
 const Doctor = require("../models/Doctor");
 const DoctorSchedule = require("../models/DoctorSchedule");
@@ -194,3 +195,4 @@ router.delete("/:id/schedules/:scheduleId", auth, async (req, res) => {
 });
 
 module.exports = router; 
+

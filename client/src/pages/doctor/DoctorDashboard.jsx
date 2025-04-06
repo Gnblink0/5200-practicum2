@@ -29,15 +29,18 @@ import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
+
 import { appointmentService } from "../../services/appointmentService";
 import { prescriptionService } from "../../services/prescriptionService";
 import doctorService from "../../services/doctorService";
+
 
 export default function DoctorDashboard() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [appointments, setAppointments] = useState([]);
+
   const [prescriptions, setPrescriptions] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -59,6 +62,7 @@ export default function DoctorDashboard() {
   });
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [showEditPrescriptionDialog, setShowEditPrescriptionDialog] = useState(false);
+
 
   useEffect(() => {
     if (currentUser) {
@@ -88,12 +92,15 @@ export default function DoctorDashboard() {
 
   async function loadSchedules() {
     try {
+
       const data = await doctorService.getSchedules(currentUser._id);
+
       setSchedules(data);
     } catch (error) {
       setError("Failed to load schedules: " + error.message);
     }
   }
+
 
   const handleUpdateAppointment = async () => {
     try {
@@ -239,6 +246,7 @@ export default function DoctorDashboard() {
       }
     }
   };
+
 
   const appointmentColumns = [
     { id: "date", label: "Date" },
@@ -434,6 +442,7 @@ export default function DoctorDashboard() {
             )}
           />
         </Box>
+
 
         <Dialog 
           open={showAppointmentDialog} 
@@ -866,6 +875,7 @@ export default function DoctorDashboard() {
             </Button>
           </DialogActions>
         </Dialog>
+
       </Container>
     </Box>
   );

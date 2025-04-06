@@ -7,15 +7,14 @@ const DoctorSchema = User.discriminator(
     {
       specialization: {
         type: String,
-        required: [true, "Specialization is required"],
         trim: true,
+        default: "",
       },
       licenseNumber: {
         type: String,
-        required: [true, "Medical license number is required"],
         unique: true,
+        default: "",
       },
-      qualifications: [String],
     },
     {
       timestamps: true,

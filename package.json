@@ -19,12 +19,18 @@
     "test:server": "cd server && npm test"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
   },
   "engines": {
     "node": ">=14.0.0"
   },
   "dependencies": {
+    "@mui/icons-material": "^7.0.1",
+    "@mui/x-data-grid": "^7.28.3",
+    "@mui/x-date-pickers": "^7.28.3",
+    "date-fns": "^4.1.0",
     "firebase": "^11.6.0"
   }
 }

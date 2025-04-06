@@ -6,9 +6,11 @@ const mongoose = require("mongoose");
 // Import routes
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -103,9 +105,11 @@ mongoose.connection.on("disconnected", () => {
 // API routes
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
+
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

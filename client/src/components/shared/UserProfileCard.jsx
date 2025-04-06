@@ -12,7 +12,12 @@ export default function UserProfileCard({ user, onEditClick }) {
           </Typography>
           <Typography>Role: {user?.role}</Typography>
           {user?.role === "Doctor" && (
-            <Typography>License Number: {user?.licenseNumber}</Typography>
+
+            <>
+              <Typography>Specialization: {user?.specialization}</Typography>
+              <Typography>License Number: {user?.licenseNumber}</Typography>
+            </>
+
           )}
         </Box>
         <Button

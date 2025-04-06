@@ -256,3 +256,24 @@ Base path: `/api/admins`
       "isActive": true
     }
     ```
+
+### Doctor Schedule Routes
+Base path: `/api/schedules`
+
+- **GET** `/`
+  - Auth: Required
+  - Get all doctor schedules
+
+- **POST** `/`
+  - Auth: Required
+  - Create new doctor schedule
+  - Body: Contact API documentation for detailed schema
+
+- **PUT** `/:id`
+  - Auth: Required
+  - Update existing doctor schedule
+  - Body: Contact API documentation for detailed schema
+
+- **DELETE** `/:id`
+  - Auth: Required
+  - Delete doctor schedule
