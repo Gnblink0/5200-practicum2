@@ -20,99 +20,100 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   async function signup(email, password, userData = {}) {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/users/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Email": email,
+          "X-User-UID": userCredential.user.uid,
+        },
+        body: JSON.stringify({
+          email,
+          uid: userCredential.user.uid,
+          username: email,
+          ...userData,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      // If backend registration fails, delete the Firebase user
+      await userCredential.user.delete();
+      throw new Error("Failed to create user in backend");
+    }
+
+    const responseData = await response.json();
+    setCurrentUser({ ...userCredential.user, ...responseData });
+  }
+
+  async function login(email, password) {
+    // Firebase authentication
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    // after Firebase auth, save user info to localStorage
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userUID", userCredential.user.uid);
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      // After Firebase auth, create user in our backend
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/users/register`,
+        `${import.meta.env.VITE_API_URL}/users/profile`,
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
             "X-User-Email": email,
             "X-User-UID": userCredential.user.uid,
           },
-          body: JSON.stringify({
-            email,
-            uid: userCredential.user.uid,
-            username: email,
-            ...userData,
-          }),
         }
       );
 
-      if (!response.ok) {
-        // If backend registration fails, delete the Firebase user
-        await userCredential.user.delete();
-        throw new Error("Failed to create user in backend");
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUser({ ...userCredential.user, ...userData });
+        return { userCredential, role: userData.role };
       }
 
-      const responseData = await response.json();
-      setCurrentUser({ ...userCredential.user, ...responseData });
+      // If user not found in backend, log out from Firebase
+      await signOut(auth);
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userUID");
+      throw new Error("Account not found or has been deleted");
     } catch (error) {
-      throw error;
-    }
-  }
-
-  async function login(email, password) {
-    try {
-      // Firebase authentication
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      // Get user data from backend
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/users/profile`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "X-User-Email": email,
-              "X-User-UID": userCredential.user.uid,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const userData = await response.json();
-          setCurrentUser({ ...userCredential.user, ...userData });
-          return { userCredential, role: userData.role };
-        } else {
-          // If user not found in backend, log out from Firebase
-          await signOut(auth);
-          throw new Error("Account not found or has been deleted");
-        }
-      } catch (error) {
-        // If backend request fails, log out from Firebase
-        await signOut(auth);
-        throw error;
-      }
-    } catch (error) {
+      // If backend request fails, log out from Firebase
+      await signOut(auth);
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userUID");
       throw error;
     }
   }
 
   function logout() {
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userUID");
     return signOut(auth);
   }
 
   async function deleteAccount(password) {
     try {
+      // 1. Reauthenticate user
       const credential = EmailAuthProvider.credential(
         auth.currentUser.email,
         password
       );
       await reauthenticateWithCredential(auth.currentUser, credential);
 
-      await auth.currentUser.delete();
-
+      // 2. Delete user data from MongoDB
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/users/profile`,
         {
@@ -126,11 +127,31 @@ export function AuthProvider({ children }) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to delete user profile");
+        const errorData = await response.json();
+        console.error("Delete account response:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+        });
+        throw new Error(
+          errorData.error || "Failed to delete user profile from database"
+        );
       }
 
+      // 3. Delete Firebase user
+      await auth.currentUser.delete();
+
+      // 4. Clear local state
       setCurrentUser(null);
     } catch (error) {
+      console.error("Delete account error details:", {
+        error: error.message,
+        currentUser: {
+          email: currentUser.email,
+          uid: currentUser.uid,
+          role: currentUser.role,
+        },
+      });
       throw error;
     }
   }

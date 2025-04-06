@@ -16,16 +16,31 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfileEdit({ open, onClose, currentUser }) {
-  const [formData, setFormData] = useState({
-    firstName: currentUser?.firstName || "",
-    lastName: currentUser?.lastName || "",
-    phone: currentUser?.phone || "",
-    address: {
-      street: currentUser?.address?.street || "",
-      city: currentUser?.address?.city || "",
-      state: currentUser?.address?.state || "",
-      zipCode: currentUser?.address?.zipCode || "",
-    },
+  const [formData, setFormData] = useState(() => {
+    const baseData = {
+      email: currentUser?.email || "",
+      firstName: currentUser?.firstName || "",
+      lastName: currentUser?.lastName || "",
+      phone: currentUser?.phone || "",
+      address: {
+        street: currentUser?.address?.street || "",
+        city: currentUser?.address?.city || "",
+        state: currentUser?.address?.state || "",
+        zipCode: currentUser?.address?.zipCode || "",
+        country: currentUser?.address?.country || "",
+      },
+      role: currentUser?.role || "",
+    };
+
+    if (currentUser?.role === "Doctor") {
+      return {
+        ...baseData,
+        specialization: currentUser.specialization || "",
+        licenseNumber: currentUser.licenseNumber || "",
+      };
+    }
+
+    return baseData;
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,9 +49,86 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
 
+  const validateForm = () => {
+    if (!formData.email.trim()) return "Email is required";
+    if (!formData.firstName.trim()) return "First name is required";
+    if (!formData.lastName.trim()) return "Last name is required";
+
+    const hasAnyAddress = Object.values(formData.address).some((value) =>
+      value.trim()
+    );
+    if (hasAnyAddress) {
+      if (!formData.address.street.trim())
+        return "Street address is required when any address field is filled";
+      if (!formData.address.city.trim())
+        return "City is required when any address field is filled";
+      if (!formData.address.state.trim())
+        return "State is required when any address field is filled";
+      if (!formData.address.zipCode.trim())
+        return "Zip code is required when any address field is filled";
+    }
+
+    if (currentUser?.role === "Doctor") {
+      if (!formData.specialization.trim()) return "Specialization is required";
+      if (!formData.licenseNumber.trim()) return "License number is required";
+    }
+
+    return null;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Current user:", currentUser);
+      console.log("Submitting form data:", JSON.stringify(formData, null, 2));
+
+      const response = await userApi.updateProfile(formData);
+      console.log("Update response:", response);
+
+      onClose();
+      window.location.reload();
+    } catch (error) {
+      console.error("Update error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      setError(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to update profile. Please check all required fields."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name.includes(".")) {
+    console.log(`Handling change for ${name}:`, value);
+
+    if (name === "qualifications") {
+      const qualificationsArray = value
+        .split(",")
+        .map((q) => q.trim())
+        .filter((q) => q);
+      console.log("Parsed qualifications:", qualificationsArray);
+      setFormData((prev) => ({
+        ...prev,
+        qualifications: qualificationsArray,
+      }));
+    } else if (name.includes(".")) {
       const [parent, child] = name.split(".");
       setFormData((prev) => ({
         ...prev,
@@ -50,23 +142,6 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
         ...prev,
         [name]: value,
       }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      await userApi.updateProfile(formData);
-      onClose();
-      // Add a success message
-      window.location.reload(); // Temporary solution: Refresh page to update data
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -100,6 +175,17 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
               </Alert>
             )}
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  type="email"
+                />
+              </Grid>
               <Grid item xs={6}>
                 <TextField
                   fullWidth
@@ -163,6 +249,30 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
                   onChange={handleChange}
                 />
               </Grid>
+              {currentUser?.role === "Doctor" && (
+                <>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Specialization"
+                      name="specialization"
+                      value={formData.specialization}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="License Number"
+                      name="licenseNumber"
+                      value={formData.licenseNumber}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </DialogContent>
           <DialogActions>

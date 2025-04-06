@@ -76,10 +76,6 @@ const generateDoctor = () => {
       "Family Medicine",
     ]),
     licenseNumber: `MD${faker.string.numeric(6)}`,
-    qualifications: [
-      "M.D.",
-      faker.helpers.arrayElement(["Ph.D.", "MBBS", "MS", "DNB"]),
-    ],
   };
 };
 
