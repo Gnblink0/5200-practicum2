@@ -3,27 +3,25 @@ const router = express.Router();
 const { auth } = require("../middleware/auth");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/User");
-const Admin = require('../models/Admin');
-const Patient = require('../models/Patient');
-const Doctor = require('../models/Doctor');
+const Admin = require("../models/Admin");
+const Patient = require("../models/Patient");
+const Doctor = require("../models/Doctor");
 
 router.post("/register", async (req, res) => {
   try {
-    const { 
-      email, 
-      firstName, 
-      lastName, 
-      phone, 
-      address, 
-      uid, 
-      username,
-      role 
-    } = req.body;
+    const { email, firstName, lastName, phone, address, uid, username, role } =
+      req.body;
 
     // Check if user already exists in any collection
-    const existingAdmin = await Admin.findOne({ $or: [{ email }, { username }] });
-    const existingPatient = await Patient.findOne({ $or: [{ email }, { username }] });
-    const existingDoctor = await Doctor.findOne({ $or: [{ email }, { username }] });
+    const existingAdmin = await Admin.findOne({
+      $or: [{ email }, { username }],
+    });
+    const existingPatient = await Patient.findOne({
+      $or: [{ email }, { username }],
+    });
+    const existingDoctor = await Doctor.findOne({
+      $or: [{ email }, { username }],
+    });
 
     if (existingAdmin || existingPatient || existingDoctor) {
       return res
@@ -35,7 +33,7 @@ router.post("/register", async (req, res) => {
 
     // Create user based on selected role
     switch (role) {
-      case 'Admin':
+      case "Admin":
         const admin = new Admin({
           email,
           firstName,
@@ -58,7 +56,7 @@ router.post("/register", async (req, res) => {
         console.log("Admin saved successfully:", savedUser);
         break;
 
-      case 'Patient':
+      case "Patient":
         const patient = new Patient({
           email,
           firstName,
@@ -68,23 +66,23 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          dateOfBirth: new Date(), 
-          gender: 'prefer not to say', 
+          dateOfBirth: new Date(),
+          gender: "prefer not to say",
           insuranceInfo: {
             provider: "default",
             policyNumber: "default",
-            coverageDetails: "default"
+            coverageDetails: "default",
           },
           emergencyContacts: [],
           medicalHistory: [],
-          appointments: []
+          appointments: [],
         });
-      
+
         savedUser = await patient.save();
         console.log("Patient saved successfully:", savedUser);
-        break;       
+        break;
 
-      case 'Doctor':
+      case "Doctor":
         const doctor = new Doctor({
           email,
           firstName,
@@ -94,11 +92,12 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          specialization: "default",
-          licenseNumber: "default",
+          specialization: "",
+          licenseNumber: "",
+          qualifications: [],
           availability: [],
           patients: [],
-          appointments: []
+          appointments: [],
         });
         savedUser = await doctor.save();
         console.log("Doctor saved successfully:", savedUser);
@@ -115,7 +114,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-
 // Get current user profile
 router.get("/profile", auth, async (req, res) => {
   try {
@@ -129,21 +127,53 @@ router.get("/profile", auth, async (req, res) => {
 router.put("/profile", auth, async (req, res) => {
   try {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ["firstName", "lastName", "phone", "address"];
-    const isValidOperation = updates.every((update) =>
-      allowedUpdates.includes(update)
+
+    // base fields
+    const baseUpdates = ["firstName", "lastName", "phone", "address"];
+
+    // based on user role, add allowed updates
+    let allowedUpdates = [...baseUpdates];
+
+    // if user is doctor, add doctor specific fields
+    if (req.user.role === "Doctor") {
+      allowedUpdates.push("specialization", "licenseNumber", "qualifications");
+    }
+
+    // check if update fields are valid
+    const isValidOperation = updates.every(
+      (update) =>
+        allowedUpdates.includes(update) ||
+        update === "role" || // allow role field to exist but not update
+        update === "email" // allow email field to exist but not update
     );
 
     if (!isValidOperation) {
-      return res.status(400).json({ error: "Invalid updates!" });
+      return res.status(400).json({
+        error: "Invalid updates!",
+        allowedUpdates: allowedUpdates,
+        receivedUpdates: updates,
+      });
     }
 
-    updates.forEach((update) => (req.user[update] = req.body[update]));
+    // update fields
+    updates.forEach((update) => {
+      // skip role and email fields
+      if (update !== "role" && update !== "email") {
+        req.user[update] = req.body[update];
+      }
+    });
+
+    // save updates
     await req.user.save();
 
+    // return updated user data
     res.json(req.user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Profile update error:", error);
+    res.status(400).json({
+      error: error.message,
+      details: error.errors, // Mongoose validation errors
+    });
   }
 });
 

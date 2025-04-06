@@ -11,6 +11,15 @@ export default function UserProfileCard({ user, onEditClick }) {
             Name: {user?.firstName} {user?.lastName}
           </Typography>
           <Typography>Role: {user?.role}</Typography>
+          {user?.role === "Doctor" && (
+            <>
+              <Typography>Specialization: {user?.specialization}</Typography>
+              <Typography>License Number: {user?.licenseNumber}</Typography>
+              <Typography>
+                Qualifications: {user?.qualifications?.join(", ")}
+              </Typography>
+            </>
+          )}
         </Box>
         <Button
           variant="contained"
