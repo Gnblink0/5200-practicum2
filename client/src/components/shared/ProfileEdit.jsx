@@ -15,7 +15,7 @@ import { userApi } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function ProfileEdit({ open, onClose, currentUser }) {
+export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, onMedicalInfoChange }) {
   const [formData, setFormData] = useState(() => {
     const baseData = {
       email: currentUser?.email || "",
@@ -143,6 +143,8 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
         [name]: value,
       }));
     }
+
+    onMedicalInfoChange(name, value);
   };
 
   const handleDeleteAccount = async () => {
@@ -273,6 +275,79 @@ export default function ProfileEdit({ open, onClose, currentUser }) {
                   </Grid>
                 </>
               )}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="dateOfBirth"
+                  label="Date of Birth"
+                  value={medicalInfo.dateOfBirth}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="gender"
+                  label="Gender"
+                  value={medicalInfo.gender}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="insuranceInfo.provider"
+                  label="Insurance Provider"
+                  value={medicalInfo.insuranceInfo.provider}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="insuranceInfo.policyNumber"
+                  label="Policy Number"
+                  value={medicalInfo.insuranceInfo.policyNumber}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  name="insuranceInfo.coverageDetails"
+                  label="Coverage Details"
+                  value={medicalInfo.insuranceInfo.coverageDetails}
+                  onChange={handleChange}
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <h3>Emergency Contact</h3>
+                <TextField
+                  fullWidth
+                  name="emergencyContacts.0.name"
+                  label="Emergency Contact Name"
+                  value={medicalInfo.emergencyContacts[0].name}
+                  onChange={handleChange}
+                />
+                <TextField
+                  fullWidth
+                  name="emergencyContacts.0.relationship"
+                  label="Relationship"
+                  value={medicalInfo.emergencyContacts[0].relationship}
+                  onChange={handleChange}
+                />
+                <TextField
+                  fullWidth
+                  name="emergencyContacts.0.phone"
+                  label="Emergency Contact Phone"
+                  value={medicalInfo.emergencyContacts[0].phone}
+                  onChange={handleChange}
+                />
+              </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
