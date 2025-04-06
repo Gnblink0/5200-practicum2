@@ -85,6 +85,9 @@ router.post("/register", async (req, res) => {
         break;       
 
       case 'Doctor':
+        // Generate a unique license number
+        const licenseNumber = `MD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        
         const doctor = new Doctor({
           email,
           firstName,
@@ -94,8 +97,8 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          specialization: "default",
-          licenseNumber: "default",
+          specialization: "General Medicine", // Default specialization
+          licenseNumber,
           availability: [],
           patients: [],
           appointments: []
