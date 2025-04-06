@@ -19,6 +19,21 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to update both currentUser state and localStorage
+  const updateUser = (user) => {
+    setCurrentUser(user);
+    if (user) {
+      localStorage.setItem('user', JSON.stringify({
+        email: user.email,
+        uid: user.uid,
+        _id: user._id,
+        role: user.role
+      }));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
+
   async function signup(email, password, userData = {}) {
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -52,7 +67,8 @@ export function AuthProvider({ children }) {
       }
 
       const responseData = await response.json();
-      setCurrentUser({ ...userCredential.user, ...responseData });
+      const user = { ...userCredential.user, ...responseData };
+      updateUser(user);
     } catch (error) {
       throw error;
     }
@@ -82,16 +98,19 @@ export function AuthProvider({ children }) {
 
         if (response.ok) {
           const userData = await response.json();
-          setCurrentUser({ ...userCredential.user, ...userData });
+          const user = { ...userCredential.user, ...userData };
+          updateUser(user);
           return { userCredential, role: userData.role };
         } else {
           // If user not found in backend, log out from Firebase
           await signOut(auth);
+          updateUser(null);
           throw new Error("Account not found or has been deleted");
         }
       } catch (error) {
         // If backend request fails, log out from Firebase
         await signOut(auth);
+        updateUser(null);
         throw error;
       }
     } catch (error) {
@@ -99,8 +118,13 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() {
-    return signOut(auth);
+  async function logout() {
+    try {
+      await signOut(auth);
+      updateUser(null);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async function deleteAccount(password) {
@@ -129,7 +153,7 @@ export function AuthProvider({ children }) {
         throw new Error("Failed to delete user profile");
       }
 
-      setCurrentUser(null);
+      updateUser(null);
     } catch (error) {
       throw error;
     }
@@ -152,20 +176,21 @@ export function AuthProvider({ children }) {
 
           if (response.ok) {
             const userData = await response.json();
-            setCurrentUser({ ...user, ...userData });
+            const fullUser = { ...user, ...userData };
+            updateUser(fullUser);
           } else {
             // If user not found in backend, log out
             await signOut(auth);
-            setCurrentUser(null);
+            updateUser(null);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
           // On error, log out user
           await signOut(auth);
-          setCurrentUser(null);
+          updateUser(null);
         }
       } else {
-        setCurrentUser(null);
+        updateUser(null);
       }
       setLoading(false);
     });
