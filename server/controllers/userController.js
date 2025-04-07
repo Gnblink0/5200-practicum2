@@ -1,28 +1,14 @@
+const { auth } = require("../middleware/auth");
+const User = require("../models/User");
 const Admin = require("../models/Admin");
 const Patient = require("../models/Patient");
 const Doctor = require("../models/Doctor");
 
-router.post("/register", async (req, res) => {
+// User Registration
+const registerUser = async (req, res) => {
   try {
-    const {
-      email,
-      firstName,
-      lastName,
-      phone,
-      address,
-      uid,
-      username,
-      role,
-      // Patient-specific fields
-      dateOfBirth,
-      gender,
-      insuranceInfo,
-      emergencyContacts,
-      // Doctor-specific fields
-      specialization,
-      licenseNumber,
-      qualifications,
-    } = req.body;
+    const { email, firstName, lastName, phone, address, uid, username, role } =
+      req.body;
 
     // Check if user already exists in any collection
     const existingAdmin = await Admin.findOne({
@@ -78,16 +64,27 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          dateOfBirth,
-          gender,
-          insuranceInfo: insuranceInfo || {
+          dateOfBirth: new Date(),
+          gender: "prefer not to say",
+          insuranceInfo: {
             provider: "",
             policyNumber: "",
             coverageDetails: "",
           },
-          emergencyContacts: emergencyContacts || [],
-          medicalHistory: [],
+          emergencyContacts: {
+            name:"",
+            relationship:"",
+            phone:""
+          },
+          medicalHistory: {
+            disease:"",
+            medications:"",
+            allergies:"",
+            familyHistory:""
+          },
+          appointments: [],
         });
+
         savedUser = await patient.save();
         console.log("Patient saved successfully:", savedUser);
         break;
@@ -102,11 +99,11 @@ router.post("/register", async (req, res) => {
           uid,
           username,
           isActive: true,
-          specialization,
-          licenseNumber,
-          qualifications: qualifications || [],
+          specialization: "",
+          licenseNumber: "",
           availability: [],
           patients: [],
+          appointments: [],
         });
         savedUser = await doctor.save();
         console.log("Doctor saved successfully:", savedUser);
@@ -121,9 +118,10 @@ router.post("/register", async (req, res) => {
     console.error("Registration error:", error);
     res.status(400).json({ error: error.message });
   }
-});
+};
 
-const getProfile = async (req, res) => {
+// Get current user profile
+const getUserProfile = async (req, res) => {
   try {
     res.json(req.user);
   } catch (error) {
@@ -131,55 +129,57 @@ const getProfile = async (req, res) => {
   }
 };
 
-const updateProfile = async (req, res) => {
+// Update user profile
+const updateUserProfile = async (req, res) => {
   try {
     const updates = Object.keys(req.body);
 
+    // base fields
     const baseUpdates = ["firstName", "lastName", "phone", "address"];
 
+    // based on user role, add allowed updates
     let allowedUpdates = [...baseUpdates];
-    
+
+    // if user is doctor, add doctor specific fields
     if (req.user.role === "Doctor") {
-      allowedUpdates = [
-        ...allowedUpdates,
-        "specialization",
-        "licenseNumber",
-        "qualifications",
-      ];
+      allowedUpdates.push("specialization", "licenseNumber");
     }
 
     if (req.user.role === "Patient") {
-      allowedUpdates = [
-        ...allowedUpdates,
-        "dateOfBirth",
-        "gender",
-        "insuranceInfo",
-        "emergencyContacts",
-        "medicalHistory",
-      ];
+      allowedUpdates.push("dateOfBirth", "gender", "insuranceInfo", "emergencyContacts", "medicalHistory");
     }
 
     console.log("Allowed updates:", allowedUpdates);
     console.log("Received updates:", updates);
 
+    // check if update fields are valid
     const isValidOperation = updates.every(
-      (update) => allowedUpdates.includes(update) || update === "role"
+      (update) =>
+        allowedUpdates.includes(update) ||
+        update === "role" || // allow role field to exist but not update
+        update === "email" // allow email field to exist but not update
     );
 
     if (!isValidOperation) {
       return res.status(400).json({
         error: "Invalid updates!",
-        message: `Allowed updates are: ${allowedUpdates.join(", ")}`,
+        allowedUpdates: allowedUpdates,
+        receivedUpdates: updates,
       });
     }
 
+    // update fields
     updates.forEach((update) => {
-      if (update !== "role") {
+      // skip role and email fields
+      if (update !== "role" && update !== "email") {
         req.user[update] = req.body[update];
       }
     });
 
+    // save updates
     await req.user.save();
+
+    // return updated user data
     res.json(req.user);
   } catch (error) {
     console.error("Profile update error:", error);
@@ -190,23 +190,42 @@ const updateProfile = async (req, res) => {
   }
 };
 
-
-const deleteUser = async (req, res) => {
+// Delete current user's profile
+const deleteUserProfile = async (req, res) => {
   try {
-    const user = await Admin.findById(req.params.id);
-    if (!user) {
+    const { email, uid } = req.user;
+    const deletedUser = await User.findOneAndDelete({ email, uid });
+
+    if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    await user.remove();
-    res.json({ message: "User deleted successfully" });
+
+    res.json({ message: "User profile deleted successfully" });
+  } catch (error) {
+    console.error("Delete profile error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get all users
+const getAllUsers = async (req, res) => {
+  try {
+    // check if the user has user_management permission
+    if (!req.user.permissions.includes("user_management")) {
+      return res.status(403).json({ error: "Permission denied" });
+    }
+
+    const users = await User.find({});
+    res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 module.exports = {
-  register,
-  getProfile,
-  updateProfile,
-  deleteUser,
+  registerUser,
+  getUserProfile,
+  updateUserProfile,
+  deleteUserProfile,
+  getAllUsers,
 };
