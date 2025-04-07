@@ -69,12 +69,21 @@ router.post("/register", async (req, res) => {
           dateOfBirth: new Date(),
           gender: "prefer not to say",
           insuranceInfo: {
-            provider: "default",
-            policyNumber: "default",
-            coverageDetails: "default",
+            provider: "",
+            policyNumber: "",
+            coverageDetails: "",
           },
-          emergencyContacts: [],
-          medicalHistory: [],
+          emergencyContacts: {
+            name:"",
+            relationship:"",
+            phone:""
+          },
+          medicalHistory: {
+            disease:"",
+            medications:"",
+            allergies:"",
+            familyHistory:""
+          },
           appointments: [],
         });
 
@@ -137,6 +146,13 @@ router.put("/profile", auth, async (req, res) => {
     if (req.user.role === "Doctor") {
       allowedUpdates.push("specialization", "licenseNumber");
     }
+
+    if (req.user.role === "Patient") {
+      allowedUpdates.push("dateOfBirth", "gender", "insuranceInfo", "emergencyContacts", "medicalHistory");
+    }
+
+    console.log("Allowed updates:", allowedUpdates);
+    console.log("Received updates:", updates);
 
     // check if update fields are valid
     const isValidOperation = updates.every(

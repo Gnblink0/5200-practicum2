@@ -6,7 +6,7 @@ import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
-import axios from 'axios';
+
 
 export default function PatientDashboard() {
   const [error, setError] = useState("");
@@ -14,22 +14,6 @@ export default function PatientDashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
-  const [patientData, setPatientData] = useState(null);
-  const [medicalInfo, setMedicalInfo] = useState({
-    dateOfBirth: '',
-    gender: '',
-    insuranceInfo: {
-      provider: '',
-      policyNumber: '',
-      coverageDetails: ''
-    },
-    emergencyContacts: [{
-      name: '',
-      relationship: '',
-      phone: ''
-    }],
-    medicalHistory: []
-  });
 
   useEffect(() => {
     if (currentUser) {
@@ -38,15 +22,6 @@ export default function PatientDashboard() {
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    // Fetch patient data from the server
-    const fetchPatientData = async () => {
-      const response = await axios.get('/api/patients/me'); // 假设有一个获取当前患者信息的 API
-      setPatientData(response.data);
-      setMedicalInfo(response.data); // 初始化医疗信息
-    };
-    fetchPatientData();
-  }, []);
 
   async function loadAppointments() {
     try {
@@ -93,13 +68,6 @@ export default function PatientDashboard() {
       setError("Failed to log out: " + error.message);
     }
   }
-
-  const handleMedicalInfoChange = (name, value) => {
-    setMedicalInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -158,8 +126,6 @@ export default function PatientDashboard() {
           open={showEditProfile}
           onClose={() => setShowEditProfile(false)}
           currentUser={currentUser}
-          medicalInfo={medicalInfo}
-          onMedicalInfoChange={handleMedicalInfoChange}
         />
       </Container>
     </Box>

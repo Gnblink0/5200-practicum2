@@ -15,7 +15,7 @@ import { userApi } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, onMedicalInfoChange }) {
+export default function ProfileEdit({ open, onClose, currentUser, onMedicalInfoChange }) {
   const [formData, setFormData] = useState(() => {
     const baseData = {
       email: currentUser?.email || "",
@@ -38,6 +38,7 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
         specialization: currentUser.specialization || "",
         licenseNumber: currentUser.licenseNumber || "",
       };
+      
     } else if (currentUser?.role === "Patient") {
       return {
         ...baseData,
@@ -46,7 +47,6 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
         insuranceInfo: {
           provider: currentUser.insuranceInfo?.provider || "",
           policyNumber: currentUser.insuranceInfo?.policyNumber || "",
-          groupNumber: currentUser.insuranceInfo?.groupNumber || "",
           coverageDetails: currentUser.insuranceInfo?.coverageDetails || "",
         },
         emergencyContacts: currentUser.emergencyContacts || [{ 
@@ -55,10 +55,9 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
           phone: "" 
         }],
         medicalHistory: {
+          disease: currentUser.disease?.disease || "",
+          medications: currentUser.medications?.medications || "",
           allergies: currentUser.medicalHistory?.allergies || "",
-          chronicConditions: currentUser.medicalHistory?.chronicConditions || "",
-          currentMedications: currentUser.medicalHistory?.currentMedications || "",
-          pastSurgeries: currentUser.medicalHistory?.pastSurgeries || "",
           familyHistory: currentUser.medicalHistory?.familyHistory || "",
         }
       };
@@ -66,6 +65,7 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
 
     return baseData;
   });
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -355,15 +355,6 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                       onChange={handleChange}
                     />
                   </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      name="insuranceInfo.groupNumber"
-                      label="Group Number"
-                      value={formData.insuranceInfo?.groupNumber || ""}
-                      onChange={handleChange}
-                    />
-                  </Grid>
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
@@ -384,27 +375,27 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      name="emergencyContacts.0.name"
+                      name="emergencyContacts.name"
                       label="Emergency Contact Name"
-                      value={formData.emergencyContacts?.[0]?.name || ""}
+                      value={formData.emergencyContacts?.name || ""}
                       onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={6}>
                     <TextField
                       fullWidth
-                      name="emergencyContacts.0.relationship"
+                      name="emergencyContacts.relationship"
                       label="Relationship"
-                      value={formData.emergencyContacts?.[0]?.relationship || ""}
+                      value={formData.emergencyContacts?.relationship || ""}
                       onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={6}>
                     <TextField
                       fullWidth
-                      name="emergencyContacts.0.phone"
+                      name="emergencyContacts.phone"
                       label="Emergency Contact Phone"
-                      value={formData.emergencyContacts?.[0]?.phone || ""}
+                      value={formData.emergencyContacts?.phone || ""}
                       onChange={handleChange}
                     />
                   </Grid>
@@ -417,21 +408,9 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      name="medicalHistory.allergies"
-                      label="Allergies"
-                      value={formData.medicalHistory?.allergies || ""}
-                      onChange={handleChange}
-                      multiline
-                      rows={2}
-                      placeholder="List any allergies, separated by commas"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="medicalHistory.chronicConditions"
-                      label="Chronic Conditions"
-                      value={formData.medicalHistory?.chronicConditions || ""}
+                      name="medicalHistory.disease"
+                      label="disease"
+                      value={formData.medicalHistory?.disease || ""}
                       onChange={handleChange}
                       multiline
                       rows={2}
@@ -441,9 +420,9 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      name="medicalHistory.currentMedications"
-                      label="Current Medications"
-                      value={formData.medicalHistory?.currentMedications || ""}
+                      name="medicalHistory.medications"
+                      label="medications"
+                      value={formData.medicalHistory?.medications || ""}
                       onChange={handleChange}
                       multiline
                       rows={2}
@@ -453,13 +432,13 @@ export default function ProfileEdit({ open, onClose, currentUser, medicalInfo, o
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      name="medicalHistory.pastSurgeries"
-                      label="Past Surgeries"
-                      value={formData.medicalHistory?.pastSurgeries || ""}
+                      name="medicalHistory.allergies"
+                      label="Allergies"
+                      value={formData.medicalHistory?.allergies || ""}
                       onChange={handleChange}
                       multiline
                       rows={2}
-                      placeholder="List past surgeries with dates"
+                      placeholder="List any allergies, separated by commas"
                     />
                   </Grid>
                   <Grid item xs={12}>

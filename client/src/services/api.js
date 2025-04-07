@@ -103,14 +103,27 @@ export const userApi = {
 
   // Update user profile
   async updateProfile(userData) {
-    const response = await fetch(`${API_URL}/users/profile`, {
-      method: "PUT",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(userData),
-    });
-    if (!response.ok) throw new Error("Failed to update profile");
-    return response.json();
+    try {
+      const response = await fetch(`${API_URL}/users/profile`, {
+        method: "PUT",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(userData),
+      });
+    
+      console.log("Request Headers:", await getAuthHeaders());
+      if (!response.ok) {
+        const errorText = await response.text(); 
+        console.error("Error Response Text:", errorText); 
+        throw new Error(`Failed to update profile. Status: ${response.status} - ${errorText}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error("Update Profile Error:", error); 
+      throw error; 
+    }
   },
+  
 
   async getAllUsers() {
     const response = await fetch(`${API_URL}/users`, {

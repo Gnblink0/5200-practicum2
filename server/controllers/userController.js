@@ -135,11 +135,10 @@ const updateProfile = async (req, res) => {
   try {
     const updates = Object.keys(req.body);
 
-    // base fields
     const baseUpdates = ["firstName", "lastName", "phone", "address"];
 
-    // based on role, add allowed updates
     let allowedUpdates = [...baseUpdates];
+    
     if (req.user.role === "Doctor") {
       allowedUpdates = [
         ...allowedUpdates,
@@ -149,7 +148,20 @@ const updateProfile = async (req, res) => {
       ];
     }
 
-    // allow update except role
+    if (req.user.role === "Patient") {
+      allowedUpdates = [
+        ...allowedUpdates,
+        "dateOfBirth",
+        "gender",
+        "insuranceInfo",
+        "emergencyContacts",
+        "medicalHistory",
+      ];
+    }
+
+    console.log("Allowed updates:", allowedUpdates);
+    console.log("Received updates:", updates);
+
     const isValidOperation = updates.every(
       (update) => allowedUpdates.includes(update) || update === "role"
     );
@@ -177,6 +189,7 @@ const updateProfile = async (req, res) => {
     });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {

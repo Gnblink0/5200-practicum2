@@ -28,33 +28,19 @@ export default function UserProfileCard({ user, onEditClick }) {
               <Typography>Coverage Details: {user?.insuranceInfo?.coverageDetails || "N/A"}</Typography>
 
               <Typography variant="h6" mt={2}>Emergency Contacts</Typography>
-              {user?.emergencyContacts?.length > 0 ? (
-                user.emergencyContacts.map((contact, index) => (
-                  <Box key={index} mb={1}>
-                    <Typography>Name: {contact.name}</Typography>
-                    <Typography>Relationship: {contact.relationship}</Typography>
-                    <Typography>Phone: {contact.phone}</Typography>
-                  </Box>
-                ))
-              ) : (
-                <Typography>No emergency contacts provided.</Typography>
-              )}
+              <Typography>Name: {user?.emergencyContacts?.name|| "N/A"}</Typography>
+              <Typography>Relationship: {user?.emergencyContacts?.relationship|| "N/A"}</Typography>
+              <Typography>Phone: {user?.emergencyContacts?.phone|| "N/A"}</Typography>
+
 
               <Typography variant="h6" mt={2}>Medical History</Typography>
-              {user?.medicalHistory?.length > 0 ? (
-                user.medicalHistory.map((history, index) => (
-                  <Box key={index} mb={2}>
-                    <Typography>Disease(s): {history.disease?.join(", ") || "None"}</Typography>
-                    <Typography>Medications: {history.medications?.join(", ") || "None"}</Typography>
-                    <Typography>Allergies: {history.allergies?.join(", ") || "None"}</Typography>
-                    <Typography>Family History: {history.familyHistory || "N/A"}</Typography>
-                  </Box>
-                ))
-              ) : (
-                <Typography>No medical history provided.</Typography>
-              )}
+                    <Typography>Disease(s): {user?.medicalHistory?.disease|| "N/A"}</Typography>
+                    <Typography>Medications: {user?.medicalHistory?.medications || "N/A"}</Typography>
+                    <Typography>Allergies: {user?.medicalHistory?.allergies || "N/A"}</Typography>
+                    <Typography>Family History: {user?.medicalHistory?.familyHistory || "N/A"}</Typography>
             </>
           )}
+
         </Box>
         <Button
           variant="contained"
