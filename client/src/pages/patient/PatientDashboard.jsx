@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography } from "@mui/material";
+import { Container, Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Grid } from "@mui/material";
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
+
 
 export default function PatientDashboard() {
   const [error, setError] = useState("");
@@ -20,6 +21,7 @@ export default function PatientDashboard() {
       loadPrescriptions();
     }
   }, [currentUser]);
+
 
   async function loadAppointments() {
     try {

@@ -26,7 +26,6 @@ export default function Login() {
       setLoading(true);
       const { role } = await login(email, password);
 
-      // 根据角色导航到不同的仪表板
       switch (role) {
         case "Admin":
           navigate("/admin-dashboard");
