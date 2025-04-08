@@ -16,12 +16,28 @@ const getPrescriptions = async (req, res) => {
     }
 
     const prescriptions = await Prescription.find(query)
-      .populate("doctorId", "firstName lastName specialization")
-      .populate("patientId", "firstName lastName")
-      .populate("appointmentId")
+      .populate({
+        path: "patientId",
+        select: "firstName lastName email"
+      })
+      .populate({
+        path: "doctorId",
+        select: "firstName lastName specialization"
+      })
+      .populate({
+        path: "appointmentId",
+        select: "startTime endTime reason mode status"
+      })
       .sort({ issuedDate: -1 });
 
-    res.json(prescriptions);
+    // Transform the data to include patient and doctor names
+    const transformedPrescriptions = prescriptions.map(prescription => ({
+      ...prescription.toObject(),
+      patient: prescription.patientId,
+      doctor: prescription.doctorId
+    }));
+
+    res.json(transformedPrescriptions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -34,31 +50,67 @@ const createPrescription = async (req, res) => {
       return res.status(403).json({ error: "Only doctors can create prescriptions" });
     }
 
-    const { appointmentId, medications, instructions } = req.body;
+    const { appointmentId, medications, diagnosis, expiryDate } = req.body;
+
+    if (!appointmentId || !medications || !diagnosis || !expiryDate) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
     // Verify the appointment exists and belongs to the doctor
     const appointment = await Appointment.findOne({
       _id: appointmentId,
-      doctorId: req.user._id
-    });
+      doctorId: req.user._id,
+      status: 'confirmed'
+    }).populate('patientId');
 
     if (!appointment) {
       return res.status(404).json({ error: "Appointment not found or unauthorized" });
     }
 
+    // Validate expiry date
+    const expiry = new Date(expiryDate);
+    if (expiry <= new Date()) {
+      return res.status(400).json({ error: "Expiry date must be in the future" });
+    }
+
     const prescription = new Prescription({
       doctorId: req.user._id,
-      patientId: appointment.patientId,
+      patientId: appointment.patientId._id,
       appointmentId: appointment._id,
       medications,
-      instructions,
+      diagnosis,
       issuedDate: new Date(),
+      expiryDate: expiry,
       status: "active"
     });
 
     await prescription.save();
-    res.status(201).json(prescription);
+
+    // Populate the prescription with patient and doctor info before sending response
+    const populatedPrescription = await Prescription.findById(prescription._id)
+      .populate({
+        path: "patientId",
+        select: "firstName lastName email"
+      })
+      .populate({
+        path: "doctorId",
+        select: "firstName lastName specialization"
+      })
+      .populate({
+        path: "appointmentId",
+        select: "startTime endTime reason mode status"
+      });
+
+    // Transform the data to include patient and doctor names
+    const transformedPrescription = {
+      ...populatedPrescription.toObject(),
+      patient: populatedPrescription.patientId,
+      doctor: populatedPrescription.doctorId
+    };
+
+    res.status(201).json(transformedPrescription);
   } catch (error) {
+    console.error("Error in createPrescription:", error);
     res.status(400).json({ error: error.message });
   }
 };
@@ -81,7 +133,30 @@ const updatePrescription = async (req, res) => {
 
     Object.assign(prescription, req.body);
     await prescription.save();
-    res.json(prescription);
+
+    // Populate the prescription with patient and doctor info before sending response
+    const populatedPrescription = await Prescription.findById(prescription._id)
+      .populate({
+        path: "patientId",
+        select: "firstName lastName email"
+      })
+      .populate({
+        path: "doctorId",
+        select: "firstName lastName specialization"
+      })
+      .populate({
+        path: "appointmentId",
+        select: "startTime endTime reason mode status"
+      });
+
+    // Transform the data to include patient and doctor names
+    const transformedPrescription = {
+      ...populatedPrescription.toObject(),
+      patient: populatedPrescription.patientId,
+      doctor: populatedPrescription.doctorId
+    };
+
+    res.json(transformedPrescription);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

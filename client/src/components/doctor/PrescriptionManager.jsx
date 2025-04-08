@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -17,8 +17,13 @@ import {
   TableRow,
   Paper,
   Grid,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
+import { appointmentService } from "../../services/appointmentService";
 
 export default function PrescriptionManager({
   prescriptions,
@@ -28,12 +33,28 @@ export default function PrescriptionManager({
 }) {
   const [open, setOpen] = useState(false);
   const [editingPrescription, setEditingPrescription] = useState(null);
+  const [appointments, setAppointments] = useState([]);
   const [formData, setFormData] = useState({
-    patientId: "",
+    appointmentId: "",
     medications: [{ name: "", dosage: "", frequency: "", duration: "" }],
     diagnosis: "",
     expiryDate: "",
   });
+
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const loadAppointments = async () => {
+    try {
+      const data = await appointmentService.getDoctorAppointments();
+      // Filter for confirmed appointments
+      const confirmedAppointments = data.filter(apt => apt.status === 'confirmed');
+      setAppointments(confirmedAppointments);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+    }
+  };
 
   const handleAddMedication = () => {
     setFormData({
@@ -70,7 +91,7 @@ export default function PrescriptionManager({
     setOpen(false);
     setEditingPrescription(null);
     setFormData({
-      patientId: "",
+      appointmentId: "",
       medications: [{ name: "", dosage: "", frequency: "", duration: "" }],
       diagnosis: "",
       expiryDate: "",
@@ -80,7 +101,7 @@ export default function PrescriptionManager({
   const handleEdit = (prescription) => {
     setEditingPrescription(prescription);
     setFormData({
-      patientId: prescription.patientId,
+      appointmentId: prescription.appointmentId,
       medications: prescription.medications,
       diagnosis: prescription.diagnosis,
       expiryDate: prescription.expiryDate.split("T")[0],
@@ -115,7 +136,9 @@ export default function PrescriptionManager({
                 <TableCell>
                   {new Date(prescription.issuedDate).toLocaleDateString()}
                 </TableCell>
-                <TableCell>{prescription.patient?.name}</TableCell>
+                <TableCell>
+                  {prescription.patient?.firstName} {prescription.patient?.lastName}
+                </TableCell>
                 <TableCell>{prescription.diagnosis}</TableCell>
                 <TableCell>
                   {prescription.medications
@@ -143,15 +166,22 @@ export default function PrescriptionManager({
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField
-              label="Patient ID"
-              value={formData.patientId}
-              onChange={(e) =>
-                setFormData({ ...formData, patientId: e.target.value })
-              }
-              fullWidth
-              required
-            />
+            <FormControl fullWidth required>
+              <InputLabel>Select Patient from Appointment</InputLabel>
+              <Select
+                value={formData.appointmentId}
+                onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
+                label="Select Patient from Appointment"
+              >
+                {appointments.map((appointment) => (
+                  <MenuItem key={appointment._id} value={appointment._id}>
+                    {appointment.patient?.firstName} {appointment.patient?.lastName} - 
+                    {new Date(appointment.startTime).toLocaleDateString()} {new Date(appointment.startTime).toLocaleTimeString()}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <TextField
               label="Diagnosis"
               value={formData.diagnosis}
@@ -224,26 +254,29 @@ export default function PrescriptionManager({
                     />
                   </Grid>
                 </Grid>
-                {index > 0 && (
-                  <Button
-                    onClick={() => handleRemoveMedication(index)}
-                    color="error"
-                    sx={{ mt: 1 }}
-                  >
-                    Remove Medication
-                  </Button>
-                )}
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleRemoveMedication(index)}
+                  sx={{ mt: 1 }}
+                >
+                  Remove Medication
+                </Button>
               </Box>
             ))}
-            <Button onClick={handleAddMedication} sx={{ mt: 1 }}>
-              Add Another Medication
+            <Button
+              variant="outlined"
+              onClick={handleAddMedication}
+              sx={{ mt: 2 }}
+            >
+              Add Medication
             </Button>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingPrescription ? "Update" : "Add"}
+            {editingPrescription ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
