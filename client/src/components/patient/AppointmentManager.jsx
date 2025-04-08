@@ -301,6 +301,10 @@ export default function AppointmentManager({
 
       if (result) {
         setSuccess("Appointment cancelled successfully");
+        // If we have a selected doctor, refresh their available slots
+        if (formData.doctorId) {
+          await handleDoctorChange({ target: { value: formData.doctorId } });
+        }
         // Clear success message after 3 seconds
         setTimeout(() => {
           setSuccess("");
@@ -486,8 +490,16 @@ export default function AppointmentManager({
         </Snackbar>
       )}
 
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Book New Appointment</DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth="md" 
+        fullWidth
+        aria-labelledby="appointment-dialog-title"
+        disableEnforceFocus
+        disableRestoreFocus
+      >
+        <DialogTitle id="appointment-dialog-title">Book New Appointment</DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
@@ -508,7 +520,7 @@ export default function AppointmentManager({
               onChange={handleDoctorChange}
               fullWidth
               required
-              disabled={!getEditableFields(editingAppointment?.status).includes('doctorId')}
+              disabled={editingAppointment && !getEditableFields(editingAppointment.status).includes('doctorId')}
             >
               {doctors.map((doctor) => (
                 <MenuItem key={doctor._id} value={doctor._id}>
@@ -526,7 +538,7 @@ export default function AppointmentManager({
                   onChange={handleTimeSlotChange}
                   fullWidth
                   required
-                  disabled={!getEditableFields(editingAppointment?.status).includes('scheduleId')}
+                  disabled={editingAppointment && !getEditableFields(editingAppointment.status).includes('scheduleId')}
                   helperText={
                     getAvailableSlotOptions().length === 0 
                       ? "No available time slots for this doctor" 

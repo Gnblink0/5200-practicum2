@@ -192,6 +192,7 @@ const createAppointment = async (req, res) => {
     // Check if patient already has an appointment at this time
     const existingAppointment = await Appointment.findOne({
       patientId: req.user._id,
+      status: { $ne: 'cancelled' }, // Exclude cancelled appointments
       $or: [
         {
           startTime: { $lt: schedule.endTime },
@@ -250,16 +251,26 @@ const updateAppointment = async (req, res) => {
         appointment.status = 'cancelled';
         
         // If there's an associated schedule, mark it as available again
-        const schedule = await DoctorSchedule.findOne({
+        const schedule = await DoctorSchedule.findOneAndUpdate(
+          {
+            doctorId: appointment.doctorId,
+            startTime: appointment.startTime,
+            endTime: appointment.endTime,
+            isAvailable: false
+          },
+          { isAvailable: true },
+          { new: true }
+        );
+        
+        console.log('Schedule update result:', {
+          appointmentId: appointment._id,
           doctorId: appointment.doctorId,
           startTime: appointment.startTime,
-          endTime: appointment.endTime
+          endTime: appointment.endTime,
+          scheduleFound: !!schedule,
+          scheduleId: schedule?._id,
+          isAvailable: schedule?.isAvailable
         });
-        
-        if (schedule) {
-          schedule.isAvailable = true;
-          await schedule.save();
-        }
       } else {
         return res.status(400).json({ 
           error: "Invalid status update. Can only cancel pending or confirmed appointments." 
