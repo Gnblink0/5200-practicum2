@@ -123,9 +123,6 @@ export default function PatientDashboard() {
         </Box>
 
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            My Appointments
-          </Typography>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
               <CircularProgress />
