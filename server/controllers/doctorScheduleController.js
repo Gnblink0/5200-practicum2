@@ -1,4 +1,5 @@
 const DoctorSchedule = require("../models/DoctorSchedule");
+const User = require("../models/User");
 
 // get doctor's all schedules
 const getSchedules = async (req, res) => {
@@ -150,9 +151,80 @@ const deleteSchedule = async (req, res) => {
   }
 };
 
+// Get available time slots for a specific doctor
+const getAvailableSlots = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { date } = req.query;
+
+    // Validate doctor exists and is active
+    const doctor = await User.findOne({ 
+      _id: doctorId, 
+      role: "Doctor", 
+      isActive: true 
+    }).select('firstName lastName specialization');
+
+    if (!doctor) {
+      return res.status(404).json({ error: "Doctor not found or inactive" });
+    }
+
+    // If date is provided, filter by date
+    let query = {
+      doctorId,
+      isAvailable: true,
+      startTime: { $gte: new Date() }
+    };
+
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query.startTime = {
+        $gte: startOfDay,
+        $lte: endOfDay
+      };
+    }
+
+    const availableSlots = await DoctorSchedule.find(query)
+      .sort({ startTime: 1 })
+      .lean();
+
+    // Group slots by date while keeping original date format
+    const groupedSlots = availableSlots.reduce((acc, slot) => {
+      const date = slot.startTime.toISOString().split('T')[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push({
+        _id: slot._id,
+        doctorId: slot.doctorId,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isAvailable: slot.isAvailable
+      });
+      return acc;
+    }, {});
+
+    res.json({
+      doctor: {
+        id: doctor._id,
+        name: `${doctor.firstName} ${doctor.lastName}`,
+        specialization: doctor.specialization
+      },
+      availableSlots: groupedSlots
+    });
+  } catch (error) {
+    console.error('Error getting available slots:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getSchedules,
   createSchedule,
   updateSchedule,
   deleteSchedule,
+  getAvailableSlots
 };

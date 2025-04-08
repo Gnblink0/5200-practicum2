@@ -13,8 +13,18 @@ export const scheduleService = {
     return response.json();
   },
 
-  // 创建新排班
+  
   createSchedule: async (scheduleData) => {
+    // Ensure startTime and endTime are valid date strings
+    const formattedData = {
+      ...scheduleData,
+      startTime: new Date(scheduleData.startTime).toISOString(),
+      endTime: new Date(scheduleData.endTime).toISOString(),
+    };
+
+    console.log("Formatted startTime:", formattedData.startTime);  // Log startTime
+    console.log("Formatted endTime:", formattedData.endTime);      // Log endTime
+
     const response = await fetch(`${API_URL}/schedules`, {
       method: "POST",
       headers: {
@@ -22,9 +32,15 @@ export const scheduleService = {
         "X-User-Email": localStorage.getItem("userEmail"),
         "X-User-UID": localStorage.getItem("userUID"),
       },
-      body: JSON.stringify(scheduleData),
+      body: JSON.stringify(formattedData),
     });
-    if (!response.ok) throw new Error("Failed to create schedule");
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("Server error:", errorData);  // Log server error
+      throw new Error(errorData || "Failed to create schedule");
+    }
+
     return response.json();
   },
 

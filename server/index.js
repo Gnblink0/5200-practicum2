@@ -2,11 +2,19 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const auth = require("./middleware/auth");
 
 // Import routes
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
 const doctorScheduleRoutes = require("./routes/doctorScheduleRoutes");
+const prescriptionRoutes = require("./routes/prescriptionRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -101,7 +109,10 @@ mongoose.connection.on("disconnected", () => {
 // API routes
 app.use("/api/users", userRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/doctors", doctorRoutes);
 app.use("/api/schedules", doctorScheduleRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
