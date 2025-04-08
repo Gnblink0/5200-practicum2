@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography } from "@mui/material";
+import { Container, Box, Typography, CircularProgress } from "@mui/material";
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
@@ -12,6 +12,7 @@ import AppointmentManager from "../../components/patient/AppointmentManager";
 import PrescriptionViewer from "../../components/patient/PrescriptionViewer";
 
 export default function PatientDashboard() {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -29,10 +30,16 @@ export default function PatientDashboard() {
 
   async function loadAppointments() {
     try {
+      setLoading(true);
+      setError("");
       const data = await appointmentService.getAppointments(currentUser._id, "Patient");
+      console.log('Loaded appointments:', data);
       setAppointments(data);
     } catch (error) {
+      console.error('Error loading appointments:', error);
       setError("Failed to load appointments: " + error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -56,22 +63,28 @@ export default function PatientDashboard() {
 
   async function handleAddAppointment(appointmentData) {
     try {
-      await appointmentService.createAppointment({
-        ...appointmentData,
-        patientId: currentUser._id,
-      });
-      loadAppointments();
+      console.log('Creating appointment with data:', appointmentData);
+      const newAppointment = await appointmentService.createAppointment(appointmentData);
+      console.log('Created appointment:', newAppointment);
+      await loadAppointments();
     } catch (error) {
+      console.error('Error creating appointment:', error);
       setError("Failed to create appointment: " + error.message);
     }
   }
 
   async function handleUpdateAppointment(id, appointmentData) {
     try {
-      await appointmentService.updateAppointment(id, appointmentData);
-      loadAppointments();
+      console.log('Updating appointment:', { id, appointmentData });
+      const result = await appointmentService.updateAppointment(id, appointmentData);
+      console.log('Update result:', result);
+      // Immediately reload appointments after successful update
+      await loadAppointments();
+      return result;
     } catch (error) {
+      console.error('Error updating appointment:', error);
       setError("Failed to update appointment: " + error.message);
+      throw error;
     }
   }
 
@@ -110,13 +123,22 @@ export default function PatientDashboard() {
         </Box>
 
         <Box sx={{ mb: 4 }}>
-          <AppointmentManager
-            appointments={appointments}
-            doctors={doctors}
-            onAdd={handleAddAppointment}
-            onUpdate={handleUpdateAppointment}
-            onDelete={handleDeleteAppointment}
-          />
+          <Typography variant="h5" gutterBottom>
+            My Appointments
+          </Typography>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <AppointmentManager
+              appointments={appointments}
+              doctors={doctors}
+              onAdd={handleAddAppointment}
+              onUpdate={handleUpdateAppointment}
+              onDelete={handleDeleteAppointment}
+            />
+          )}
         </Box>
 
         <Box sx={{ mb: 4 }}>

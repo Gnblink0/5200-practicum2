@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
       password
     );
 
-    // after Firebase auth, save user info to localStorage
+    // Save Firebase auth info
     localStorage.setItem("userEmail", email);
     localStorage.setItem("userUID", userCredential.user.uid);
 

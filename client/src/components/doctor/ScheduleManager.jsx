@@ -21,7 +21,10 @@ import {
   ListItemText,
   Divider,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Tooltip,
+  Chip,
+  Alert
 } from "@mui/material";
 import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -29,6 +32,67 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
+
+const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
+  const isBooked = !schedule.isAvailable;
+  
+  return (
+    <ListItem
+      secondaryAction={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title={isBooked ? "This time slot has been booked" : "Toggle availability"}>
+            <span>
+              <Switch
+                checked={schedule.isAvailable}
+                onChange={(e) => onUpdate(schedule._id, e.target.checked)}
+                color="primary"
+                disabled={isBooked}
+              />
+            </span>
+          </Tooltip>
+          <Tooltip title={isBooked ? "Cannot delete booked schedule" : "Delete schedule"}>
+            <span>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => onDelete(schedule._id)}
+                disabled={isBooked}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+      }
+    >
+      <ListItemText
+        primary={
+          <Typography>
+            {new Date(schedule.startTime).toLocaleDateString()}
+            {isBooked && (
+              <Chip
+                size="small"
+                label="Booked"
+                color="error"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Typography>
+        }
+        secondary={
+          <Box>
+            <Typography variant="body2">
+              Time: {new Date(schedule.startTime).toLocaleTimeString()} - {new Date(schedule.endTime).toLocaleTimeString()}
+            </Typography>
+            <Typography variant="body2" color={isBooked ? "error" : "success"}>
+              Status: {isBooked ? "Not Available (Booked)" : "Available"}
+            </Typography>
+          </Box>
+        }
+      />
+    </ListItem>
+  );
+};
 
 export default function ScheduleManager({
   schedules,
@@ -115,84 +179,58 @@ export default function ScheduleManager({
         <List>
           {schedules.map((schedule, index) => (
             <React.Fragment key={schedule._id}>
-              <ListItem
-                secondaryAction={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={schedule.isAvailable}
-                          onChange={(e) => handleAvailabilityChange(schedule._id, e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label={schedule.isAvailable ? "Available" : "Not Available"}
-                    />
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => onDelete(schedule._id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                }
-              >
-                <ListItemText
-                  primary={new Date(schedule.startTime).toLocaleDateString()}
-                  secondary={
-                    <>
-                      Time: {new Date(schedule.startTime).toLocaleTimeString()} - {new Date(schedule.endTime).toLocaleTimeString()}
-                    </>
-                  }
-                />
-              </ListItem>
+              <ScheduleItem
+                schedule={schedule}
+                onDelete={onDelete}
+                onUpdate={(id, isAvailable) => onUpdate(id, { isAvailable })}
+              />
               {index < schedules.length - 1 && <Divider />}
             </React.Fragment>
           ))}
         </List>
       )}
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Add New Schedule</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Box sx={{ mt: 2 }}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
                 label="Date"
                 value={date}
-                onChange={(newValue) => setDate(newValue)}
-                disablePast
-                renderInput={(params) => <TextField {...params} />}
+                onChange={setDate}
+                minDate={new Date()}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth sx={{ mb: 2 }} />
+                )}
               />
               <TimePicker
                 label="Start Time"
                 value={startTime}
-                onChange={(newValue) => setStartTime(newValue)}
-                renderInput={(params) => <TextField {...params} />}
+                onChange={setStartTime}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth sx={{ mb: 2 }} />
+                )}
               />
               <TimePicker
                 label="End Time"
                 value={endTime}
-                onChange={(newValue) => setEndTime(newValue)}
-                renderInput={(params) => <TextField {...params} />}
+                onChange={setEndTime}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth />
+                )}
               />
             </LocalizationProvider>
-            {error && (
-              <Typography color="error" variant="body2">
-                {error}
-              </Typography>
-            )}
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained" 
-            color="primary"
-            type="button"
-          >
+          <Button onClick={handleSubmit} variant="contained" color="primary">
             Add Schedule
           </Button>
         </DialogActions>

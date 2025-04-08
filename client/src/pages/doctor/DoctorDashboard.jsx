@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography, TableRow, TableCell } from "@mui/material";
+import { Container, Box, Typography, TableRow, TableCell, CircularProgress, Alert, Chip } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import DashboardHeader from "../../components/shared/DashboardHeader";
@@ -10,10 +10,12 @@ import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
 import { scheduleService } from "../../services/scheduleService";
 import { prescriptionService } from "../../services/prescriptionService";
+import { appointmentService } from "../../services/appointmentService";
 import ScheduleManager from "../../components/doctor/ScheduleManager";
 import PrescriptionManager from "../../components/doctor/PrescriptionManager";
 
 export default function DoctorDashboard() {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -31,19 +33,17 @@ export default function DoctorDashboard() {
 
   async function loadAppointments() {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/appointments/doctor/appointments`, {
-        headers: {
-          'X-User-Email': currentUser.email,
-          'X-User-UID': currentUser.uid,
-          'Content-Type': 'application/json'
-        }
-      });if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      setLoading(true);
+      setError("");
+      console.log('Loading appointments for doctor:', currentUser._id);
+      const data = await appointmentService.getDoctorAppointments();
+      console.log('Loaded appointments:', data);
       setAppointments(data);
     } catch (error) {
+      console.error('Error loading appointments:', error);
       setError("Failed to load appointments: " + error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -159,29 +159,57 @@ export default function DoctorDashboard() {
             <Typography variant="h5" gutterBottom>
               Appointments
             </Typography>
-            <DataTable
-              columns={appointmentColumns}
-              data={appointments}
-              renderRow={(appointment) => (
-                <TableRow key={appointment._id}>
-                  <TableCell>
-                    {new Date(appointment.startTime).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(appointment.startTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {appointment.patientId?.firstName} {appointment.patientId?.lastName}
-                  </TableCell>
-                  <TableCell>{appointment.reason}</TableCell>
-                  <TableCell>{appointment.mode}</TableCell>
-                  <TableCell>{appointment.status}</TableCell>
-                </TableRow>
-              )}
-            />
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : error ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            ) : appointments.length === 0 ? (
+              <Typography variant="body1" color="textSecondary">
+                No appointments found.
+              </Typography>
+            ) : (
+              <DataTable
+                columns={appointmentColumns}
+                data={appointments}
+                renderRow={(appointment) => (
+                  <TableRow key={appointment._id}>
+                    <TableCell>
+                      {new Date(appointment.startTime).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(appointment.startTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      {appointment.patientId?.firstName} {appointment.patientId?.lastName}
+                    </TableCell>
+                    <TableCell>{appointment.reason}</TableCell>
+                    <TableCell>{appointment.mode}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={appointment.status}
+                        color={
+                          appointment.status === "confirmed"
+                            ? "success"
+                            : appointment.status === "pending"
+                            ? "warning"
+                            : appointment.status === "cancelled"
+                            ? "error"
+                            : "info"
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
+                )}
+              />
+            )}
           </Box>
 
           <Box sx={{ mb: 4 }}>

@@ -100,7 +100,7 @@ const registerUser = async (req, res) => {
           username,
           isActive: true,
           specialization: "",
-          licenseNumber: "",
+          licenseNumber: req.body.licenseNumber || undefined,
           availability: [],
           patients: [],
           appointments: [],

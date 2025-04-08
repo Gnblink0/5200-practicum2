@@ -31,6 +31,7 @@ export default function Signup() {
       state: "",
       zipCode: "",
     },
+    licenseNumber: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,6 +91,7 @@ export default function Signup() {
         },
         isActive: true,
         role: formData.role,
+        ...(formData.role === 'Doctor' && formData.licenseNumber ? { licenseNumber: formData.licenseNumber } : {}),
       };
 
       // Create user in backend

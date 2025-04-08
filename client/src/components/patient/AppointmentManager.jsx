@@ -21,8 +21,10 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
+  Chip,
+  Tooltip,
 } from "@mui/material";
-import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon, Cancel as CancelIcon } from "@mui/icons-material";
 import { doctorService } from "../../services/doctorService";
 
 export default function AppointmentManager({
@@ -37,6 +39,7 @@ export default function AppointmentManager({
   const [availableSlots, setAvailableSlots] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [formData, setFormData] = useState({
     doctorId: "",
     scheduleId: "",
@@ -44,41 +47,159 @@ export default function AppointmentManager({
     mode: "in-person",
   });
 
+  // Add status constants
+  const APPOINTMENT_STATUS = {
+    PENDING: 'pending',
+    CONFIRMED: 'confirmed',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled'
+  };
+
+  // Add helper function to determine editable fields
+  const getEditableFields = (status) => {
+    switch (status) {
+      case APPOINTMENT_STATUS.PENDING:
+        return ['doctorId', 'scheduleId', 'reason', 'mode'];
+      case APPOINTMENT_STATUS.CONFIRMED:
+        return ['reason', 'mode'];
+      default:
+        return [];
+    }
+  };
+
+  // Add status actions component
+  const StatusActions = ({ appointment, onCancel }) => {
+    const renderActionButtons = () => {
+      switch (appointment.status) {
+        case APPOINTMENT_STATUS.PENDING:
+        case APPOINTMENT_STATUS.CONFIRMED:
+          return (
+            <Tooltip title="Cancel appointment">
+              <IconButton onClick={() => onCancel(appointment._id)}>
+                <CancelIcon color="error" />
+              </IconButton>
+            </Tooltip>
+          );
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        {renderActionButtons()}
+      </Box>
+    );
+  };
+
   const handleDoctorChange = async (event) => {
     const selectedDoctorId = event.target.value;
     setFormData({ ...formData, doctorId: selectedDoctorId, scheduleId: "" });
+    setLoading(true);
+    setError("");
     
     if (!selectedDoctorId) {
       setAvailableSlots({});
+      setLoading(false);
       return;
     }
 
     try {
+      console.log('Fetching available slots for doctor:', selectedDoctorId);
       const response = await doctorService.getDoctorAvailableSlots(selectedDoctorId);
       console.log('Raw server response:', response);
       
-      // Filter out past slots
+      // Filter out past slots and ensure valid dates
       const now = new Date();
       const filteredSlots = {};
+      let totalAvailableSlots = 0;
       
       Object.entries(response.availableSlots).forEach(([date, slots]) => {
+        console.log('Processing slots for date:', date, slots);
+        
         const validSlots = slots.filter(slot => {
-          const startTime = new Date(slot.startTime);
-          return startTime > now && slot.isAvailable;
+          try {
+            // Create dates using local time
+            const startTime = new Date(slot.startTime);
+            const endTime = new Date(slot.endTime);
+            
+            console.log('Validating slot:', {
+              id: slot._id,
+              startTime: startTime.toLocaleString(),
+              endTime: endTime.toLocaleString(),
+              isAvailable: slot.isAvailable,
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            });
+            
+            const isValid = startTime > now && 
+                          endTime > startTime && 
+                          slot.isAvailable === true; // Strict comparison
+            
+            if (!isValid) {
+              console.log('Slot rejected:', {
+                reasons: {
+                  isPast: startTime <= now,
+                  invalidRange: endTime <= startTime,
+                  isUnavailable: !slot.isAvailable
+                }
+              });
+            }
+            
+            return isValid;
+          } catch (error) {
+            console.error('Error processing slot:', slot, error);
+            return false;
+          }
         });
         
         if (validSlots.length > 0) {
-          filteredSlots[date] = validSlots;
+          // Use local date as key
+          const localDate = new Date(validSlots[0].startTime);
+          const dateKey = localDate.getFullYear() + '-' + 
+                         String(localDate.getMonth() + 1).padStart(2, '0') + '-' +
+                         String(localDate.getDate()).padStart(2, '0');
+          filteredSlots[dateKey] = validSlots;
+          totalAvailableSlots += validSlots.length;
         }
       });
 
-      console.log('Filtered available slots:', filteredSlots);
+      console.log('Filtered available slots:', {
+        total: totalAvailableSlots,
+        slots: filteredSlots,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+      
       setAvailableSlots(filteredSlots);
+      
+      if (totalAvailableSlots === 0) {
+        setError("No available time slots found for this doctor.");
+      }
       
     } catch (error) {
       console.error('Error fetching available slots:', error);
+      setError("Failed to load available time slots. Please try again.");
       setAvailableSlots({});
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleTimeSlotChange = (e) => {
+    const selectedSlotId = e.target.value;
+    console.log('Time slot selected:', {
+      selectedSlotId,
+      event: e.type,
+      currentFormData: formData
+    });
+    
+    // Update form data
+    setFormData(prev => {
+      console.log('Updating form data:', {
+        previous: prev,
+        new: { ...prev, scheduleId: selectedSlotId }
+      });
+      return { ...prev, scheduleId: selectedSlotId };
+    });
   };
 
   const handleSubmit = async () => {
@@ -97,35 +218,48 @@ export default function AppointmentManager({
         return;
       }
 
-      // Validate selected time slot
-      const selectedSlot = getAvailableSlotOptions().find(slot => slot.value === formData.scheduleId);
-      if (!selectedSlot) {
+      // Final validation of selected slot
+      const selectedSlot = Object.values(availableSlots)
+        .flat()
+        .find(slot => slot._id === formData.scheduleId);
+
+      console.log('Final validation of selected slot:', {
+        selectedId: formData.scheduleId,
+        foundSlot: selectedSlot ? {
+          id: selectedSlot._id,
+          startTime: new Date(selectedSlot.startTime).toLocaleString(),
+          isAvailable: selectedSlot.isAvailable
+        } : null
+      });
+      
+      if (!selectedSlot || !selectedSlot.isAvailable) {
         setError("The selected time slot is no longer available");
+        // Refresh available slots immediately
+        await handleDoctorChange({ target: { value: formData.doctorId } });
         return;
       }
 
-      const slotTime = new Date(selectedSlot.startTime);
-      if (slotTime <= new Date()) {
-        setError("Cannot book appointments in the past");
-        return;
-      }
-
-      console.log('Selected slot:', selectedSlot);
-      console.log('Submitting appointment data:', formData);
-
-      if (editingAppointment) {
-        await onUpdate(editingAppointment._id, formData);
-      } else {
-        const appointmentData = {
-          doctorId: formData.doctorId,
-          scheduleId: formData.scheduleId,
-          reason: formData.reason,
-          mode: formData.mode
-        };
-        console.log('Formatted appointment data:', appointmentData);
+      // If we get here, proceed with booking
+      const appointmentData = {
+        doctorId: formData.doctorId,
+        scheduleId: formData.scheduleId,
+        reason: formData.reason,
+        mode: formData.mode
+      };
+      
+      try {
+        console.log('Submitting appointment data:', appointmentData);
         await onAdd(appointmentData);
+        setSuccess("Appointment booked successfully");
+        handleClose();
+      } catch (error) {
+        if (error.message.includes("not available")) {
+          setError("This time slot has just been booked by someone else. Please select another time.");
+          await handleDoctorChange({ target: { value: formData.doctorId } });
+        } else {
+          setError(error.message);
+        }
       }
-      handleClose();
     } catch (error) {
       console.error("Appointment creation failed:", error);
       setError(error.message);
@@ -134,7 +268,6 @@ export default function AppointmentManager({
 
   const handleClose = () => {
     setOpen(false);
-    setEditingAppointment(null);
     setFormData({
       doctorId: "",
       scheduleId: "",
@@ -142,64 +275,114 @@ export default function AppointmentManager({
       mode: "in-person",
     });
     setAvailableSlots({});
+    setError("");
+    setSuccess("");
   };
 
-  const handleEdit = (appointment) => {
-    setEditingAppointment(appointment);
-    setFormData({
-      doctorId: appointment.doctorId,
-      scheduleId: appointment.scheduleId,
-      reason: appointment.reason,
-      mode: appointment.mode,
-    });
-    setOpen(true);
+  // Add cancel handler
+  const handleCancel = async (appointmentId) => {
+    try {
+      // Find the appointment to be cancelled
+      const appointment = appointments.find(apt => apt._id === appointmentId);
+      if (!appointment) {
+        throw new Error("Appointment not found");
+      }
+
+      // Only update the status while preserving other fields
+      const result = await onUpdate(appointmentId, {
+        status: APPOINTMENT_STATUS.CANCELLED,
+        reason: appointment.reason,
+        mode: appointment.mode,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        doctorId: appointment.doctorId,
+        patientId: appointment.patientId
+      });
+
+      if (result) {
+        setSuccess("Appointment cancelled successfully");
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccess("");
+        }, 3000);
+      }
+    } catch (error) {
+      setError("Failed to cancel appointment: " + error.message);
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setError("");
+      }, 3000);
+    }
   };
 
   // Convert available slots to options list
   const getAvailableSlotOptions = () => {
     const options = [];
+    const now = new Date();
     
     Object.entries(availableSlots).forEach(([date, slots]) => {
-      slots.forEach(slot => {
+      // Strict filtering for available and future slots
+      const availableSlots = slots.filter(slot => {
+        const startTime = new Date(slot.startTime);
+        const isAvailable = slot.isAvailable === true; // Strict comparison
+        const isFuture = startTime > now;
+        
+        console.log('Filtering slot:', {
+          id: slot._id,
+          startTime: startTime.toLocaleString(),
+          isAvailable,
+          isFuture,
+          willInclude: isAvailable && isFuture
+        });
+        
+        return isAvailable && isFuture;
+      });
+
+      availableSlots.forEach(slot => {
         const startTime = new Date(slot.startTime);
         const endTime = new Date(slot.endTime);
         
         const formattedStartTime = startTime.toLocaleTimeString('en-US', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          hour12: true
         });
         
         const formattedEndTime = endTime.toLocaleTimeString('en-US', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          hour12: true
         });
         
         const formattedDate = startTime.toLocaleDateString('en-US', {
           weekday: 'short',
           month: 'short',
-          day: 'numeric'
+          day: 'numeric',
+          year: 'numeric'
         });
 
         options.push({
           value: slot._id,
-          label: `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`
+          label: `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable: slot.isAvailable
         });
       });
     });
 
     // Sort options by start time
-    options.sort((a, b) => {
-      const slotA = Object.values(availableSlots)
-        .flat()
-        .find(slot => slot._id === a.value);
-      const slotB = Object.values(availableSlots)
-        .flat()
-        .find(slot => slot._id === b.value);
-      
-      return new Date(slotA.startTime) - new Date(slotB.startTime);
-    });
+    options.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
-    console.log('Generated slot options:', options);
+    console.log('Generated slot options:', {
+      total: options.length,
+      options: options.map(opt => ({
+        id: opt.value,
+        time: opt.label,
+        isAvailable: opt.isAvailable
+      }))
+    });
+    
     return options;
   };
 
@@ -211,6 +394,12 @@ export default function AppointmentManager({
           Book Appointment
         </Button>
       </Box>
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
 
       <TableContainer component={Paper}>
         <Table>
@@ -227,7 +416,12 @@ export default function AppointmentManager({
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow key={appointment._id}>
+              <TableRow 
+                key={appointment._id}
+                sx={{
+                  backgroundColor: appointment.status === APPOINTMENT_STATUS.CANCELLED ? '#f5f5f5' : 'inherit'
+                }}
+              >
                 <TableCell>
                   {new Date(appointment.startTime).toLocaleDateString()}
                 </TableCell>
@@ -242,18 +436,23 @@ export default function AppointmentManager({
                 </TableCell>
                 <TableCell>{appointment.reason}</TableCell>
                 <TableCell>{appointment.mode}</TableCell>
-                <TableCell>{appointment.status}</TableCell>
                 <TableCell>
-                  {appointment.status === "pending" && (
-                    <>
-                      <IconButton onClick={() => handleEdit(appointment)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton onClick={() => onDelete(appointment._id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </>
-                  )}
+                  <Chip 
+                    label={appointment.status} 
+                    color={
+                      appointment.status === APPOINTMENT_STATUS.CONFIRMED ? "success" :
+                      appointment.status === APPOINTMENT_STATUS.PENDING ? "warning" :
+                      appointment.status === APPOINTMENT_STATUS.CANCELLED ? "error" :
+                      "default"
+                    }
+                    sx={{ textTransform: 'capitalize' }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <StatusActions
+                    appointment={appointment}
+                    onCancel={handleCancel}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -261,14 +460,43 @@ export default function AppointmentManager({
         </Table>
       </TableContainer>
 
+      {success && (
+        <Snackbar
+          open={Boolean(success)}
+          autoHideDuration={3000}
+          onClose={() => setSuccess("")}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert severity="success" sx={{ width: '100%' }}>
+            {success}
+          </Alert>
+        </Snackbar>
+      )}
+
+      {error && (
+        <Snackbar
+          open={Boolean(error)}
+          autoHideDuration={3000}
+          onClose={() => setError("")}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+      )}
+
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingAppointment ? "Edit Appointment" : "Book New Appointment"}
-        </DialogTitle>
+        <DialogTitle>Book New Appointment</DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
               {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
+              {success}
             </Alert>
           )}
           
@@ -280,6 +508,7 @@ export default function AppointmentManager({
               onChange={handleDoctorChange}
               fullWidth
               required
+              disabled={!getEditableFields(editingAppointment?.status).includes('doctorId')}
             >
               {doctors.map((doctor) => (
                 <MenuItem key={doctor._id} value={doctor._id}>
@@ -288,34 +517,45 @@ export default function AppointmentManager({
               ))}
             </TextField>
 
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                <CircularProgress />
-              </Box>
-            ) : formData.doctorId && (
-              <TextField
-                select
-                label="Available Time Slots"
-                value={formData.scheduleId}
-                onChange={(e) => setFormData({ ...formData, scheduleId: e.target.value })}
-                fullWidth
-                required
-                disabled={!formData.doctorId}
-              >
-                {getAvailableSlotOptions().map((slot) => (
-                  <MenuItem key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </MenuItem>
-                ))}
-              </TextField>
+            {formData.doctorId && (
+              <>
+                <TextField
+                  select
+                  label="Available Time Slots"
+                  value={formData.scheduleId}
+                  onChange={handleTimeSlotChange}
+                  fullWidth
+                  required
+                  disabled={!getEditableFields(editingAppointment?.status).includes('scheduleId')}
+                  helperText={
+                    getAvailableSlotOptions().length === 0 
+                      ? "No available time slots for this doctor" 
+                      : "Please select a time slot"
+                  }
+                >
+                  {getAvailableSlotOptions().map((slot) => (
+                    <MenuItem 
+                      key={slot.value} 
+                      value={slot.value}
+                      disabled={!slot.isAvailable}
+                    >
+                      {slot.label}
+                      {!slot.isAvailable && " (Not Available)"}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                {getAvailableSlotOptions().length === 0 && (
+                  <Alert severity="info">
+                    No available time slots found. Please select a different doctor or try again later.
+                  </Alert>
+                )}
+              </>
             )}
 
             <TextField
-              label="Reason"
+              label="Reason for Visit"
               value={formData.reason}
-              onChange={(e) =>
-                setFormData({ ...formData, reason: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               fullWidth
               required
               multiline
@@ -324,23 +564,22 @@ export default function AppointmentManager({
 
             <TextField
               select
-              label="Mode"
+              label="Appointment Mode"
               value={formData.mode}
-              onChange={(e) =>
-                setFormData({ ...formData, mode: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
               fullWidth
               required
             >
-              <MenuItem value="in-person">In-Person</MenuItem>
-              <MenuItem value="telehealth">Telehealth</MenuItem>
+              <MenuItem value="in-person">In Person</MenuItem>
+              <MenuItem value="video">Video Call</MenuItem>
+              <MenuItem value="phone">Phone Call</MenuItem>
             </TextField>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
-            {editingAppointment ? "Update Appointment" : "Book Appointment"}
+            Book
           </Button>
         </DialogActions>
       </Dialog>

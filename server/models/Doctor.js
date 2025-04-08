@@ -12,7 +12,8 @@ const DoctorSchema = User.discriminator(
       },
       licenseNumber: {
         type: String,
-        default: "",
+        unique: true,
+        sparse: true,
       },
     },
     {

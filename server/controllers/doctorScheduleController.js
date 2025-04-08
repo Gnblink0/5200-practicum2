@@ -32,22 +32,52 @@ const createSchedule = async (req, res) => {
 
     const { startTime, endTime } = req.body;
 
-    // check if the time slot conflicts with existing schedules
+    console.log('Creating schedule with times:', {
+      startTime,
+      endTime,
+      parsedStartTime: new Date(startTime).toISOString(),
+      parsedEndTime: new Date(endTime).toISOString()
+    });
+
+    // Validate times
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({ error: "End time must be after start time" });
+    }
+
+    // Check if the time slot conflicts with existing schedules
     const conflictingSchedule = await DoctorSchedule.findOne({
       doctorId: req.user._id,
       $or: [
         {
-          startTime: { $lte: startTime },
-          endTime: { $gt: startTime },
+          startTime: { $lte: start },
+          endTime: { $gt: start },
         },
         {
-          startTime: { $lt: endTime },
-          endTime: { $gte: endTime },
+          startTime: { $lt: end },
+          endTime: { $gte: end },
         },
       ],
     });
 
     if (conflictingSchedule) {
+      console.log('Found conflicting schedule:', {
+        existing: {
+          startTime: conflictingSchedule.startTime.toISOString(),
+          endTime: conflictingSchedule.endTime.toISOString()
+        },
+        new: {
+          startTime: start.toISOString(),
+          endTime: end.toISOString()
+        }
+      });
+
       return res.status(400).json({
         error: "This time slot conflicts with an existing schedule",
       });
@@ -55,14 +85,21 @@ const createSchedule = async (req, res) => {
 
     const schedule = new DoctorSchedule({
       doctorId: req.user._id,
-      startTime,
-      endTime,
+      startTime: start,
+      endTime: end,
       isAvailable: true,
     });
 
     await schedule.save();
+    console.log('Created schedule:', {
+      id: schedule._id,
+      startTime: schedule.startTime.toISOString(),
+      endTime: schedule.endTime.toISOString()
+    });
+
     res.status(201).json(schedule);
   } catch (error) {
+    console.error('Error creating schedule:', error);
     res.status(400).json({ error: error.message });
   }
 };
