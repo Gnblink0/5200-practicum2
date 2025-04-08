@@ -192,8 +192,16 @@ export const appointmentService = {
   createAppointment: async (appointmentData) => {
     try {
       // Client-side validation
+      if (!appointmentData.startTime || !appointmentData.endTime) {
+        throw new Error("Start time and end time are required");
+      }
+
       const startTime = new Date(appointmentData.startTime);
       const endTime = new Date(appointmentData.endTime);
+      
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        throw new Error("Invalid time format");
+      }
       
       if (startTime >= endTime) {
         throw new Error("Invalid time range: appointment end time must be after start time");

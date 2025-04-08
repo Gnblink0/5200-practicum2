@@ -244,7 +244,9 @@ export default function AppointmentManager({
         doctorId: formData.doctorId,
         scheduleId: formData.scheduleId,
         reason: formData.reason,
-        mode: formData.mode
+        mode: formData.mode,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime
       };
       
       try {
