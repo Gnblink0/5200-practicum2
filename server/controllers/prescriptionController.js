@@ -112,9 +112,12 @@ const createPrescription = async (req, res) => {
 
     await prescription.save({ session });
 
-    // Update appointment status to indicate prescription was created
-    appointment.hasPrescription = true;
-    await appointment.save({ session });
+    // Update appointment hasPrescription flag without triggering validation
+    await Appointment.findByIdAndUpdate(
+      appointment._id,
+      { hasPrescription: true },
+      { session }
+    );
 
     // Commit the transaction
     await session.commitTransaction();

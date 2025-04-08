@@ -32,12 +32,44 @@ export default function PatientDashboard() {
     try {
       setLoading(true);
       setError("");
-      const data = await appointmentService.getAppointments(currentUser._id, "Patient");
-      console.log('Loaded appointments:', data);
-      setAppointments(data);
+
+      // Validate current user
+      if (!currentUser) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
+
+      // Log loading attempt
+      console.log('Loading appointments for user:', {
+        userId: currentUser._id,
+        email: currentUser.email,
+        role: currentUser.role
+      });
+
+      const userId = currentUser?._id;
+      const data = await appointmentService.getPatientAppointments(userId);
+      
+      // Validate response data
+      if (!Array.isArray(data)) {
+        console.warn('Unexpected appointments data format:', data);
+        setAppointments([]);
+      } else {
+        console.log('Successfully loaded appointments:', data.length);
+        setAppointments(data);
+      }
     } catch (error) {
       console.error('Error loading appointments:', error);
-      setError("Failed to load appointments: " + error.message);
+      
+      // Handle specific error cases
+      if (error.message.includes('Authentication required')) {
+        setError("Your session has expired. Please log in again.");
+      } else if (error.message.includes('Invalid user ID')) {
+        setError("There was a problem with your account. Please try logging in again.");
+      } else {
+        setError(`Failed to load appointments: ${error.message}`);
+      }
+      
+      // Clear appointments on error
+      setAppointments([]);
     } finally {
       setLoading(false);
     }

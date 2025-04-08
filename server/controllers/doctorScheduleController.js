@@ -30,6 +30,17 @@ const createSchedule = async (req, res) => {
         .json({ error: "Only doctors can create schedules" });
     }
 
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      return res
+        .status(403)
+        .json({ 
+          error: "Only verified doctors can create schedules",
+          verificationStatus: "pending",
+          message: "Please wait for admin verification to create schedules"
+        });
+    }
+
     const { startTime, endTime } = req.body;
 
     console.log('Creating schedule with times:', {
@@ -113,6 +124,17 @@ const updateSchedule = async (req, res) => {
         .json({ error: "Only doctors can update schedules" });
     }
 
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      return res
+        .status(403)
+        .json({ 
+          error: "Only verified doctors can update schedules",
+          verificationStatus: "pending",
+          message: "Please wait for admin verification to update schedules"
+        });
+    }
+
     const { startTime, endTime, isAvailable } = req.body;
     const scheduleId = req.params.id;
 
@@ -171,6 +193,17 @@ const deleteSchedule = async (req, res) => {
       return res
         .status(403)
         .json({ error: "Only doctors can delete schedules" });
+    }
+
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      return res
+        .status(403)
+        .json({ 
+          error: "Only verified doctors can delete schedules",
+          verificationStatus: "pending",
+          message: "Please wait for admin verification to delete schedules"
+        });
     }
 
     const schedule = await DoctorSchedule.findOneAndDelete({

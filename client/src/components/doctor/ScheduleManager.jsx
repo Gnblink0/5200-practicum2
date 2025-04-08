@@ -32,6 +32,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
+import { useAuth } from "../../contexts/AuthContext";
 
 const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
   const isBooked = !schedule.isAvailable;
@@ -67,7 +68,7 @@ const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
     >
       <ListItemText
         primary={
-          <Typography>
+          <Box>
             {new Date(schedule.startTime).toLocaleDateString()}
             {isBooked && (
               <Chip
@@ -77,14 +78,14 @@ const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
                 sx={{ ml: 1 }}
               />
             )}
-          </Typography>
+          </Box>
         }
         secondary={
           <Box>
-            <Typography variant="body2">
+            <Typography variant="body2" component="span">
               Time: {new Date(schedule.startTime).toLocaleTimeString()} - {new Date(schedule.endTime).toLocaleTimeString()}
             </Typography>
-            <Typography variant="body2" color={isBooked ? "error" : "success"}>
+            <Typography variant="body2" component="span" color={isBooked ? "error" : "success"}>
               Status: {isBooked ? "Not Available (Booked)" : "Available"}
             </Typography>
           </Box>
@@ -100,11 +101,22 @@ export default function ScheduleManager({
   onUpdate,
   onDelete,
 }) {
+  const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Early return if doctor is not verified
+  if (!currentUser.isVerified) {
+    return (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        You will be able to manage your schedule after your account is verified.
+      </Alert>
+    );
+  }
 
   const handleClickOpen = () => {
     setOpen(true);

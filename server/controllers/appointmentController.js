@@ -49,9 +49,10 @@ const getAppointments = async (req, res) => {
     if (req.params.role && req.params.userId) {
       const { role, userId } = req.params;
       
-      if (role === "Doctor") {
+      // Case-insensitive role comparison
+      if (role.toLowerCase() === "doctor") {
         query = { doctorId: userId };
-      } else if (role === "Patient") {
+      } else if (role.toLowerCase() === "patient") {
         query = { patientId: userId };
       } else {
         return res.status(400).json({ error: "Invalid role" });

@@ -436,7 +436,7 @@ export default function AppointmentManager({
                   })}
                 </TableCell>
                 <TableCell>
-                  {appointment.doctor?.firstName} {appointment.doctor?.lastName}
+                  {appointment.doctorId?.firstName} {appointment.doctorId?.lastName}
                 </TableCell>
                 <TableCell>{appointment.reason}</TableCell>
                 <TableCell>{appointment.mode}</TableCell>

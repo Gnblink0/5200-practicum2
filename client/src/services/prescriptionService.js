@@ -1,13 +1,16 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
+const getHeaders = () => ({
+  "Content-Type": "application/json",
+  "X-User-Email": localStorage.getItem("userEmail"),
+  "X-User-UID": localStorage.getItem("userUID"),
+});
+
 export const prescriptionService = {
   // Get prescriptions for a user (doctor or patient)
   getPrescriptions: async (userId, role) => {
     const response = await fetch(`${API_URL}/prescriptions/${role}/${userId}`, {
-      headers: {
-        "X-User-Email": localStorage.getItem("userEmail"),
-        "X-User-UID": localStorage.getItem("userUID"),
-      },
+      headers: getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to fetch prescriptions");
     return response.json();
@@ -17,16 +20,17 @@ export const prescriptionService = {
   createPrescription: async (prescriptionData) => {
     const response = await fetch(`${API_URL}/prescriptions`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-User-Email": localStorage.getItem("userEmail"),
-        "X-User-UID": localStorage.getItem("userUID"),
-      },
+      headers: getHeaders(),
       body: JSON.stringify(prescriptionData),
     });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to create prescription");
+      const errorData = await response.json();
+      console.error('Prescription creation failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
+      throw new Error(errorData.error || "Failed to create prescription");
     }
     return response.json();
   },
@@ -35,11 +39,7 @@ export const prescriptionService = {
   updatePrescription: async (id, prescriptionData) => {
     const response = await fetch(`${API_URL}/prescriptions/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-User-Email": localStorage.getItem("userEmail"),
-        "X-User-UID": localStorage.getItem("userUID"),
-      },
+      headers: getHeaders(),
       body: JSON.stringify(prescriptionData),
     });
     if (!response.ok) throw new Error("Failed to update prescription");
@@ -50,10 +50,7 @@ export const prescriptionService = {
   deletePrescription: async (id) => {
     const response = await fetch(`${API_URL}/prescriptions/${id}`, {
       method: "DELETE",
-      headers: {
-        "X-User-Email": localStorage.getItem("userEmail"),
-        "X-User-UID": localStorage.getItem("userUID"),
-      },
+      headers: getHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete prescription");
     return response.json();

@@ -28,8 +28,34 @@ export default function DoctorDashboard() {
       loadAppointments();
       loadPrescriptions();
       loadSchedules();
+      refreshUserProfile();
     }
   }, [currentUser]);
+
+  const refreshUserProfile = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Email': localStorage.getItem('userEmail'),
+          'X-User-UID': localStorage.getItem('userUID'),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh user profile');
+      }
+
+      const userData = await response.json();
+      
+      if (userData.isVerified && !currentUser.isVerified) {
+        alert('Your account has been verified! Please log out and log back in to access all features.');
+        await logout();
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
 
   async function loadAppointments() {
     try {
@@ -96,18 +122,22 @@ export default function DoctorDashboard() {
   async function handleAddPrescription(prescriptionData) {
     try {
       await prescriptionService.createPrescription(prescriptionData);
-      loadPrescriptions();
+      await loadPrescriptions();
+      return true;
     } catch (error) {
-      setError("Failed to create prescription: " + error.message);
+      console.error('Failed to create prescription:', error);
+      return { error: error.message };
     }
   }
 
   async function handleUpdatePrescription(id, prescriptionData) {
     try {
       await prescriptionService.updatePrescription(id, prescriptionData);
-      loadPrescriptions();
+      await loadPrescriptions();
+      return true;
     } catch (error) {
-      setError("Failed to update prescription: " + error.message);
+      console.error('Failed to update prescription:', error);
+      return { error: error.message };
     }
   }
 
@@ -145,6 +175,14 @@ export default function DoctorDashboard() {
         <Container sx={{ mt: 4 }}>
           <ErrorAlert error={error} />
 
+          {!currentUser.isVerified && (
+            <Alert severity="warning" sx={{ mb: 4 }}>
+              Your account is pending verification. You will have limited access until an administrator verifies your account. 
+              {currentUser.verificationStatus === 'rejected' && 
+                ' Your verification was rejected. Please contact support for more information.'}
+            </Alert>
+          )}
+
           <Box sx={{ mb: 4 }}>
             <Typography variant="h5" gutterBottom>
               My Profile
@@ -159,7 +197,11 @@ export default function DoctorDashboard() {
             <Typography variant="h5" gutterBottom>
               Appointments
             </Typography>
-            {loading ? (
+            {!currentUser.isVerified ? (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                You will be able to manage appointments after your account is verified.
+              </Alert>
+            ) : loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
                 <CircularProgress />
               </Box>

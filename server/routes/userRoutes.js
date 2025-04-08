@@ -1,7 +1,7 @@
 // routes/userRoutes.js
 const express = require("express");
 const router = express.Router();
-const { auth } = require("../middleware/auth");
+const { auth, requirePermission } = require("../middleware/auth");
 const {
   registerUser,
   getUserProfile,
@@ -10,15 +10,15 @@ const {
   getAllUsers,
 } = require("../controllers/userController");
 
-// Register route
+// Register route (no auth required)
 router.post("/register", registerUser);
 
-// Profile routes
+// Profile routes (require auth)
 router.get("/profile", auth, getUserProfile);
 router.put("/profile", auth, updateUserProfile);
 router.delete("/profile", auth, deleteUserProfile);
 
-// Get all users (for admin)
-router.get("/", auth, getAllUsers);
+// Admin routes (require user_management permission)
+router.get("/", auth, requirePermission("user_management"), getAllUsers);
 
 module.exports = router;

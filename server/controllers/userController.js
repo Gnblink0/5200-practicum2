@@ -222,10 +222,13 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   deleteUserProfile,
   getAllUsers,
+
 };

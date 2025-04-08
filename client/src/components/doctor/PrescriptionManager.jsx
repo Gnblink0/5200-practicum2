@@ -21,9 +21,11 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Alert,
 } from "@mui/material";
 import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import { appointmentService } from "../../services/appointmentService";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function PrescriptionManager({
   prescriptions,
@@ -31,6 +33,7 @@ export default function PrescriptionManager({
   onUpdate,
   onDelete,
 }) {
+  const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [editingPrescription, setEditingPrescription] = useState(null);
   const [appointments, setAppointments] = useState([]);
@@ -40,6 +43,17 @@ export default function PrescriptionManager({
     diagnosis: "",
     expiryDate: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Early return if doctor is not verified
+  if (!currentUser.isVerified) {
+    return (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        You will be able to manage prescriptions after your account is verified.
+      </Alert>
+    );
+  }
 
   useEffect(() => {
     loadAppointments();
@@ -47,12 +61,61 @@ export default function PrescriptionManager({
 
   const loadAppointments = async () => {
     try {
+      setLoading(true);
+      setError("");
       const data = await appointmentService.getDoctorAppointments();
-      // Filter for confirmed appointments
-      const confirmedAppointments = data.filter(apt => apt.status === 'confirmed');
-      setAppointments(confirmedAppointments);
+      
+      // Filter for valid appointments
+      const now = new Date();
+      const validAppointments = data.filter(apt => {
+        const appointmentTime = new Date(apt.startTime);
+        const isValid = apt.status === 'confirmed' && 
+                       appointmentTime >= now && 
+                       !apt.hasPrescription;
+
+        // Log each appointment's validation status
+        console.log('Appointment validation:', {
+          id: apt._id,
+          startTime: appointmentTime.toISOString(),
+          status: apt.status,
+          hasPrescription: apt.hasPrescription,
+          isValid,
+          validationDetails: {
+            isConfirmed: apt.status === 'confirmed',
+            isFuture: appointmentTime >= now,
+            noPrescription: !apt.hasPrescription
+          }
+        });
+
+        return isValid;
+      });
+      
+      // Log filtered appointments
+      console.log('Appointments summary:', {
+        total: data.length,
+        valid: validAppointments.length,
+        now: now.toISOString(),
+        appointments: validAppointments.map(apt => ({
+          id: apt._id,
+          patientName: `${apt.patientId?.firstName} ${apt.patientId?.lastName}`,
+          startTime: apt.startTime,
+          status: apt.status,
+          hasPrescription: apt.hasPrescription
+        }))
+      });
+      
+      if (validAppointments.length === 0) {
+        setError('No valid appointments found. Please ensure you have confirmed appointments that have not yet received prescriptions.');
+      } else {
+        setError('');
+      }
+      
+      setAppointments(validAppointments);
     } catch (error) {
       console.error('Error loading appointments:', error);
+      setError('Failed to load appointments: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,13 +141,82 @@ export default function PrescriptionManager({
     setFormData({ ...formData, medications });
   };
 
-  const handleSubmit = () => {
-    if (editingPrescription) {
-      onUpdate(editingPrescription._id, formData);
-    } else {
-      onAdd(formData);
+  const handleSubmit = async () => {
+    try {
+      // Validate required fields
+      if (!formData.appointmentId) {
+        setError("Please select a patient appointment");
+        return;
+      }
+
+      if (!formData.diagnosis) {
+        setError("Please enter a diagnosis");
+        return;
+      }
+
+      if (!formData.expiryDate) {
+        setError("Please select an expiry date");
+        return;
+      }
+
+      // Validate medications
+      if (!formData.medications.length) {
+        setError("Please add at least one medication");
+        return;
+      }
+
+      const isValidMedications = formData.medications.every(med => 
+        med.name && med.dosage && med.frequency && med.duration
+      );
+
+      if (!isValidMedications) {
+        setError("Please fill in all medication details");
+        return;
+      }
+
+      // Validate expiry date is in the future
+      const expiry = new Date(formData.expiryDate);
+      if (expiry <= new Date()) {
+        setError("Expiry date must be in the future");
+        return;
+      }
+
+      // Format the data for submission
+      const submissionData = {
+        ...formData,
+        expiryDate: expiry.toISOString(),
+        medications: formData.medications.map(med => ({
+          ...med,
+          name: med.name.trim(),
+          dosage: med.dosage.trim(),
+          frequency: med.frequency.trim(),
+          duration: med.duration.trim()
+        }))
+      };
+
+      // Clear any previous errors
+      setError("");
+
+      // Submit the form
+      let result;
+      if (editingPrescription) {
+        result = await onUpdate(editingPrescription._id, submissionData);
+      } else {
+        result = await onAdd(submissionData);
+      }
+
+      // Check for errors
+      if (result && result.error) {
+        setError(result.error);
+        return;
+      }
+
+      // Close dialog on success
+      handleClose();
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setError(error.message || 'Failed to submit prescription');
     }
-    handleClose();
   };
 
   const handleClose = () => {
@@ -96,6 +228,7 @@ export default function PrescriptionManager({
       diagnosis: "",
       expiryDate: "",
     });
+    setError("");
   };
 
   const handleEdit = (prescription) => {
@@ -166,6 +299,11 @@ export default function PrescriptionManager({
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
             <FormControl fullWidth required>
               <InputLabel>Select Patient from Appointment</InputLabel>
               <Select
@@ -175,7 +313,7 @@ export default function PrescriptionManager({
               >
                 {appointments.map((appointment) => (
                   <MenuItem key={appointment._id} value={appointment._id}>
-                    {appointment.patient?.firstName} {appointment.patient?.lastName} - 
+                    {appointment.patientId?.firstName} {appointment.patientId?.lastName} - 
                     {new Date(appointment.startTime).toLocaleDateString()} {new Date(appointment.startTime).toLocaleTimeString()}
                   </MenuItem>
                 ))}

@@ -4,10 +4,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { authService } from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -19,173 +18,150 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  async function signup(email, password, userData = {}) {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+  async function refreshUserState() {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+        headers: authService.getAuthHeaders(),
+      });
 
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/users/register`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-User-Email": email,
-          "X-User-UID": userCredential.user.uid,
-        },
-        body: JSON.stringify({
-          email,
-          uid: userCredential.user.uid,
-          username: email,
-          ...userData,
-        }),
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
       }
-    );
 
-    if (!response.ok) {
-      // If backend registration fails, delete the Firebase user
-      await userCredential.user.delete();
-      throw new Error("Failed to create user in backend");
+      const userData = await response.json();
+      authService.updateAuthState(userData);
+      setCurrentUser(userData);
+      return userData;
+    } catch (error) {
+      console.error('Error refreshing user state:', error);
+      throw error;
     }
-
-    const responseData = await response.json();
-    setCurrentUser({ ...userCredential.user, ...responseData });
   }
 
-  async function login(email, password) {
-    // Firebase authentication
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-
-    // Save Firebase auth info
-    localStorage.setItem("userEmail", email);
-    localStorage.setItem("userUID", userCredential.user.uid);
-
+  async function signup(email, password, userData = {}) {
     try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/users/profile`,
+        `${import.meta.env.VITE_API_URL}/users/register`,
         {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             "X-User-Email": email,
             "X-User-UID": userCredential.user.uid,
           },
-        }
-      );
-
-      if (response.ok) {
-        const userData = await response.json();
-        setCurrentUser({ ...userCredential.user, ...userData });
-        return { userCredential, role: userData.role };
-      }
-
-      // If user not found in backend, log out from Firebase
-      await signOut(auth);
-      localStorage.removeItem("userEmail");
-      localStorage.removeItem("userUID");
-      throw new Error("Account not found or has been deleted");
-    } catch (error) {
-      // If backend request fails, log out from Firebase
-      await signOut(auth);
-      localStorage.removeItem("userEmail");
-      localStorage.removeItem("userUID");
-      throw error;
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userUID");
-    return signOut(auth);
-  }
-
-  async function deleteAccount(password) {
-    try {
-      // 1. Reauthenticate user
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        password
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-
-      // 2. Delete user data from MongoDB
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/users/profile`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "X-User-Email": currentUser.email,
-            "X-User-UID": currentUser.uid,
-          },
+          body: JSON.stringify({
+            email,
+            uid: userCredential.user.uid,
+            username: email,
+            ...userData,
+          }),
         }
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Delete account response:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorData,
-        });
-        throw new Error(
-          errorData.error || "Failed to delete user profile from database"
-        );
+        await userCredential.user.delete();
+        throw new Error("Failed to create user in backend");
       }
 
-      // 3. Delete Firebase user
-      await auth.currentUser.delete();
-
-      // 4. Clear local state
-      setCurrentUser(null);
+      const responseData = await response.json();
+      authService.updateAuthState(responseData);
+      setCurrentUser(responseData);
     } catch (error) {
-      console.error("Delete account error details:", {
-        error: error.message,
-        currentUser: {
-          email: currentUser.email,
-          uid: currentUser.uid,
-          role: currentUser.role,
-        },
-      });
+      await authService.clearAuth();
       throw error;
     }
   }
 
+  async function login(email, password) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Initialize auth service with Firebase credentials
+      const tempAuthData = {
+        email,
+        uid: userCredential.user.uid,
+      };
+      authService.persistAuth(tempAuthData);
+      
+      // Get user data from backend
+      const userData = await refreshUserState();
+
+      return {
+        user: userCredential.user,
+        role: userData.role,
+        userData: userData
+      };
+    } catch (error) {
+      await authService.clearAuth();
+      throw error;
+    }
+  }
+
+  async function logout() {
+    await authService.clearAuth();
+    setCurrentUser(null);
+  }
+
+  // Validate auth state periodically
+  useEffect(() => {
+    let validationInterval;
+    
+    const validateAuthState = async () => {
+      if (currentUser && !authService.isAuthValid()) {
+        try {
+          const isValid = await authService.validateAuth();
+          if (!isValid) {
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          console.error("Auth validation error:", error);
+          setCurrentUser(null);
+        }
+      }
+    };
+
+    if (currentUser) {
+      validationInterval = setInterval(validateAuthState, 60000); // Check every minute
+    }
+
+    return () => {
+      if (validationInterval) {
+        clearInterval(validationInterval);
+      }
+    };
+  }, [currentUser]);
+
+  // Initialize auth state from Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/users/profile`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-User-Email": user.email,
-                "X-User-UID": user.uid,
-              },
+          // Initialize from localStorage if available
+          if (authService.init()) {
+            const isValid = await authService.validateAuth();
+            if (isValid) {
+              setCurrentUser(authService.getAuthState().user);
+            } else {
+              setCurrentUser(null);
             }
-          );
-
-          if (response.ok) {
-            const userData = await response.json();
-            setCurrentUser({ ...user, ...userData });
           } else {
-            // If user not found in backend, log out
-            await signOut(auth);
+            // If no stored auth, clear everything
+            await authService.clearAuth();
             setCurrentUser(null);
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
-          // On error, log out user
-          await signOut(auth);
+          console.error("Auth state initialization error:", error);
+          await authService.clearAuth();
           setCurrentUser(null);
         }
       } else {
+        await authService.clearAuth();
         setCurrentUser(null);
       }
       setLoading(false);
@@ -199,7 +175,7 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
-    deleteAccount,
+    refreshUserState
   };
 
   return (
