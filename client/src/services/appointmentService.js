@@ -46,7 +46,8 @@ const handleRequest = async (url, options, retries = 0) => {
 const translateErrorMessage = (error) => {
   const errorMessages = {
     "Missing required fields": "Please fill in all required appointment information",
-    "Doctor not found or inactive": "Sorry, this doctor is currently not available for appointments",
+    "Doctor not found, inactive, or not verified": "The selected doctor is not available for appointments. Please select another doctor.",
+    "Doctor not found or inactive": "The selected doctor is not available for appointments. Please select another doctor.",
     "Time slot not available or has expired": "Sorry, this time slot is no longer available",
     "You already have an appointment during this time": "You already have another appointment scheduled during this time",
     "No available schedule found for the selected time slot": "This time slot is not available in the doctor's schedule. Please select a different time.",
@@ -191,34 +192,10 @@ export const appointmentService = {
   // Create a new appointment
   createAppointment: async (appointmentData) => {
     try {
-      // Client-side validation
-      if (!appointmentData.startTime || !appointmentData.endTime) {
-        throw new Error("Start time and end time are required");
-      }
-
-      const startTime = new Date(appointmentData.startTime);
-      const endTime = new Date(appointmentData.endTime);
+      console.log('Creating appointment with data:', appointmentData);
       
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        throw new Error("Invalid time format");
-      }
-      
-      if (startTime >= endTime) {
-        throw new Error("Invalid time range: appointment end time must be after start time");
-      }
-      
-      if (startTime < new Date()) {
-        throw new Error("Invalid appointment time: cannot create appointments in the past");
-      }
-
-      console.log('Creating appointment:', {
-        ...appointmentData,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString()
-      });
-
       const response = await fetch(`${API_URL}/appointments`, {
-        method: "POST",
+        method: 'POST',
         headers: authService.getAuthHeaders(),
         body: JSON.stringify(appointmentData)
       });
@@ -227,18 +204,15 @@ export const appointmentService = {
         const errorData = await response.json();
         console.error('Appointment creation failed:', {
           status: response.status,
-          statusText: response.statusText,
-          error: errorData.error
+          error: errorData
         });
         throw new Error(translateErrorMessage(errorData.error));
       }
 
-      const data = await response.json();
-      console.log('Appointment created successfully:', data);
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Error in createAppointment:', error);
-      throw new Error(translateErrorMessage(error.message));
+      console.error('Error creating appointment:', error);
+      throw error;
     }
   },
 

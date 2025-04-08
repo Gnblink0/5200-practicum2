@@ -19,7 +19,7 @@ const clearExpiredCache = () => {
 setInterval(clearExpiredCache, 60 * 1000);
 
 const findUserInCache = (email, uid) => {
-  const key = `${email}:${uid}`;
+  const key = `${email.toLowerCase()}:${uid}`;
   const cached = userCache.get(key);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.user;
@@ -28,7 +28,7 @@ const findUserInCache = (email, uid) => {
 };
 
 const cacheUser = (email, uid, user) => {
-  const key = `${email}:${uid}`;
+  const key = `${email.toLowerCase()}:${uid}`;
   userCache.set(key, {
     user,
     timestamp: Date.now()
@@ -42,18 +42,27 @@ const auth = async (req, res, next) => {
 
     if (!email || !uid) {
       console.error("Auth failed: Missing headers", { email: !!email, uid: !!uid });
-      throw new Error("Missing authentication headers");
+      return res.status(401).json({ error: "Missing authentication headers" });
     }
 
     // Check cache first
     let user = findUserInCache(email, uid);
 
     if (!user) {
-      // Find user in any collection
+      // Find user in any collection with case-insensitive email
       const [admin, patient, doctor] = await Promise.all([
-        Admin.findOne({ email, uid }),
-        Patient.findOne({ email, uid }),
-        Doctor.findOne({ email, uid })
+        Admin.findOne({ 
+          email: { $regex: new RegExp(`^${email}$`, 'i') },
+          uid 
+        }),
+        Patient.findOne({ 
+          email: { $regex: new RegExp(`^${email}$`, 'i') },
+          uid 
+        }),
+        Doctor.findOne({ 
+          email: { $regex: new RegExp(`^${email}$`, 'i') },
+          uid 
+        })
       ]);
 
       user = admin || patient || doctor;
@@ -66,12 +75,12 @@ const auth = async (req, res, next) => {
 
     if (!user) {
       console.error("Auth failed: User not found", { email });
-      throw new Error("User not found");
+      return res.status(401).json({ error: "User not found" });
     }
 
     if (!user.isActive) {
       console.error("Auth failed: Inactive user", { email, userId: user._id });
-      throw new Error("User account is inactive");
+      return res.status(401).json({ error: "User account is inactive" });
     }
 
     // Add user and role info to request

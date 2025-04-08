@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography, TableRow, TableCell, CircularProgress, Alert, Chip } from "@mui/material";
+import { Container, Box, Typography, TableRow, TableCell, CircularProgress, Alert, Chip, Button } from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import DashboardHeader from "../../components/shared/DashboardHeader";
@@ -13,57 +13,50 @@ import { prescriptionService } from "../../services/prescriptionService";
 import { appointmentService } from "../../services/appointmentService";
 import ScheduleManager from "../../components/doctor/ScheduleManager";
 import PrescriptionManager from "../../components/doctor/PrescriptionManager";
+import { useNavigate } from "react-router-dom";
 
 export default function DoctorDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, refreshUserData } = useAuth();
+  const navigate = useNavigate();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [verificationStatus, setVerificationStatus] = useState(currentUser?.verificationStatus || 'pending');
+  const [isVerified, setIsVerified] = useState(currentUser?.isVerified || false);
+  
+  // 使用 ref 来跟踪是否需要检查验证状态
+  const needsVerificationCheck = useRef(true);
 
-  useEffect(() => {
-    if (currentUser) {
-      loadAppointments();
-      loadPrescriptions();
-      loadSchedules();
-      refreshUserProfile();
-    }
-  }, [currentUser]);
-
-  const refreshUserProfile = async () => {
+  const checkVerificationStatus = useCallback(async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Email': localStorage.getItem('userEmail'),
-          'X-User-UID': localStorage.getItem('userUID'),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to refresh user profile');
+      const userData = await refreshUserData();
+      
+      // 只在状态真正改变时更新
+      if (userData.verificationStatus !== verificationStatus) {
+        setVerificationStatus(userData.verificationStatus);
+      }
+      if (userData.isVerified !== isVerified) {
+        setIsVerified(userData.isVerified);
       }
 
-      const userData = await response.json();
-      
-      if (userData.isVerified && !currentUser.isVerified) {
-        alert('Your account has been verified! Please log out and log back in to access all features.');
-        await logout();
+      if (userData.verificationStatus === 'rejected') {
+        setError('Your verification was rejected. Please contact support for more information.');
       }
     } catch (error) {
-      console.error('Error refreshing profile:', error);
+      console.error('Error checking verification status:', error);
+      setError('Failed to check verification status');
     }
-  };
+  }, [refreshUserData, verificationStatus, isVerified]);
 
-  async function loadAppointments() {
+  const loadAppointments = useCallback(async () => {
+    if (!currentUser?._id) return;
     try {
       setLoading(true);
       setError("");
-      console.log('Loading appointments for doctor:', currentUser._id);
       const data = await appointmentService.getDoctorAppointments();
-      console.log('Loaded appointments:', data);
       setAppointments(data);
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -71,53 +64,107 @@ export default function DoctorDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [currentUser?._id]);
 
-  async function loadPrescriptions() {
+  const loadPrescriptions = useCallback(async () => {
+    if (!currentUser?._id) return;
     try {
       const data = await prescriptionService.getPrescriptions(currentUser._id, "Doctor");
       setPrescriptions(data);
     } catch (error) {
       setError("Failed to load prescriptions: " + error.message);
     }
-  }
+  }, [currentUser?._id]);
 
-  async function loadSchedules() {
+  const loadSchedules = useCallback(async () => {
+    if (!currentUser?._id) return;
     try {
       const data = await scheduleService.getSchedules();
       setSchedules(data);
     } catch (error) {
       setError("Failed to load schedules: " + error.message);
     }
-  }
+  }, [currentUser?._id]);
 
-  async function handleAddSchedule(scheduleData) {
+  const loadData = useCallback(async () => {
+    if (!currentUser?._id) return;
+    try {
+      setLoading(true);
+      await Promise.all([
+        loadAppointments(),
+        loadPrescriptions(),
+        loadSchedules()
+      ]);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      setError('Failed to load some dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadAppointments, loadPrescriptions, loadSchedules, currentUser?._id]);
+
+  // 初始化加载
+  useEffect(() => {
+    if (currentUser?._id && needsVerificationCheck.current) {
+      checkVerificationStatus();
+      loadData();
+      needsVerificationCheck.current = false;
+    }
+  }, [currentUser?._id, checkVerificationStatus, loadData]);
+
+  // 定期检查验证状态（每5分钟）
+  useEffect(() => {
+    if (!currentUser?._id) return;
+    
+    const interval = setInterval(() => {
+      checkVerificationStatus();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [currentUser?._id, checkVerificationStatus]);
+
+  const handleAddSchedule = async (scheduleData) => {
+    if (!isVerified) {
+      setError("Please wait for admin verification to create schedules");
+      return;
+    }
+    
     try {
       await scheduleService.createSchedule(scheduleData);
       await loadSchedules();
     } catch (error) {
       console.error('Error in handleAddSchedule:', error);
-      setError("Failed to create schedule: " + error.message);
+      setError(error.message || "Failed to create schedule");
     }
-  }
+  };
 
-  async function handleUpdateSchedule(id, scheduleData) {
+  const handleUpdateSchedule = async (id, scheduleData) => {
+    if (!isVerified) {
+      setError("Please wait for admin verification to update schedules");
+      return;
+    }
+    
     try {
       await scheduleService.updateSchedule(id, scheduleData);
       loadSchedules();
     } catch (error) {
-      setError("Failed to update schedule: " + error.message);
+      setError(error.message || "Failed to update schedule");
     }
-  }
+  };
 
-  async function handleDeleteSchedule(id) {
+  const handleDeleteSchedule = async (id) => {
+    if (!isVerified) {
+      setError("Please wait for admin verification to delete schedules");
+      return;
+    }
+    
     try {
       await scheduleService.deleteSchedule(id);
       loadSchedules();
     } catch (error) {
-      setError("Failed to delete schedule: " + error.message);
+      setError(error.message || "Failed to delete schedule");
     }
-  }
+  };
 
   async function handleAddPrescription(prescriptionData) {
     try {
@@ -175,11 +222,23 @@ export default function DoctorDashboard() {
         <Container sx={{ mt: 4 }}>
           <ErrorAlert error={error} />
 
-          {!currentUser.isVerified && (
-            <Alert severity="warning" sx={{ mb: 4 }}>
-              Your account is pending verification. You will have limited access until an administrator verifies your account. 
-              {currentUser.verificationStatus === 'rejected' && 
-                ' Your verification was rejected. Please contact support for more information.'}
+          {!isVerified && (
+            <Alert 
+              severity={verificationStatus === 'rejected' ? 'error' : 'warning'} 
+              sx={{ mb: 4 }}
+              action={
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  onClick={checkVerificationStatus}
+                >
+                  Check Status
+                </Button>
+              }
+            >
+              {verificationStatus === 'rejected' 
+                ? 'Your verification was rejected. Please contact support for more information.'
+                : 'Your account is pending verification. You will have limited access until an administrator verifies your account.'}
             </Alert>
           )}
 
@@ -197,7 +256,7 @@ export default function DoctorDashboard() {
             <Typography variant="h5" gutterBottom>
               Appointments
             </Typography>
-            {!currentUser.isVerified ? (
+            {!isVerified ? (
               <Alert severity="info" sx={{ mb: 2 }}>
                 You will be able to manage appointments after your account is verified.
               </Alert>
@@ -270,6 +329,7 @@ export default function DoctorDashboard() {
               onUpdate={handleUpdateSchedule}
               onDelete={handleDeleteSchedule}
               error={error}
+              isVerified={isVerified}
             />
           </Box>
 

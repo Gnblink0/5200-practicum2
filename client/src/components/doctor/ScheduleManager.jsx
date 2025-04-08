@@ -100,27 +100,25 @@ export default function ScheduleManager({
   onAdd,
   onUpdate,
   onDelete,
+  error,
+  isVerified
 }) {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  // Early return if doctor is not verified
-  if (!currentUser.isVerified) {
-    return (
-      <Alert severity="info" sx={{ mb: 2 }}>
-        You will be able to manage your schedule after your account is verified.
-      </Alert>
-    );
-  }
+  const [formData, setFormData] = useState({
+    startTime: null,
+    endTime: null,
+    isAvailable: true
+  });
 
   const handleClickOpen = () => {
+    if (!isVerified) {
+      return;
+    }
     setOpen(true);
-    setError('');
   };
 
   const handleClose = () => {
@@ -128,16 +126,21 @@ export default function ScheduleManager({
     setDate(null);
     setStartTime(null);
     setEndTime(null);
-    setError('');
+    setFormData({
+      startTime: null,
+      endTime: null,
+      isAvailable: true
+    });
   };
 
   const handleSubmit = async (event) => {
-    if (event) {
-      event.preventDefault();
+    event.preventDefault();
+    if (!isVerified) {
+      return;
     }
     
     if (!date || !startTime || !endTime) {
-      setError('Please fill in all fields');
+      console.error('Error in handleSubmit:', 'Please fill in all fields');
       return;
     }
 
@@ -150,7 +153,7 @@ export default function ScheduleManager({
       endDateTime.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
 
       if (endDateTime <= startDateTime) {
-        setError('End time must be after start time');
+        console.error('Error in handleSubmit:', 'End time must be after start time');
         return;
       }
 

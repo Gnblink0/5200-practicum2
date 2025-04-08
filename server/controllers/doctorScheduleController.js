@@ -32,18 +32,30 @@ const createSchedule = async (req, res) => {
 
     // Check if doctor is verified
     if (!req.user.isVerified) {
+      console.log('Doctor not verified:', {
+        doctorId: req.user._id,
+        isVerified: req.user.isVerified,
+        verificationStatus: req.user.verificationStatus
+      });
       return res
         .status(403)
         .json({ 
           error: "Only verified doctors can create schedules",
-          verificationStatus: "pending",
-          message: "Please wait for admin verification to create schedules"
+          verificationStatus: req.user.verificationStatus || "pending",
+          message: "Please wait for admin verification to create schedules",
+          details: {
+            doctorId: req.user._id,
+            isVerified: req.user.isVerified,
+            verificationStatus: req.user.verificationStatus
+          }
         });
     }
 
     const { startTime, endTime } = req.body;
 
     console.log('Creating schedule with times:', {
+      doctorId: req.user._id,
+      isVerified: req.user.isVerified,
       startTime,
       endTime,
       parsedStartTime: new Date(startTime).toISOString(),

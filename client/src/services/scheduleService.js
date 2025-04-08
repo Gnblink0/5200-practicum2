@@ -21,8 +21,14 @@ const handleRequest = async (url, options, retries = 0) => {
     
     if (!response.ok) {
       const errorData = await response.json();
-      if (errorData.verificationStatus === "pending") {
-        throw new Error(errorData.message || "Please wait for admin verification");
+      console.error('Schedule request failed:', {
+        url,
+        status: response.status,
+        error: errorData
+      });
+
+      if (errorData.verificationStatus) {
+        throw new Error(errorData.message || `Please wait for admin verification (${errorData.verificationStatus})`);
       }
       throw new Error(errorData.error || response.statusText || "Request failed");
     }
@@ -38,37 +44,68 @@ const handleRequest = async (url, options, retries = 0) => {
 };
 
 export const scheduleService = {
-  // Get doctor's schedules (renamed to match backend)
+  // Get doctor's schedules
   getSchedules: async () => {
-    return handleRequest(`${API_URL}/schedules`, {
-      headers: authService.getAuthHeaders()
-    });
+    try {
+      const schedules = await handleRequest(`${API_URL}/schedules`, {
+        headers: authService.getAuthHeaders()
+      });
+      console.log('Retrieved schedules:', schedules);
+      return schedules;
+    } catch (error) {
+      console.error('Error getting schedules:', error);
+      throw error;
+    }
   },
 
   // Create a new schedule
   createSchedule: async (scheduleData) => {
-    return handleRequest(`${API_URL}/schedules`, {
-      method: "POST",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(scheduleData)
-    });
+    try {
+      console.log('Creating schedule with data:', scheduleData);
+      const schedule = await handleRequest(`${API_URL}/schedules`, {
+        method: "POST",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify(scheduleData)
+      });
+      console.log('Created schedule:', schedule);
+      return schedule;
+    } catch (error) {
+      console.error('Error creating schedule:', error);
+      throw error;
+    }
   },
 
   // Update a schedule
   updateSchedule: async (id, scheduleData) => {
-    return handleRequest(`${API_URL}/schedules/${id}`, {
-      method: "PUT",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(scheduleData)
-    });
+    try {
+      console.log('Updating schedule:', { id, scheduleData });
+      const schedule = await handleRequest(`${API_URL}/schedules/${id}`, {
+        method: "PUT",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify(scheduleData)
+      });
+      console.log('Updated schedule:', schedule);
+      return schedule;
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+      throw error;
+    }
   },
 
   // Delete a schedule
   deleteSchedule: async (id) => {
-    return handleRequest(`${API_URL}/schedules/${id}`, {
-      method: "DELETE",
-      headers: authService.getAuthHeaders()
-    });
+    try {
+      console.log('Deleting schedule:', id);
+      const result = await handleRequest(`${API_URL}/schedules/${id}`, {
+        method: "DELETE",
+        headers: authService.getAuthHeaders()
+      });
+      console.log('Deleted schedule:', result);
+      return result;
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      throw error;
+    }
   }
 };
 

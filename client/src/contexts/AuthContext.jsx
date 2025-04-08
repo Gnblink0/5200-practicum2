@@ -7,6 +7,8 @@ import {
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { authService } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 
 const AuthContext = createContext();
 
@@ -17,23 +19,36 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  async function refreshUserState() {
+  async function refreshUserData(uid, email) {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        headers: authService.getAuthHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Email': email || localStorage.getItem('userEmail'),
+          'X-User-UID': uid || localStorage.getItem('userUID'),
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch user data');
+        throw new Error('Failed to refresh user data');
       }
 
       const userData = await response.json();
-      authService.updateAuthState(userData);
-      setCurrentUser(userData);
+      
+      // Update localStorage with latest data
+      localStorage.setItem('userData', JSON.stringify(userData));
+      
+      // Update current user state
+      setCurrentUser(prevUser => ({
+        ...prevUser,
+        ...userData
+      }));
+
       return userData;
     } catch (error) {
-      console.error('Error refreshing user state:', error);
+      console.error('Error refreshing user data:', error);
       throw error;
     }
   }
@@ -80,25 +95,22 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     try {
+      const auth = getAuth();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Initialize auth service with Firebase credentials
-      const tempAuthData = {
-        email,
-        uid: userCredential.user.uid,
-      };
-      authService.persistAuth(tempAuthData);
-      
-      // Get user data from backend
-      const userData = await refreshUserState();
+      // Store auth tokens
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userUID', userCredential.user.uid);
 
+      // Get fresh user data
+      const userData = await refreshUserData(userCredential.user.uid, email);
+      
       return {
-        user: userCredential.user,
-        role: userData.role,
-        userData: userData
+        userData,
+        role: userData.role
       };
     } catch (error) {
-      await authService.clearAuth();
+      console.error("Login error:", error);
       throw error;
     }
   }
@@ -111,17 +123,30 @@ export function AuthProvider({ children }) {
   // Validate auth state periodically
   useEffect(() => {
     let validationInterval;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
     
     const validateAuthState = async () => {
       if (currentUser && !authService.isAuthValid()) {
         try {
           const isValid = await authService.validateAuth();
           if (!isValid) {
-            setCurrentUser(null);
+            retryCount++;
+            if (retryCount >= MAX_RETRIES) {
+              console.error("Auth validation failed after multiple retries");
+              setCurrentUser(null);
+              await authService.clearAuth();
+            }
+          } else {
+            retryCount = 0; // Reset retry count on success
           }
         } catch (error) {
           console.error("Auth validation error:", error);
-          setCurrentUser(null);
+          retryCount++;
+          if (retryCount >= MAX_RETRIES) {
+            setCurrentUser(null);
+            await authService.clearAuth();
+          }
         }
       }
     };
@@ -140,42 +165,85 @@ export function AuthProvider({ children }) {
   // Initialize auth state from Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // Initialize from localStorage if available
-          if (authService.init()) {
+      try {
+        if (user) {
+          // Try to initialize from localStorage first
+          const hasStoredAuth = authService.init();
+          
+          if (hasStoredAuth) {
+            // Validate stored auth
             const isValid = await authService.validateAuth();
             if (isValid) {
               setCurrentUser(authService.getAuthState().user);
             } else {
-              setCurrentUser(null);
+              // If stored auth is invalid, try to refresh with Firebase user
+              try {
+                const userData = await refreshUserData(user.uid, user.email);
+                setCurrentUser(userData);
+              } catch (error) {
+                console.error("Error refreshing user data:", error);
+                setCurrentUser(null);
+                await authService.clearAuth();
+              }
             }
           } else {
-            // If no stored auth, clear everything
-            await authService.clearAuth();
-            setCurrentUser(null);
+            // No stored auth, try to initialize with Firebase user
+            try {
+              const userData = await refreshUserData(user.uid, user.email);
+              setCurrentUser(userData);
+            } catch (error) {
+              console.error("Error initializing user data:", error);
+              setCurrentUser(null);
+              await authService.clearAuth();
+            }
           }
-        } catch (error) {
-          console.error("Auth state initialization error:", error);
-          await authService.clearAuth();
+        } else {
+          // No Firebase user, clear everything
           setCurrentUser(null);
+          await authService.clearAuth();
         }
-      } else {
-        await authService.clearAuth();
+      } catch (error) {
+        console.error("Auth state initialization error:", error);
         setCurrentUser(null);
+        await authService.clearAuth();
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
   }, []);
+
+  // Add periodic verification check for doctors
+  useEffect(() => {
+    if (currentUser?.role === 'Doctor') {
+      const checkVerification = async () => {
+        try {
+          const userData = await refreshUserData();
+          
+          // If verification status changed, notify user
+          if (userData.isVerified !== currentUser.isVerified) {
+            alert('Your verification status has changed. Please log out and log back in to apply changes.');
+            await logout();
+            navigate('/login');
+          }
+        } catch (error) {
+          console.error('Error checking verification:', error);
+        }
+      };
+
+      // Check every 5 minutes
+      const interval = setInterval(checkVerification, 5 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
 
   const value = {
     currentUser,
     signup,
     login,
     logout,
-    refreshUserState
+    refreshUserData
   };
 
   return (

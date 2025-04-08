@@ -104,12 +104,20 @@ const createAppointment = async (req, res) => {
     const doctor = await User.findOne({ 
       _id: doctorId, 
       role: "Doctor", 
-      isActive: true 
+      isActive: true,
+      isVerified: true  // Add verification check
     }).session(session);
     
     if (!doctor) {
       await session.abortTransaction();
-      return res.status(404).json({ error: "Doctor not found or inactive" });
+      return res.status(404).json({ 
+        error: "Doctor not found, inactive, or not verified",
+        details: {
+          doctorId,
+          isActive: doctor?.isActive,
+          isVerified: doctor?.isVerified
+        }
+      });
     }
 
     // Check if the schedule exists and is available - using findOneAndUpdate for atomic operation

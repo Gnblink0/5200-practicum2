@@ -40,6 +40,7 @@ export default function DoctorVerification() {
   const [errors, setErrors] = useState({
     licenseNumber: '',
   });
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     loadPendingDoctors();
@@ -93,15 +94,29 @@ export default function DoctorVerification() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error || 'Failed to verify doctor');
+        throw new Error(errorData.error || 'Failed to verify doctor');
       }
 
-      // Show success message with doctor's email
-      const successMessage = `Successfully ${verificationData.status === 'verified' ? 'verified' : 'rejected'} doctor: ${selectedDoctor.email}. Please inform the doctor to log out and log back in to see the changes.`;
-      alert(successMessage);
+      const result = await response.json();
+      
+      // Show detailed success message
+      const actionWord = verificationData.status === 'verified' ? 'verified' : 'rejected';
+      const alertMessage = `Successfully ${actionWord} doctor: ${selectedDoctor.email}.\n\n` +
+        `The doctor will need to:\n` +
+        `1. Log out of their account\n` +
+        `2. Log back in to see the changes\n` +
+        `3. Refresh their dashboard\n\n` +
+        `License Number (for verified doctors): ${licenseNumber}`;
+      
+      alert(alertMessage);
 
+      // Refresh the pending doctors list
       await loadPendingDoctors();
       handleClose();
+
+      // Add success alert
+      setSuccessMessage(`Doctor ${actionWord} successfully`);
+      setTimeout(() => setSuccessMessage(''), 5000);
     } catch (error) {
       console.error('Verification error:', error);
       setError(error.message);
@@ -141,6 +156,20 @@ export default function DoctorVerification() {
     });
   };
 
+  const checkVerificationStatus = async (retries = 3) => {
+    try {
+      const userData = await refreshUserData();
+      // ... 其他代码 ...
+    } catch (error) {
+      console.error('Error checking verification status:', error);
+      if (retries > 0) {
+        setTimeout(() => checkVerificationStatus(retries - 1), 1000);
+      } else {
+        setError('Failed to check verification status after multiple attempts');
+      }
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
@@ -150,6 +179,12 @@ export default function DoctorVerification() {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successMessage}
         </Alert>
       )}
 

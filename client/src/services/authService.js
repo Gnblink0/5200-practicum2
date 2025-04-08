@@ -8,35 +8,55 @@ class AuthService {
       role: null,
       lastValidated: null
     };
+    this.init();
   }
 
   // Initialize auth state from localStorage
   init() {
-    const email = localStorage.getItem("userEmail");
-    const uid = localStorage.getItem("userUID");
-    const role = localStorage.getItem("userRole");
+    try {
+      const email = localStorage.getItem("userEmail");
+      const uid = localStorage.getItem("userUID");
+      const role = localStorage.getItem("userRole");
+      const storedUserData = localStorage.getItem("userData");
 
-    if (email && uid) {
-      this.authState = {
-        isAuthenticated: true,
-        user: { email, uid },
-        role,
-        lastValidated: new Date()
-      };
-      return true;
+      if (email && uid) {
+        this.authState = {
+          isAuthenticated: true,
+          user: storedUserData ? JSON.parse(storedUserData) : { email, uid },
+          role,
+          lastValidated: new Date()
+        };
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error initializing auth state:", error);
+      this.clearAuth();
+      return false;
     }
-    return false;
   }
 
   // Validate current auth state
   async validateAuth() {
     try {
+      const email = localStorage.getItem("userEmail");
+      const uid = localStorage.getItem("userUID");
+
+      if (!email || !uid) {
+        console.error("Auth validation failed: Missing credentials in localStorage");
+        return false;
+      }
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        headers: this.getAuthHeaders()
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Email": email,
+          "X-User-UID": uid
+        }
       });
 
       if (!response.ok) {
-        await this.clearAuth();
+        console.error("Auth validation failed: Backend returned", response.status);
         return false;
       }
 
@@ -45,54 +65,86 @@ class AuthService {
       return true;
     } catch (error) {
       console.error("Auth validation error:", error);
-      await this.clearAuth();
       return false;
     }
   }
 
   // Update auth state with new user data
   updateAuthState(userData) {
-    this.authState = {
-      isAuthenticated: true,
-      user: userData,
-      role: userData.role,
-      lastValidated: new Date()
-    };
-    this.persistAuth(userData);
+    try {
+      this.authState = {
+        isAuthenticated: true,
+        user: userData,
+        role: userData.role,
+        lastValidated: new Date()
+      };
+      
+      // Store complete user data
+      localStorage.setItem("userEmail", userData.email);
+      localStorage.setItem("userUID", userData.uid);
+      localStorage.setItem("userRole", userData.role);
+      localStorage.setItem("userData", JSON.stringify({
+        ...userData,
+        lastUpdated: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error("Error updating auth state:", error);
+      this.clearAuth();
+    }
   }
 
   // Persist auth data to localStorage
   persistAuth(userData) {
-    localStorage.setItem("userEmail", userData.email);
-    localStorage.setItem("userUID", userData.uid);
-    localStorage.setItem("userRole", userData.role);
+    try {
+      localStorage.setItem("userEmail", userData.email);
+      localStorage.setItem("userUID", userData.uid);
+      localStorage.setItem("userRole", userData.role);
+    } catch (error) {
+      console.error("Error persisting auth data:", error);
+      this.clearAuth();
+    }
   }
 
   // Clear auth state
   async clearAuth() {
-    this.authState = {
-      isAuthenticated: false,
-      user: null,
-      role: null,
-      lastValidated: null
-    };
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userUID");
-    localStorage.removeItem("userRole");
     try {
+      this.authState = {
+        isAuthenticated: false,
+        user: null,
+        role: null,
+        lastValidated: null
+      };
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userUID");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userData");
       await auth.signOut();
     } catch (error) {
-      console.error("Firebase signout error:", error);
+      console.error("Error clearing auth state:", error);
     }
   }
 
   // Get auth headers for API requests
   getAuthHeaders() {
-    return {
-      "Content-Type": "application/json",
-      "X-User-Email": localStorage.getItem("userEmail"),
-      "X-User-UID": localStorage.getItem("userUID")
-    };
+    try {
+      const email = localStorage.getItem("userEmail");
+      const uid = localStorage.getItem("userUID");
+      
+      if (!email || !uid) {
+        throw new Error("Missing auth credentials");
+      }
+
+      return {
+        "Content-Type": "application/json",
+        "X-User-Email": email,
+        "X-User-UID": uid
+      };
+    } catch (error) {
+      console.error("Error getting auth headers:", error);
+      return {
+        "Content-Type": "application/json"
+      };
+    }
   }
 
   // Check if auth is valid and not expired
