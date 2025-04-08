@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { authService } from "../services/authService";
@@ -118,6 +120,40 @@ export function AuthProvider({ children }) {
   async function logout() {
     await authService.clearAuth();
     setCurrentUser(null);
+  }
+
+  async function deleteAccount(password) {
+    try {
+      // First verify the password
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      // Delete from Firebase
+      await user.delete();
+
+      // Delete from backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Email': user.email,
+          'X-User-UID': user.uid,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user from backend');
+      }
+
+      // Clear auth state
+      await authService.clearAuth();
+      setCurrentUser(null);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      throw error;
+    }
   }
 
   // Validate auth state periodically
@@ -243,7 +279,8 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
-    refreshUserData
+    refreshUserData,
+    deleteAccount
   };
 
   return (
