@@ -32,6 +32,7 @@ export default function PrescriptionManager({
   onAdd,
   onUpdate,
   onDelete,
+  initialAppointment,
 }) {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
@@ -59,61 +60,74 @@ export default function PrescriptionManager({
     loadAppointments();
   }, []);
 
+  useEffect(() => {
+    // if there is an initial appointment, set the form data to the initial appointment
+    if (initialAppointment) {
+      setFormData({
+        ...formData,
+        appointmentId: initialAppointment._id,
+      });
+    }
+  }, [initialAppointment]);
+
   const loadAppointments = async () => {
     try {
       setLoading(true);
       setError("");
       const data = await appointmentService.getDoctorAppointments();
-      
+
       // Filter for valid appointments
       const now = new Date();
-      const validAppointments = data.filter(apt => {
+      const validAppointments = data.filter((apt) => {
         const appointmentTime = new Date(apt.startTime);
-        const isValid = apt.status === 'confirmed' && 
-                       appointmentTime >= now && 
-                       !apt.hasPrescription;
+        const isValid =
+          apt.status === "confirmed" &&
+          appointmentTime >= now &&
+          !apt.hasPrescription;
 
         // Log each appointment's validation status
-        console.log('Appointment validation:', {
+        console.log("Appointment validation:", {
           id: apt._id,
           startTime: appointmentTime.toISOString(),
           status: apt.status,
           hasPrescription: apt.hasPrescription,
           isValid,
           validationDetails: {
-            isConfirmed: apt.status === 'confirmed',
+            isConfirmed: apt.status === "confirmed",
             isFuture: appointmentTime >= now,
-            noPrescription: !apt.hasPrescription
-          }
+            noPrescription: !apt.hasPrescription,
+          },
         });
 
         return isValid;
       });
-      
+
       // Log filtered appointments
-      console.log('Appointments summary:', {
+      console.log("Appointments summary:", {
         total: data.length,
         valid: validAppointments.length,
         now: now.toISOString(),
-        appointments: validAppointments.map(apt => ({
+        appointments: validAppointments.map((apt) => ({
           id: apt._id,
           patientName: `${apt.patientId?.firstName} ${apt.patientId?.lastName}`,
           startTime: apt.startTime,
           status: apt.status,
-          hasPrescription: apt.hasPrescription
-        }))
+          hasPrescription: apt.hasPrescription,
+        })),
       });
-      
+
       if (validAppointments.length === 0) {
-        setError('No valid appointments found. Please ensure you have confirmed appointments that have not yet received prescriptions.');
+        setError(
+          "No valid appointments found. Please ensure you have confirmed appointments that have not yet received prescriptions."
+        );
       } else {
-        setError('');
+        setError("");
       }
-      
+
       setAppointments(validAppointments);
     } catch (error) {
-      console.error('Error loading appointments:', error);
-      setError('Failed to load appointments: ' + error.message);
+      console.error("Error loading appointments:", error);
+      setError("Failed to load appointments: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -165,8 +179,8 @@ export default function PrescriptionManager({
         return;
       }
 
-      const isValidMedications = formData.medications.every(med => 
-        med.name && med.dosage && med.frequency && med.duration
+      const isValidMedications = formData.medications.every(
+        (med) => med.name && med.dosage && med.frequency && med.duration
       );
 
       if (!isValidMedications) {
@@ -185,13 +199,13 @@ export default function PrescriptionManager({
       const submissionData = {
         ...formData,
         expiryDate: expiry.toISOString(),
-        medications: formData.medications.map(med => ({
+        medications: formData.medications.map((med) => ({
           ...med,
           name: med.name.trim(),
           dosage: med.dosage.trim(),
           frequency: med.frequency.trim(),
-          duration: med.duration.trim()
-        }))
+          duration: med.duration.trim(),
+        })),
       };
 
       // Clear any previous errors
@@ -214,8 +228,8 @@ export default function PrescriptionManager({
       // Close dialog on success
       handleClose();
     } catch (error) {
-      console.error('Form submission error:', error);
-      setError(error.message || 'Failed to submit prescription');
+      console.error("Form submission error:", error);
+      setError(error.message || "Failed to submit prescription");
     }
   };
 
@@ -270,7 +284,8 @@ export default function PrescriptionManager({
                   {new Date(prescription.issuedDate).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {prescription.patient?.firstName} {prescription.patient?.lastName}
+                  {prescription.patient?.firstName}{" "}
+                  {prescription.patient?.lastName}
                 </TableCell>
                 <TableCell>{prescription.diagnosis}</TableCell>
                 <TableCell>
@@ -308,13 +323,17 @@ export default function PrescriptionManager({
               <InputLabel>Select Patient from Appointment</InputLabel>
               <Select
                 value={formData.appointmentId}
-                onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, appointmentId: e.target.value })
+                }
                 label="Select Patient from Appointment"
               >
                 {appointments.map((appointment) => (
                   <MenuItem key={appointment._id} value={appointment._id}>
-                    {appointment.patientId?.firstName} {appointment.patientId?.lastName} - 
-                    {new Date(appointment.startTime).toLocaleDateString()} {new Date(appointment.startTime).toLocaleTimeString()}
+                    {appointment.patientId?.firstName}{" "}
+                    {appointment.patientId?.lastName} -
+                    {new Date(appointment.startTime).toLocaleDateString()}{" "}
+                    {new Date(appointment.startTime).toLocaleTimeString()}
                   </MenuItem>
                 ))}
               </Select>
@@ -374,7 +393,11 @@ export default function PrescriptionManager({
                       label="Frequency"
                       value={medication.frequency}
                       onChange={(e) =>
-                        handleMedicationChange(index, "frequency", e.target.value)
+                        handleMedicationChange(
+                          index,
+                          "frequency",
+                          e.target.value
+                        )
                       }
                       fullWidth
                       required
@@ -385,7 +408,11 @@ export default function PrescriptionManager({
                       label="Duration"
                       value={medication.duration}
                       onChange={(e) =>
-                        handleMedicationChange(index, "duration", e.target.value)
+                        handleMedicationChange(
+                          index,
+                          "duration",
+                          e.target.value
+                        )
                       }
                       fullWidth
                       required
@@ -420,4 +447,4 @@ export default function PrescriptionManager({
       </Dialog>
     </Box>
   );
-} 
+}

@@ -1,8 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography, TableRow, TableCell, CircularProgress, Alert, Chip, Button } from "@mui/material";
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import {
+  Container,
+  Box,
+  Typography,
+  TableRow,
+  TableCell,
+  CircularProgress,
+  Alert,
+  Chip,
+  Button,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+} from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
@@ -14,6 +32,7 @@ import { appointmentService } from "../../services/appointmentService";
 import ScheduleManager from "../../components/doctor/ScheduleManager";
 import PrescriptionManager from "../../components/doctor/PrescriptionManager";
 import { useNavigate } from "react-router-dom";
+import AppointmentList from "../../components/doctor/AppointmentList";
 
 export default function DoctorDashboard() {
   const [loading, setLoading] = useState(false);
@@ -24,17 +43,22 @@ export default function DoctorDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [schedules, setSchedules] = useState([]);
-  const [verificationStatus, setVerificationStatus] = useState(currentUser?.verificationStatus || 'pending');
-  const [isVerified, setIsVerified] = useState(currentUser?.isVerified || false);
-  
-  // 使用 ref 来跟踪是否需要检查验证状态
+  const [verificationStatus, setVerificationStatus] = useState(
+    currentUser?.verificationStatus || "pending"
+  );
+  const [isVerified, setIsVerified] = useState(
+    currentUser?.isVerified || false
+  );
+  const [success, setSuccess] = useState("");
+  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+
   const needsVerificationCheck = useRef(true);
 
   const checkVerificationStatus = useCallback(async () => {
     try {
       const userData = await refreshUserData();
-      
-      // 只在状态真正改变时更新
+
       if (userData.verificationStatus !== verificationStatus) {
         setVerificationStatus(userData.verificationStatus);
       }
@@ -42,12 +66,14 @@ export default function DoctorDashboard() {
         setIsVerified(userData.isVerified);
       }
 
-      if (userData.verificationStatus === 'rejected') {
-        setError('Your verification was rejected. Please contact support for more information.');
+      if (userData.verificationStatus === "rejected") {
+        setError(
+          "Your verification was rejected. Please contact support for more information."
+        );
       }
     } catch (error) {
-      console.error('Error checking verification status:', error);
-      setError('Failed to check verification status');
+      console.error("Error checking verification status:", error);
+      setError("Failed to check verification status");
     }
   }, [refreshUserData, verificationStatus, isVerified]);
 
@@ -59,7 +85,7 @@ export default function DoctorDashboard() {
       const data = await appointmentService.getDoctorAppointments();
       setAppointments(data);
     } catch (error) {
-      console.error('Error loading appointments:', error);
+      console.error("Error loading appointments:", error);
       setError("Failed to load appointments: " + error.message);
     } finally {
       setLoading(false);
@@ -69,7 +95,10 @@ export default function DoctorDashboard() {
   const loadPrescriptions = useCallback(async () => {
     if (!currentUser?._id) return;
     try {
-      const data = await prescriptionService.getPrescriptions(currentUser._id, "Doctor");
+      const data = await prescriptionService.getPrescriptions(
+        currentUser._id,
+        "Doctor"
+      );
       setPrescriptions(data);
     } catch (error) {
       setError("Failed to load prescriptions: " + error.message);
@@ -93,17 +122,17 @@ export default function DoctorDashboard() {
       await Promise.all([
         loadAppointments(),
         loadPrescriptions(),
-        loadSchedules()
+        loadSchedules(),
       ]);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      setError('Failed to load some dashboard data');
+      console.error("Error loading dashboard data:", error);
+      setError("Failed to load some dashboard data");
     } finally {
       setLoading(false);
     }
   }, [loadAppointments, loadPrescriptions, loadSchedules, currentUser?._id]);
 
-  // 初始化加载
+  // initial load
   useEffect(() => {
     if (currentUser?._id && needsVerificationCheck.current) {
       checkVerificationStatus();
@@ -112,10 +141,10 @@ export default function DoctorDashboard() {
     }
   }, [currentUser?._id, checkVerificationStatus, loadData]);
 
-  // 定期检查验证状态（每5分钟）
+  // check verification status every 5 minutes
   useEffect(() => {
     if (!currentUser?._id) return;
-    
+
     const interval = setInterval(() => {
       checkVerificationStatus();
     }, 5 * 60 * 1000);
@@ -128,12 +157,12 @@ export default function DoctorDashboard() {
       setError("Please wait for admin verification to create schedules");
       return;
     }
-    
+
     try {
       await scheduleService.createSchedule(scheduleData);
       await loadSchedules();
     } catch (error) {
-      console.error('Error in handleAddSchedule:', error);
+      console.error("Error in handleAddSchedule:", error);
       setError(error.message || "Failed to create schedule");
     }
   };
@@ -143,7 +172,7 @@ export default function DoctorDashboard() {
       setError("Please wait for admin verification to update schedules");
       return;
     }
-    
+
     try {
       await scheduleService.updateSchedule(id, scheduleData);
       loadSchedules();
@@ -157,7 +186,7 @@ export default function DoctorDashboard() {
       setError("Please wait for admin verification to delete schedules");
       return;
     }
-    
+
     try {
       await scheduleService.deleteSchedule(id);
       loadSchedules();
@@ -166,29 +195,76 @@ export default function DoctorDashboard() {
     }
   };
 
-  async function handleAddPrescription(prescriptionData) {
+  const handleAppointmentStatusChange = async (appointmentId, newStatus) => {
     try {
-      await prescriptionService.createPrescription(prescriptionData);
-      await loadPrescriptions();
-      return true;
-    } catch (error) {
-      console.error('Failed to create prescription:', error);
-      return { error: error.message };
-    }
-  }
+      setLoading(true);
+      setError("");
 
-  async function handleUpdatePrescription(id, prescriptionData) {
+      console.log("Updating appointment status:", { appointmentId, newStatus });
+
+      await appointmentService.updateAppointmentStatus(
+        appointmentId,
+        newStatus
+      );
+      await loadAppointments();
+
+      const actionMap = {
+        confirmed: "approved",
+        cancelled: "rejected",
+        completed: "marked as completed",
+      };
+      setSuccess(`Appointment successfully ${actionMap[newStatus]}`);
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (error) {
+      console.error("Error updating appointment status:", error);
+      setError(error.message || "Failed to update appointment status");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrescriptionAdd = async (prescriptionData) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // 创建处方
+      await prescriptionService.createPrescription(prescriptionData);
+
+      // 更新预约状态为已完成
+      await appointmentService.updateAppointmentStatus(
+        selectedAppointment._id,
+        "completed"
+      );
+
+      // 重新加载数据
+      await loadAppointments();
+      await loadPrescriptions();
+
+      setSuccess("Appointment completed and prescription created successfully");
+      setShowPrescriptionDialog(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+      setError(error.message || "Failed to create prescription");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function handlePrescriptionUpdate(id, prescriptionData) {
     try {
       await prescriptionService.updatePrescription(id, prescriptionData);
       await loadPrescriptions();
       return true;
     } catch (error) {
-      console.error('Failed to update prescription:', error);
+      console.error("Failed to update prescription:", error);
       return { error: error.message };
     }
   }
 
-  async function handleDeletePrescription(id) {
+  async function handlePrescriptionDelete(id) {
     try {
       await prescriptionService.deletePrescription(id);
       loadPrescriptions();
@@ -196,15 +272,6 @@ export default function DoctorDashboard() {
       setError("Failed to delete prescription: " + error.message);
     }
   }
-
-  const appointmentColumns = [
-    { id: "date", label: "Date" },
-    { id: "time", label: "Time" },
-    { id: "patient", label: "Patient" },
-    { id: "reason", label: "Patient's Note" },
-    { id: "mode", label: "Mode" },
-    { id: "status", label: "Status" },
-  ];
 
   async function handleLogout() {
     try {
@@ -223,22 +290,22 @@ export default function DoctorDashboard() {
           <ErrorAlert error={error} />
 
           {!isVerified && (
-            <Alert 
-              severity={verificationStatus === 'rejected' ? 'error' : 'warning'} 
+            <Alert
+              severity={verificationStatus === "rejected" ? "error" : "warning"}
               sx={{ mb: 4 }}
               action={
-                <Button 
-                  color="inherit" 
-                  size="small" 
+                <Button
+                  color="inherit"
+                  size="small"
                   onClick={checkVerificationStatus}
                 >
                   Check Status
                 </Button>
               }
             >
-              {verificationStatus === 'rejected' 
-                ? 'Your verification was rejected. Please contact support for more information.'
-                : 'Your account is pending verification. You will have limited access until an administrator verifies your account.'}
+              {verificationStatus === "rejected"
+                ? "Your verification was rejected. Please contact support for more information."
+                : "Your account is pending verification. You will have limited access until an administrator verifies your account."}
             </Alert>
           )}
 
@@ -253,73 +320,110 @@ export default function DoctorDashboard() {
           </Box>
 
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h6" sx={{ mb: 2 }}>
               Appointments
             </Typography>
-            {!isVerified ? (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                You will be able to manage appointments after your account is verified.
-              </Alert>
-            ) : loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : error ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            ) : appointments.length === 0 ? (
-              <Typography variant="body1" color="textSecondary">
-                No appointments found.
-              </Typography>
-            ) : (
-              <DataTable
-                columns={appointmentColumns}
-                data={appointments}
-                renderRow={(appointment) => (
-                  <TableRow key={appointment._id}>
-                    <TableCell>
-                      {new Date(appointment.startTime).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(appointment.startTime).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      {appointment.patientId?.firstName} {appointment.patientId?.lastName}
-                    </TableCell>
-                    <TableCell>{appointment.reason}</TableCell>
-                    <TableCell>{appointment.mode}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={appointment.status}
-                        color={
-                          appointment.status === "confirmed"
-                            ? "success"
-                            : appointment.status === "pending"
-                            ? "warning"
-                            : appointment.status === "cancelled"
-                            ? "error"
-                            : "info"
-                        }
-                        size="small"
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              />
-            )}
-          </Box>
 
-          <Box sx={{ mb: 4 }}>
-            <PrescriptionManager
-              prescriptions={prescriptions}
-              onAdd={handleAddPrescription}
-              onUpdate={handleUpdatePrescription}
-              onDelete={handleDeletePrescription}
-            />
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Time</TableCell>
+                    <TableCell>Patient</TableCell>
+                    <TableCell>Patient's Note</TableCell>
+                    <TableCell>Mode</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {appointments.map((appointment) => (
+                    <TableRow key={appointment._id}>
+                      <TableCell>
+                        {new Date(appointment.startTime).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(appointment.startTime).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {appointment.patientId?.firstName}{" "}
+                        {appointment.patientId?.lastName}
+                      </TableCell>
+                      <TableCell>{appointment.reason}</TableCell>
+                      <TableCell>{appointment.mode}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={appointment.status}
+                          color={
+                            appointment.status === "pending"
+                              ? "warning"
+                              : appointment.status === "confirmed"
+                              ? "success"
+                              : appointment.status === "cancelled"
+                              ? "error"
+                              : "default"
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {appointment.status === "pending" && (
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              onClick={() =>
+                                handleAppointmentStatusChange(
+                                  appointment._id,
+                                  "confirmed"
+                                )
+                              }
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="error"
+                              onClick={() =>
+                                handleAppointmentStatusChange(
+                                  appointment._id,
+                                  "cancelled"
+                                )
+                              }
+                            >
+                              Reject
+                            </Button>
+                          </Box>
+                        )}
+                        {appointment.status === "confirmed" && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                              handleAppointmentStatusChange(
+                                appointment._id,
+                                "completed"
+                              )
+                            }
+                          >
+                            Complete
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
 
           <Box sx={{ mb: 4 }}>
@@ -338,6 +442,39 @@ export default function DoctorDashboard() {
             onClose={() => setShowEditProfile(false)}
             currentUser={currentUser}
           />
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+
+          <AppointmentList
+            appointments={appointments}
+            onStatusChange={handleAppointmentStatusChange}
+          />
+
+          {/* Add Prescription Dialog */}
+          <Dialog
+            open={showPrescriptionDialog}
+            onClose={() => {
+              setShowPrescriptionDialog(false);
+              setSelectedAppointment(null);
+            }}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle>Add Prescription</DialogTitle>
+            <DialogContent>
+              <PrescriptionManager
+                prescriptions={prescriptions}
+                onAdd={handlePrescriptionAdd}
+                onUpdate={handlePrescriptionUpdate}
+                onDelete={handlePrescriptionDelete}
+                initialAppointment={selectedAppointment}
+              />
+            </DialogContent>
+          </Dialog>
         </Container>
       </Box>
     </LocalizationProvider>

@@ -24,7 +24,10 @@ import {
   Chip,
   Tooltip,
 } from "@mui/material";
-import { Delete as DeleteIcon, Cancel as CancelIcon } from "@mui/icons-material";
+import {
+  Delete as DeleteIcon,
+  Cancel as CancelIcon,
+} from "@mui/icons-material";
 import { doctorService } from "../../services/doctorService";
 
 export default function AppointmentManager({
@@ -49,47 +52,64 @@ export default function AppointmentManager({
 
   // Add status constants
   const APPOINTMENT_STATUS = {
-    PENDING: 'pending',
-    CONFIRMED: 'confirmed',
-    COMPLETED: 'completed',
-    CANCELLED: 'cancelled'
+    PENDING: "pending",
+    CONFIRMED: "confirmed",
+    COMPLETED: "completed",
+    CANCELLED: "cancelled",
   };
 
   // Add helper function to determine editable fields
   const getEditableFields = (status) => {
     switch (status) {
       case APPOINTMENT_STATUS.PENDING:
-        return ['doctorId', 'scheduleId', 'reason', 'mode'];
+        return ["doctorId", "scheduleId", "reason", "mode"];
       case APPOINTMENT_STATUS.CONFIRMED:
-        return ['reason', 'mode'];
+        return ["reason", "mode"];
       default:
         return [];
     }
   };
 
-  // Add status actions component
+  // Add status chip colors and labels
+  const getStatusConfig = (status) => {
+    const configs = {
+      [APPOINTMENT_STATUS.PENDING]: {
+        color: "warning",
+        label: "Pending Approval",
+      },
+      [APPOINTMENT_STATUS.CONFIRMED]: {
+        color: "success",
+        label: "Confirmed",
+      },
+      [APPOINTMENT_STATUS.CANCELLED]: {
+        color: "error",
+        label: "Cancelled",
+      },
+      [APPOINTMENT_STATUS.COMPLETED]: {
+        color: "default",
+        label: "Completed",
+      },
+    };
+    return configs[status] || { color: "default", label: status };
+  };
+
+  // Modify StatusActions component
   const StatusActions = ({ appointment, onCancel }) => {
     const renderActionButtons = () => {
-      switch (appointment.status) {
-        case APPOINTMENT_STATUS.PENDING:
-        case APPOINTMENT_STATUS.CONFIRMED:
-          return (
-            <Tooltip title="Cancel appointment">
-              <IconButton onClick={() => onCancel(appointment._id)}>
-                <CancelIcon color="error" />
-              </IconButton>
-            </Tooltip>
-          );
-        default:
-          return null;
+      // Patient can only cancel pending appointments
+      if (appointment.status === APPOINTMENT_STATUS.PENDING) {
+        return (
+          <Tooltip title="Cancel appointment">
+            <IconButton onClick={() => onCancel(appointment._id)}>
+              <CancelIcon color="error" />
+            </IconButton>
+          </Tooltip>
+        );
       }
+      return null;
     };
 
-    return (
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        {renderActionButtons()}
-      </Box>
-    );
+    return <Box sx={{ display: "flex", gap: 1 }}>{renderActionButtons()}</Box>;
   };
 
   const handleDoctorChange = async (event) => {
@@ -97,7 +117,7 @@ export default function AppointmentManager({
     setFormData({ ...formData, doctorId: selectedDoctorId, scheduleId: "" });
     setLoading(true);
     setError("");
-    
+
     if (!selectedDoctorId) {
       setAvailableSlots({});
       setLoading(false);
@@ -105,78 +125,83 @@ export default function AppointmentManager({
     }
 
     try {
-      console.log('Fetching available slots for doctor:', selectedDoctorId);
-      const response = await doctorService.getDoctorAvailableSlots(selectedDoctorId);
-      console.log('Raw server response:', response);
-      
+      console.log("Fetching available slots for doctor:", selectedDoctorId);
+      const response = await doctorService.getDoctorAvailableSlots(
+        selectedDoctorId
+      );
+      console.log("Raw server response:", response);
+
       // Filter out past slots and ensure valid dates
       const now = new Date();
       const filteredSlots = {};
       let totalAvailableSlots = 0;
-      
+
       Object.entries(response.availableSlots).forEach(([date, slots]) => {
-        console.log('Processing slots for date:', date, slots);
-        
-        const validSlots = slots.filter(slot => {
+        console.log("Processing slots for date:", date, slots);
+
+        const validSlots = slots.filter((slot) => {
           try {
             // Create dates using local time
             const startTime = new Date(slot.startTime);
             const endTime = new Date(slot.endTime);
-            
-            console.log('Validating slot:', {
+
+            console.log("Validating slot:", {
               id: slot._id,
               startTime: startTime.toLocaleString(),
               endTime: endTime.toLocaleString(),
               isAvailable: slot.isAvailable,
-              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             });
-            
-            const isValid = startTime > now && 
-                          endTime > startTime && 
-                          slot.isAvailable === true; // Strict comparison
-            
+
+            const isValid =
+              startTime > now &&
+              endTime > startTime &&
+              slot.isAvailable === true; // Strict comparison
+
             if (!isValid) {
-              console.log('Slot rejected:', {
+              console.log("Slot rejected:", {
                 reasons: {
                   isPast: startTime <= now,
                   invalidRange: endTime <= startTime,
-                  isUnavailable: !slot.isAvailable
-                }
+                  isUnavailable: !slot.isAvailable,
+                },
               });
             }
-            
+
             return isValid;
           } catch (error) {
-            console.error('Error processing slot:', slot, error);
+            console.error("Error processing slot:", slot, error);
             return false;
           }
         });
-        
+
         if (validSlots.length > 0) {
           // Use local date as key
           const localDate = new Date(validSlots[0].startTime);
-          const dateKey = localDate.getFullYear() + '-' + 
-                         String(localDate.getMonth() + 1).padStart(2, '0') + '-' +
-                         String(localDate.getDate()).padStart(2, '0');
+          const dateKey =
+            localDate.getFullYear() +
+            "-" +
+            String(localDate.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(localDate.getDate()).padStart(2, "0");
           filteredSlots[dateKey] = validSlots;
           totalAvailableSlots += validSlots.length;
         }
       });
 
-      console.log('Filtered available slots:', {
+      console.log("Filtered available slots:", {
         total: totalAvailableSlots,
         slots: filteredSlots,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-      
+
       setAvailableSlots(filteredSlots);
-      
+
       if (totalAvailableSlots === 0) {
         setError("No available time slots found for this doctor.");
       }
-      
     } catch (error) {
-      console.error('Error fetching available slots:', error);
+      console.error("Error fetching available slots:", error);
       setError("Failed to load available time slots. Please try again.");
       setAvailableSlots({});
     } finally {
@@ -186,17 +211,17 @@ export default function AppointmentManager({
 
   const handleTimeSlotChange = (e) => {
     const selectedSlotId = e.target.value;
-    console.log('Time slot selected:', {
+    console.log("Time slot selected:", {
       selectedSlotId,
       event: e.type,
-      currentFormData: formData
+      currentFormData: formData,
     });
-    
+
     // Update form data
-    setFormData(prev => {
-      console.log('Updating form data:', {
+    setFormData((prev) => {
+      console.log("Updating form data:", {
         previous: prev,
-        new: { ...prev, scheduleId: selectedSlotId }
+        new: { ...prev, scheduleId: selectedSlotId },
       });
       return { ...prev, scheduleId: selectedSlotId };
     });
@@ -221,17 +246,19 @@ export default function AppointmentManager({
       // Final validation of selected slot
       const selectedSlot = Object.values(availableSlots)
         .flat()
-        .find(slot => slot._id === formData.scheduleId);
+        .find((slot) => slot._id === formData.scheduleId);
 
-      console.log('Final validation of selected slot:', {
+      console.log("Final validation of selected slot:", {
         selectedId: formData.scheduleId,
-        foundSlot: selectedSlot ? {
-          id: selectedSlot._id,
-          startTime: new Date(selectedSlot.startTime).toLocaleString(),
-          isAvailable: selectedSlot.isAvailable
-        } : null
+        foundSlot: selectedSlot
+          ? {
+              id: selectedSlot._id,
+              startTime: new Date(selectedSlot.startTime).toLocaleString(),
+              isAvailable: selectedSlot.isAvailable,
+            }
+          : null,
       });
-      
+
       if (!selectedSlot || !selectedSlot.isAvailable) {
         setError("The selected time slot is no longer available");
         // Refresh available slots immediately
@@ -244,17 +271,19 @@ export default function AppointmentManager({
         doctorId: formData.doctorId,
         scheduleId: formData.scheduleId,
         reason: formData.reason,
-        mode: formData.mode
+        mode: formData.mode,
       };
-      
+
       try {
-        console.log('Submitting appointment data:', appointmentData);
+        console.log("Submitting appointment data:", appointmentData);
         await onAdd(appointmentData);
         setSuccess("Appointment booked successfully");
         handleClose();
       } catch (error) {
         if (error.message.includes("not available")) {
-          setError("This time slot has just been booked by someone else. Please select another time.");
+          setError(
+            "This time slot has just been booked by someone else. Please select another time."
+          );
           await handleDoctorChange({ target: { value: formData.doctorId } });
         } else {
           setError(error.message);
@@ -279,43 +308,28 @@ export default function AppointmentManager({
     setSuccess("");
   };
 
-  // Add cancel handler
+  // Modify handleCancel
   const handleCancel = async (appointmentId) => {
     try {
-      // Find the appointment to be cancelled
-      const appointment = appointments.find(apt => apt._id === appointmentId);
+      const appointment = appointments.find((apt) => apt._id === appointmentId);
       if (!appointment) {
         throw new Error("Appointment not found");
       }
 
-      // Only update the status while preserving other fields
-      const result = await onUpdate(appointmentId, {
+      if (appointment.status !== APPOINTMENT_STATUS.PENDING) {
+        setError("You can only cancel pending appointments");
+        return;
+      }
+
+      await onUpdate(appointmentId, {
         status: APPOINTMENT_STATUS.CANCELLED,
-        reason: appointment.reason,
-        mode: appointment.mode,
-        startTime: appointment.startTime,
-        endTime: appointment.endTime,
-        doctorId: appointment.doctorId,
-        patientId: appointment.patientId
       });
 
-      if (result) {
-        setSuccess("Appointment cancelled successfully");
-        // If we have a selected doctor, refresh their available slots
-        if (formData.doctorId) {
-          await handleDoctorChange({ target: { value: formData.doctorId } });
-        }
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccess("");
-        }, 3000);
-      }
+      setSuccess("Appointment cancelled successfully");
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       setError("Failed to cancel appointment: " + error.message);
-      // Clear error message after 3 seconds
-      setTimeout(() => {
-        setError("");
-      }, 3000);
+      setTimeout(() => setError(""), 3000);
     }
   };
 
@@ -323,46 +337,46 @@ export default function AppointmentManager({
   const getAvailableSlotOptions = () => {
     const options = [];
     const now = new Date();
-    
+
     Object.entries(availableSlots).forEach(([date, slots]) => {
       // Strict filtering for available and future slots
-      const availableSlots = slots.filter(slot => {
+      const availableSlots = slots.filter((slot) => {
         const startTime = new Date(slot.startTime);
         const isAvailable = slot.isAvailable === true; // Strict comparison
         const isFuture = startTime > now;
-        
-        console.log('Filtering slot:', {
+
+        console.log("Filtering slot:", {
           id: slot._id,
           startTime: startTime.toLocaleString(),
           isAvailable,
           isFuture,
-          willInclude: isAvailable && isFuture
+          willInclude: isAvailable && isFuture,
         });
-        
+
         return isAvailable && isFuture;
       });
 
-      availableSlots.forEach(slot => {
+      availableSlots.forEach((slot) => {
         const startTime = new Date(slot.startTime);
         const endTime = new Date(slot.endTime);
-        
-        const formattedStartTime = startTime.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
+
+        const formattedStartTime = startTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
         });
-        
-        const formattedEndTime = endTime.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
+
+        const formattedEndTime = endTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
         });
-        
-        const formattedDate = startTime.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
+
+        const formattedDate = startTime.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
         });
 
         options.push({
@@ -370,7 +384,7 @@ export default function AppointmentManager({
           label: `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`,
           startTime: slot.startTime,
           endTime: slot.endTime,
-          isAvailable: slot.isAvailable
+          isAvailable: slot.isAvailable,
         });
       });
     });
@@ -378,15 +392,15 @@ export default function AppointmentManager({
     // Sort options by start time
     options.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
-    console.log('Generated slot options:', {
+    console.log("Generated slot options:", {
       total: options.length,
-      options: options.map(opt => ({
+      options: options.map((opt) => ({
         id: opt.value,
         time: opt.label,
-        isAvailable: opt.isAvailable
-      }))
+        isAvailable: opt.isAvailable,
+      })),
     });
-    
+
     return options;
   };
 
@@ -420,10 +434,13 @@ export default function AppointmentManager({
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow 
+              <TableRow
                 key={appointment._id}
                 sx={{
-                  backgroundColor: appointment.status === APPOINTMENT_STATUS.CANCELLED ? '#f5f5f5' : 'inherit'
+                  backgroundColor:
+                    appointment.status === APPOINTMENT_STATUS.CANCELLED
+                      ? "#f5f5f5"
+                      : "inherit",
                 }}
               >
                 <TableCell>
@@ -436,20 +453,16 @@ export default function AppointmentManager({
                   })}
                 </TableCell>
                 <TableCell>
-                  {appointment.doctorId?.firstName} {appointment.doctorId?.lastName}
+                  {appointment.doctorId?.firstName}{" "}
+                  {appointment.doctorId?.lastName}
                 </TableCell>
                 <TableCell>{appointment.reason}</TableCell>
                 <TableCell>{appointment.mode}</TableCell>
                 <TableCell>
-                  <Chip 
-                    label={appointment.status} 
-                    color={
-                      appointment.status === APPOINTMENT_STATUS.CONFIRMED ? "success" :
-                      appointment.status === APPOINTMENT_STATUS.PENDING ? "warning" :
-                      appointment.status === APPOINTMENT_STATUS.CANCELLED ? "error" :
-                      "default"
-                    }
-                    sx={{ textTransform: 'capitalize' }}
+                  <Chip
+                    label={getStatusConfig(appointment.status).label}
+                    color={getStatusConfig(appointment.status).color}
+                    sx={{ textTransform: "capitalize" }}
                   />
                 </TableCell>
                 <TableCell>
@@ -469,9 +482,9 @@ export default function AppointmentManager({
           open={Boolean(success)}
           autoHideDuration={3000}
           onClose={() => setSuccess("")}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity="success" sx={{ width: '100%' }}>
+          <Alert severity="success" sx={{ width: "100%" }}>
             {success}
           </Alert>
         </Snackbar>
@@ -482,24 +495,26 @@ export default function AppointmentManager({
           open={Boolean(error)}
           autoHideDuration={3000}
           onClose={() => setError("")}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity="error" sx={{ width: '100%' }}>
+          <Alert severity="error" sx={{ width: "100%" }}>
             {error}
           </Alert>
         </Snackbar>
       )}
 
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        maxWidth="md" 
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="md"
         fullWidth
         aria-labelledby="appointment-dialog-title"
         disableEnforceFocus
         disableRestoreFocus
       >
-        <DialogTitle id="appointment-dialog-title">Book New Appointment</DialogTitle>
+        <DialogTitle id="appointment-dialog-title">
+          Book New Appointment
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
@@ -511,7 +526,7 @@ export default function AppointmentManager({
               {success}
             </Alert>
           )}
-          
+
           <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
               select
@@ -520,7 +535,12 @@ export default function AppointmentManager({
               onChange={handleDoctorChange}
               fullWidth
               required
-              disabled={editingAppointment && !getEditableFields(editingAppointment.status).includes('doctorId')}
+              disabled={
+                editingAppointment &&
+                !getEditableFields(editingAppointment.status).includes(
+                  "doctorId"
+                )
+              }
             >
               {doctors.map((doctor) => (
                 <MenuItem key={doctor._id} value={doctor._id}>
@@ -538,16 +558,21 @@ export default function AppointmentManager({
                   onChange={handleTimeSlotChange}
                   fullWidth
                   required
-                  disabled={editingAppointment && !getEditableFields(editingAppointment.status).includes('scheduleId')}
+                  disabled={
+                    editingAppointment &&
+                    !getEditableFields(editingAppointment.status).includes(
+                      "scheduleId"
+                    )
+                  }
                   helperText={
-                    getAvailableSlotOptions().length === 0 
-                      ? "No available time slots for this doctor" 
+                    getAvailableSlotOptions().length === 0
+                      ? "No available time slots for this doctor"
                       : "Please select a time slot"
                   }
                 >
                   {getAvailableSlotOptions().map((slot) => (
-                    <MenuItem 
-                      key={slot.value} 
+                    <MenuItem
+                      key={slot.value}
                       value={slot.value}
                       disabled={!slot.isAvailable}
                     >
@@ -558,7 +583,8 @@ export default function AppointmentManager({
                 </TextField>
                 {getAvailableSlotOptions().length === 0 && (
                   <Alert severity="info">
-                    No available time slots found. Please select a different doctor or try again later.
+                    No available time slots found. Please select a different
+                    doctor or try again later.
                   </Alert>
                 )}
               </>
@@ -567,7 +593,9 @@ export default function AppointmentManager({
             <TextField
               label="Reason for Visit"
               value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, reason: e.target.value })
+              }
               fullWidth
               required
               multiline
@@ -578,7 +606,9 @@ export default function AppointmentManager({
               select
               label="Appointment Mode"
               value={formData.mode}
-              onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, mode: e.target.value })
+              }
               fullWidth
               required
             >
@@ -597,4 +627,4 @@ export default function AppointmentManager({
       </Dialog>
     </Box>
   );
-} 
+}
