@@ -70,13 +70,15 @@ const createPrescription = async (req, res) => {
     const appointment = await Appointment.findOne({
       _id: appointmentId,
       doctorId: req.user._id,
-      status: "confirmed",
+      status: "completed",
     })
       .populate("patientId")
       .session(session);
 
     if (!appointment) {
-      throw new Error("Appointment not found or unauthorized");
+      throw new Error(
+        "Appointment not found, unauthorized, or not completed yet. Please complete the appointment first before creating a prescription."
+      );
     }
 
     console.log("Found valid appointment:", {
