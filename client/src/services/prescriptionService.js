@@ -25,10 +25,10 @@ export const prescriptionService = {
     });
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Prescription creation failed:', {
+      console.error("Prescription creation failed:", {
         status: response.status,
         statusText: response.statusText,
-        errorData
+        errorData,
       });
       throw new Error(errorData.error || "Failed to create prescription");
     }
@@ -48,11 +48,27 @@ export const prescriptionService = {
 
   // Delete a prescription
   deletePrescription: async (id) => {
-    const response = await fetch(`${API_URL}/prescriptions/${id}`, {
-      method: "DELETE",
-      headers: getHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to delete prescription");
-    return response.json();
+    try {
+      const response = await fetch(`${API_URL}/prescriptions/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Prescription deletion failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          requestHeaders: getHeaders(),
+        });
+        throw new Error(errorData.error || "Failed to delete prescription");
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error("Error in deletePrescription:", error);
+      throw error;
+    }
   },
-}; 
+};

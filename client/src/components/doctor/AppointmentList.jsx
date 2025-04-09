@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   List,
   ListItem,
@@ -7,32 +7,36 @@ import {
   Typography,
   Box,
   Chip,
-  Divider
-} from '@mui/material';
-import { format } from 'date-fns';
+  Divider,
+  Alert,
+} from "@mui/material";
+import { format } from "date-fns";
 
 const AppointmentList = ({ appointments, onStatusChange }) => {
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'warning';
-      case 'confirmed':
-        return 'success';
-      case 'cancelled':
-        return 'error';
-      case 'completed':
-        return 'info';
-      default:
-        return 'default';
-    }
+  const getStatusConfig = (status) => {
+    const configs = {
+      pending: {
+        color: "warning",
+        label: "Pending Approval",
+      },
+      confirmed: {
+        color: "success",
+        label: "Confirmed",
+      },
+      cancelled: {
+        color: "error",
+        label: "Cancelled",
+      },
+      completed: {
+        color: "info",
+        label: "Completed",
+      },
+    };
+    return configs[status.toLowerCase()] || { color: "default", label: status };
   };
 
   if (!appointments || appointments.length === 0) {
-    return (
-      <Typography variant="body1" color="textSecondary">
-        No appointments found.
-      </Typography>
-    );
+    return <Alert severity="info">No appointments found.</Alert>;
   }
 
   return (
@@ -42,28 +46,40 @@ const AppointmentList = ({ appointments, onStatusChange }) => {
           <ListItem
             alignItems="flex-start"
             sx={{
-              flexDirection: 'column',
+              flexDirection: "column",
               gap: 1,
-              py: 2
+              py: 2,
             }}
           >
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <Typography variant="subtitle1" component="div">
-                {appointment.patientName || 'Patient Name Not Available'}
+                {appointment.patientId
+                  ? `${appointment.patientId.firstName} ${appointment.patientId.lastName}`
+                  : "Patient Name Not Available"}
               </Typography>
               <Chip
-                label={appointment.status}
-                color={getStatusColor(appointment.status)}
+                label={getStatusConfig(appointment.status).label}
+                color={getStatusConfig(appointment.status).color}
                 size="small"
               />
             </Box>
-            
+
             <ListItemText
               primary={
                 <Typography variant="body2" color="textSecondary">
-                  Date: {format(new Date(appointment.date), 'PPP')}
+                  Date: {format(new Date(appointment.startTime), "PPP")}
                   <br />
-                  Time: {format(new Date(appointment.date), 'p')}
+                  Time: {format(new Date(appointment.startTime), "p")} -{" "}
+                  {format(new Date(appointment.endTime), "p")}
+                  <br />
+                  Mode: {appointment.mode}
                 </Typography>
               }
               secondary={
@@ -77,33 +93,35 @@ const AppointmentList = ({ appointments, onStatusChange }) => {
               }
             />
 
-            {appointment.status === 'pending' && (
-              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+            {/* Only show action buttons for pending appointments */}
+            {appointment.status === "pending" && (
+              <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                 <Button
                   size="small"
                   variant="contained"
                   color="success"
-                  onClick={() => onStatusChange(appointment._id, 'confirmed')}
+                  onClick={() => onStatusChange(appointment._id, "confirmed")}
                 >
-                  Confirm
+                  Approve
                 </Button>
                 <Button
                   size="small"
                   variant="contained"
                   color="error"
-                  onClick={() => onStatusChange(appointment._id, 'cancelled')}
+                  onClick={() => onStatusChange(appointment._id, "cancelled")}
                 >
-                  Cancel
+                  Reject
                 </Button>
               </Box>
             )}
 
-            {appointment.status === 'confirmed' && (
+            {/* Show complete button only for confirmed appointments */}
+            {appointment.status === "confirmed" && (
               <Button
                 size="small"
                 variant="contained"
                 color="primary"
-                onClick={() => onStatusChange(appointment._id, 'completed')}
+                onClick={() => onStatusChange(appointment._id, "completed")}
               >
                 Mark as Completed
               </Button>
@@ -116,4 +134,4 @@ const AppointmentList = ({ appointments, onStatusChange }) => {
   );
 };
 
-export default AppointmentList; 
+export default AppointmentList;

@@ -57,91 +57,62 @@ AppointmentSchema.index({ doctorId: 1, startTime: 1 });
 // Validation middleware
 AppointmentSchema.pre("save", async function (next) {
   try {
-    // Skip validation if the appointment is being cancelled
-    if (this.isModified("status") && this.status === "cancelled") {
+    // Skip validation if the appointment status is being updated to confirmed or cancelled
+    if (
+      this.isModified("status") &&
+      (this.status === "cancelled" || this.status === "confirmed")
+    ) {
       return next();
     }
 
     // Time range validation
     if (this.startTime >= this.endTime) {
-      throw new Error("Invalid time range: appointment end time must be after start time");
+      throw new Error(
+        "Invalid time range: appointment end time must be after start time"
+      );
     }
 
     // Check if time is in the future for new appointments
     if (this.startTime < new Date() && this.isNew) {
-      throw new Error("Invalid appointment time: cannot create appointments in the past");
+      throw new Error(
+        "Invalid appointment time: cannot create appointments in the past"
+      );
     }
 
-    // Find doctor's schedule, including the current appointment's schedule
-    const scheduleQuery = {
-      doctorId: this.doctorId,
-      startTime: { $lte: this.startTime },
-      endTime: { $gte: this.endTime },
-      $or: [
-        { isAvailable: true },
-        // Include this appointment's existing schedule
-        ...(this._id ? [{ 
-          appointmentId: this._id 
-        }] : [])
-      ]
-    };
-
-    console.log("Searching for doctor schedule with query:", scheduleQuery);
-    
-    const schedule = await mongoose.model("DoctorSchedule").findOne(scheduleQuery);
-
-    console.log("Found schedule:", {
-      appointmentId: this._id,
-      scheduleFound: !!schedule,
-      scheduleId: schedule?._id,
-      isAvailable: schedule?.isAvailable,
-      startTime: schedule?.startTime,
-      endTime: schedule?.endTime
-    });
-
-    if (!schedule) {
-      throw new Error("No available schedule found for the selected time slot");
-    }
-
-    // For new appointments, check for conflicts
+    // Only check schedule availability for new appointments
     if (this.isNew) {
-      const conflictingAppointment = await this.constructor.findOne({
+      // Find doctor's schedule
+      const scheduleQuery = {
         doctorId: this.doctorId,
-        status: { $ne: "cancelled" },
-        $or: [
-          {
-            startTime: { $lt: this.endTime },
-            endTime: { $gt: this.startTime }
-          }
-        ]
+        startTime: { $lte: this.startTime },
+        endTime: { $gte: this.endTime },
+        isAvailable: true,
+      };
+
+      console.log("Searching for doctor schedule with query:", scheduleQuery);
+
+      const schedule = await mongoose
+        .model("DoctorSchedule")
+        .findOne(scheduleQuery);
+
+      console.log("Found schedule:", {
+        appointmentId: this._id,
+        scheduleFound: !!schedule,
+        scheduleId: schedule?._id,
+        isAvailable: schedule?.isAvailable,
+        startTime: schedule?.startTime,
+        endTime: schedule?.endTime,
       });
 
-      if (conflictingAppointment) {
-        throw new Error("Selected time conflicts with an existing appointment");
+      if (!schedule) {
+        throw new Error(
+          "No available schedule found for the selected time slot"
+        );
       }
     }
 
-    // Log validation success
-    console.log("Appointment validation passed:", {
-      appointmentId: this._id,
-      doctorId: this.doctorId,
-      startTime: this.startTime,
-      endTime: this.endTime,
-      scheduleFound: !!schedule,
-      isNew: this.isNew,
-      isModified: this.isModified()
-    });
-
     next();
   } catch (error) {
-    // Log validation failure
-    console.error("Appointment validation failed:", {
-      appointmentId: this._id,
-      doctorId: this.doctorId,
-      startTime: this.startTime,
-      endTime: this.endTime,
-      error: error.message
-    });
     next(error);
   }
 });

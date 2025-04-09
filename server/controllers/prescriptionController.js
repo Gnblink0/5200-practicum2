@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Prescription = require("../models/Prescription");
 const Appointment = require("../models/Appointment");
 
@@ -19,28 +19,28 @@ const getPrescriptions = async (req, res) => {
     const prescriptions = await Prescription.find(query)
       .populate({
         path: "patientId",
-        select: "firstName lastName email"
+        select: "firstName lastName email",
       })
       .populate({
         path: "doctorId",
-        select: "firstName lastName specialization"
+        select: "firstName lastName specialization",
       })
       .populate({
         path: "appointmentId",
-        select: "startTime endTime reason mode status"
+        select: "startTime endTime reason mode status",
       })
       .sort({ issuedDate: -1 });
 
     // Transform the data to include patient and doctor names
-    const transformedPrescriptions = prescriptions.map(prescription => ({
+    const transformedPrescriptions = prescriptions.map((prescription) => ({
       ...prescription.toObject(),
       patient: prescription.patientId,
-      doctor: prescription.doctorId
+      doctor: prescription.doctorId,
     }));
 
     res.json(transformedPrescriptions);
   } catch (error) {
-    console.error('Error in getPrescriptions:', error);
+    console.error("Error in getPrescriptions:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -52,7 +52,7 @@ const createPrescription = async (req, res) => {
   session.startTransaction();
 
   try {
-    console.log('Starting prescription creation transaction');
+    console.log("Starting prescription creation transaction");
 
     // Authorization check
     if (req.user.role !== "Doctor") {
@@ -70,17 +70,19 @@ const createPrescription = async (req, res) => {
     const appointment = await Appointment.findOne({
       _id: appointmentId,
       doctorId: req.user._id,
-      status: 'confirmed'
-    }).populate('patientId').session(session);
+      status: "confirmed",
+    })
+      .populate("patientId")
+      .session(session);
 
     if (!appointment) {
       throw new Error("Appointment not found or unauthorized");
     }
 
-    console.log('Found valid appointment:', {
+    console.log("Found valid appointment:", {
       appointmentId: appointment._id,
       patientId: appointment.patientId._id,
-      doctorId: appointment.doctorId
+      doctorId: appointment.doctorId,
     });
 
     // Validate expiry date
@@ -91,7 +93,7 @@ const createPrescription = async (req, res) => {
 
     // Check if a prescription already exists for this appointment
     const existingPrescription = await Prescription.findOne({
-      appointmentId: appointment._id
+      appointmentId: appointment._id,
     }).session(session);
 
     if (existingPrescription) {
@@ -107,7 +109,7 @@ const createPrescription = async (req, res) => {
       diagnosis,
       issuedDate: new Date(),
       expiryDate: expiry,
-      status: "active"
+      status: "active",
     });
 
     await prescription.save({ session });
@@ -121,28 +123,28 @@ const createPrescription = async (req, res) => {
 
     // Commit the transaction
     await session.commitTransaction();
-    console.log('Prescription creation transaction committed successfully');
+    console.log("Prescription creation transaction committed successfully");
 
     // Populate the prescription with patient and doctor info before sending response
     const populatedPrescription = await Prescription.findById(prescription._id)
       .populate({
         path: "patientId",
-        select: "firstName lastName email"
+        select: "firstName lastName email",
       })
       .populate({
         path: "doctorId",
-        select: "firstName lastName specialization"
+        select: "firstName lastName specialization",
       })
       .populate({
         path: "appointmentId",
-        select: "startTime endTime reason mode status"
+        select: "startTime endTime reason mode status",
       });
 
     // Transform the data to include patient and doctor names
     const transformedPrescription = {
       ...populatedPrescription.toObject(),
       patient: populatedPrescription.patientId,
-      doctor: populatedPrescription.doctorId
+      doctor: populatedPrescription.doctorId,
     };
 
     res.status(201).json(transformedPrescription);
@@ -151,7 +153,7 @@ const createPrescription = async (req, res) => {
     await session.abortTransaction();
     console.error("Error in createPrescription transaction:", {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     res.status(400).json({ error: error.message });
   } finally {
@@ -166,13 +168,15 @@ const updatePrescription = async (req, res) => {
   session.startTransaction();
 
   try {
-    console.log('Starting prescription update transaction');
+    console.log("Starting prescription update transaction");
 
     if (req.user.role !== "Doctor") {
       throw new Error("Only doctors can update prescriptions");
     }
 
-    const prescription = await Prescription.findById(req.params.id).session(session);
+    const prescription = await Prescription.findById(req.params.id).session(
+      session
+    );
     if (!prescription) {
       throw new Error("Prescription not found");
     }
@@ -187,28 +191,28 @@ const updatePrescription = async (req, res) => {
 
     // Commit the transaction
     await session.commitTransaction();
-    console.log('Prescription update transaction committed successfully');
+    console.log("Prescription update transaction committed successfully");
 
     // Populate the prescription with patient and doctor info before sending response
     const populatedPrescription = await Prescription.findById(prescription._id)
       .populate({
         path: "patientId",
-        select: "firstName lastName email"
+        select: "firstName lastName email",
       })
       .populate({
         path: "doctorId",
-        select: "firstName lastName specialization"
+        select: "firstName lastName specialization",
       })
       .populate({
         path: "appointmentId",
-        select: "startTime endTime reason mode status"
+        select: "startTime endTime reason mode status",
       });
 
     // Transform the data to include patient and doctor names
     const transformedPrescription = {
       ...populatedPrescription.toObject(),
       patient: populatedPrescription.patientId,
-      doctor: populatedPrescription.doctorId
+      doctor: populatedPrescription.doctorId,
     };
 
     res.json(transformedPrescription);
@@ -217,7 +221,7 @@ const updatePrescription = async (req, res) => {
     await session.abortTransaction();
     console.error("Error in updatePrescription transaction:", {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     res.status(400).json({ error: error.message });
   } finally {
@@ -232,13 +236,15 @@ const deletePrescription = async (req, res) => {
   session.startTransaction();
 
   try {
-    console.log('Starting prescription deletion transaction');
+    console.log("Starting prescription deletion transaction");
 
     if (req.user.role !== "Doctor") {
       throw new Error("Only doctors can delete prescriptions");
     }
 
-    const prescription = await Prescription.findById(req.params.id).session(session);
+    const prescription = await Prescription.findById(req.params.id).session(
+      session
+    );
     if (!prescription) {
       throw new Error("Prescription not found");
     }
@@ -254,12 +260,12 @@ const deletePrescription = async (req, res) => {
       { session }
     );
 
-    // Delete prescription
-    await prescription.remove({ session });
+    // Delete prescription using deleteOne instead of remove
+    await Prescription.deleteOne({ _id: prescription._id }).session(session);
 
     // Commit the transaction
     await session.commitTransaction();
-    console.log('Prescription deletion transaction committed successfully');
+    console.log("Prescription deletion transaction committed successfully");
 
     res.json({ message: "Prescription deleted successfully" });
   } catch (error) {
@@ -267,7 +273,7 @@ const deletePrescription = async (req, res) => {
     await session.abortTransaction();
     console.error("Error in deletePrescription transaction:", {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     res.status(400).json({ error: error.message });
   } finally {
@@ -280,5 +286,5 @@ module.exports = {
   getPrescriptions,
   createPrescription,
   updatePrescription,
-  deletePrescription
-}; 
+  deletePrescription,
+};

@@ -13,7 +13,9 @@ const getDoctorAppointments = async (req, res) => {
 
     // Validate user is a doctor
     if (req.user.role !== "Doctor") {
-      return res.status(403).json({ error: "Only doctors can access this endpoint" });
+      return res
+        .status(403)
+        .json({ error: "Only doctors can access this endpoint" });
     }
 
     // Get appointments with proper error handling
@@ -21,7 +23,7 @@ const getDoctorAppointments = async (req, res) => {
       .populate("doctorId", "firstName lastName specialization")
       .populate("patientId", "firstName lastName")
       .sort({ startTime: 1 })
-      .catch(err => {
+      .catch((err) => {
         console.error("Database error:", err);
         throw new Error("Failed to fetch appointments");
       });
@@ -33,9 +35,9 @@ const getDoctorAppointments = async (req, res) => {
     res.json(appointments);
   } catch (error) {
     console.error("Error in getDoctorAppointments:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Internal server error",
-      message: error.message 
+      message: error.message,
     });
   }
 };
@@ -48,7 +50,7 @@ const getAppointments = async (req, res) => {
     // If role and userId are provided in params
     if (req.params.role && req.params.userId) {
       const { role, userId } = req.params;
-      
+
       // Case-insensitive role comparison
       if (role.toLowerCase() === "doctor") {
         query = { doctorId: userId };
@@ -57,7 +59,7 @@ const getAppointments = async (req, res) => {
       } else {
         return res.status(400).json({ error: "Invalid role" });
       }
-    } 
+    }
     // If no params provided, use the authenticated user's info
     else {
       if (req.user.role === "Doctor") {
@@ -89,7 +91,9 @@ const createAppointment = async (req, res) => {
 
   try {
     if (req.user.role !== "Patient") {
-      return res.status(403).json({ error: "Only patients can create appointments" });
+      return res
+        .status(403)
+        .json({ error: "Only patients can create appointments" });
     }
 
     const { doctorId, scheduleId, reason, mode } = req.body;
@@ -98,25 +102,30 @@ const createAppointment = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    console.log('Creating appointment with data:', { doctorId, scheduleId, reason, mode });
+    console.log("Creating appointment with data:", {
+      doctorId,
+      scheduleId,
+      reason,
+      mode,
+    });
 
     // Check if the doctor exists and is active
-    const doctor = await User.findOne({ 
-      _id: doctorId, 
-      role: "Doctor", 
+    const doctor = await User.findOne({
+      _id: doctorId,
+      role: "Doctor",
       isActive: true,
-      isVerified: true  // Add verification check
+      isVerified: true, // Add verification check
     }).session(session);
-    
+
     if (!doctor) {
       await session.abortTransaction();
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "Doctor not found, inactive, or not verified",
         details: {
           doctorId,
           isActive: doctor?.isActive,
-          isVerified: doctor?.isVerified
-        }
+          isVerified: doctor?.isVerified,
+        },
       });
     }
 
@@ -125,35 +134,37 @@ const createAppointment = async (req, res) => {
       {
         _id: scheduleId,
         doctorId,
-        isAvailable: true
+        isAvailable: true,
       },
       { isAvailable: false },
       { new: true, session }
     );
 
-    console.log('Found schedule:', {
+    console.log("Found schedule:", {
       scheduleId,
       doctorId,
-      schedule: schedule ? {
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        isAvailable: schedule.isAvailable,
-        startTimeISO: new Date(schedule.startTime).toISOString(),
-        endTimeISO: new Date(schedule.endTime).toISOString(),
-        startTimeLocal: new Date(schedule.startTime).toString(),
-        endTimeLocal: new Date(schedule.endTime).toString()
-      } : null
+      schedule: schedule
+        ? {
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            isAvailable: schedule.isAvailable,
+            startTimeISO: new Date(schedule.startTime).toISOString(),
+            endTimeISO: new Date(schedule.endTime).toISOString(),
+            startTimeLocal: new Date(schedule.startTime).toString(),
+            endTimeLocal: new Date(schedule.endTime).toString(),
+          }
+        : null,
     });
 
     if (!schedule) {
       await session.abortTransaction();
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Time slot not available or has expired",
         details: {
           scheduleId,
           doctorId,
-          isAvailable: false
-        }
+          isAvailable: false,
+        },
       });
     }
 
@@ -161,8 +172,8 @@ const createAppointment = async (req, res) => {
     const now = new Date();
     const startTime = new Date(schedule.startTime);
     const endTime = new Date(schedule.endTime);
-    
-    console.log('Time check:', {
+
+    console.log("Time check:", {
       now: now.toISOString(),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
@@ -171,48 +182,49 @@ const createAppointment = async (req, res) => {
       endTimeLocal: endTime.toString(),
       isFuture: startTime > now,
       isValidTimeSlot: startTime < endTime,
-      timeDiff: endTime - startTime
+      timeDiff: endTime - startTime,
     });
 
     if (startTime <= now) {
       await session.abortTransaction();
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Cannot book appointments in the past",
         details: {
           now: now.toISOString(),
-          startTime: startTime.toISOString()
-        }
+          startTime: startTime.toISOString(),
+        },
       });
     }
 
     if (startTime >= endTime) {
-        console.error("❌ Invalid time range", {
-          startTime,
-          endTime,
-          diffMinutes: (endTime - startTime) / 60000
-        });
-        await session.abortTransaction();
-        return res.status(400).json({ 
-          error: "Appointment time is not within doctor's available schedule",
-        });
-      
+      console.error("❌ Invalid time range", {
+        startTime,
+        endTime,
+        diffMinutes: (endTime - startTime) / 60000,
+      });
+      await session.abortTransaction();
+      return res.status(400).json({
+        error: "Appointment time is not within doctor's available schedule",
+      });
     }
 
     // Check if patient already has an appointment at this time
     const existingAppointment = await Appointment.findOne({
       patientId: req.user._id,
-      status: { $ne: 'cancelled' }, // Exclude cancelled appointments
+      status: { $ne: "cancelled" }, // Exclude cancelled appointments
       $or: [
         {
           startTime: { $lt: schedule.endTime },
-          endTime: { $gt: schedule.startTime }
-        }
-      ]
+          endTime: { $gt: schedule.startTime },
+        },
+      ],
     }).session(session);
 
     if (existingAppointment) {
       await session.abortTransaction();
-      return res.status(400).json({ error: "You already have an appointment during this time" });
+      return res
+        .status(400)
+        .json({ error: "You already have an appointment during this time" });
     }
 
     // Create the appointment
@@ -222,13 +234,13 @@ const createAppointment = async (req, res) => {
       startTime: schedule.startTime,
       endTime: schedule.endTime,
       reason,
-      mode: mode || 'in-person',
-      status: "confirmed"
+      mode: mode || "in-person",
+      status: "pending",
     });
 
     await appointment.save({ session });
     await session.commitTransaction();
-    
+
     res.status(201).json(appointment);
   } catch (error) {
     await session.abortTransaction();
@@ -247,49 +259,67 @@ const updateAppointment = async (req, res) => {
       return res.status(404).json({ error: "Appointment not found" });
     }
 
-    // Only the patient who created the appointment can update it
-    if (appointment.patientId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Not authorized to update this appointment" });
+    // Check if the user is either the patient or the doctor
+    const isPatient =
+      appointment.patientId.toString() === req.user._id.toString();
+    const isDoctor =
+      appointment.doctorId.toString() === req.user._id.toString();
+
+    if (!isPatient && !isDoctor) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to update this appointment" });
     }
 
     // Special handling for status updates
     if (req.body.status) {
-      // Only allow cancellation if the appointment is pending or confirmed
-      if (req.body.status === 'cancelled' && 
-          (appointment.status === 'pending' || appointment.status === 'confirmed')) {
-        appointment.status = 'cancelled';
-        
-        // If there's an associated schedule, mark it as available again
-        const schedule = await DoctorSchedule.findOneAndUpdate(
-          {
-            doctorId: appointment.doctorId,
-            startTime: appointment.startTime,
-            endTime: appointment.endTime,
-            isAvailable: false
-          },
-          { isAvailable: true },
-          { new: true }
-        );
-        
-        console.log('Schedule update result:', {
-          appointmentId: appointment._id,
-          doctorId: appointment.doctorId,
-          startTime: appointment.startTime,
-          endTime: appointment.endTime,
-          scheduleFound: !!schedule,
-          scheduleId: schedule?._id,
-          isAvailable: schedule?.isAvailable
-        });
-      } else {
-        return res.status(400).json({ 
-          error: "Invalid status update. Can only cancel pending or confirmed appointments." 
-        });
+      // Doctor can approve/reject pending appointments
+      if (isDoctor) {
+        if (appointment.status !== "pending") {
+          return res
+            .status(400)
+            .json({ error: "Can only approve/reject pending appointments" });
+        }
+        if (["confirmed", "cancelled"].includes(req.body.status)) {
+          appointment.status = req.body.status;
+        } else {
+          return res.status(400).json({ error: "Invalid status update" });
+        }
+      }
+      // Patient can only cancel pending appointments
+      else if (isPatient) {
+        if (appointment.status !== "pending") {
+          return res
+            .status(400)
+            .json({ error: "Can only cancel pending appointments" });
+        }
+        if (req.body.status === "cancelled") {
+          appointment.status = "cancelled";
+
+          // If there's an associated schedule, mark it as available again
+          const schedule = await DoctorSchedule.findOneAndUpdate(
+            {
+              doctorId: appointment.doctorId,
+              startTime: appointment.startTime,
+              endTime: appointment.endTime,
+              isAvailable: false,
+            },
+            { isAvailable: true },
+            { new: true }
+          );
+        } else {
+          return res
+            .status(400)
+            .json({ error: "Patients can only cancel appointments" });
+        }
       }
     }
 
-    // Update other fields if provided
-    if (req.body.reason) appointment.reason = req.body.reason;
-    if (req.body.mode) appointment.mode = req.body.mode;
+    // Update other fields if provided (only for patients)
+    if (isPatient) {
+      if (req.body.reason) appointment.reason = req.body.reason;
+      if (req.body.mode) appointment.mode = req.body.mode;
+    }
 
     await appointment.save();
     res.json(appointment);
@@ -309,14 +339,16 @@ const deleteAppointment = async (req, res) => {
 
     // Only the patient who created the appointment can delete it
     if (appointment.patientId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Not authorized to delete this appointment" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this appointment" });
     }
 
     // Free up the time slot
     const schedule = await DoctorSchedule.findOne({
       doctorId: appointment.doctorId,
       date: appointment.date,
-      time: appointment.time
+      time: appointment.time,
     });
     if (schedule) {
       schedule.isBooked = false;
@@ -335,5 +367,5 @@ module.exports = {
   getDoctorAppointments,
   createAppointment,
   updateAppointment,
-  deleteAppointment
-}; 
+  deleteAppointment,
+};
