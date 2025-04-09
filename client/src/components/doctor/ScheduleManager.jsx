@@ -43,22 +43,6 @@ const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Tooltip
             title={
-              isBooked
-                ? "This time slot has been booked"
-                : "Toggle availability"
-            }
-          >
-            <span>
-              <Switch
-                checked={schedule.isAvailable}
-                onChange={(e) => onUpdate(schedule._id, e.target.checked)}
-                color="primary"
-                disabled={isBooked}
-              />
-            </span>
-          </Tooltip>
-          <Tooltip
-            title={
               isBooked ? "Cannot delete booked schedule" : "Delete schedule"
             }
           >
@@ -88,9 +72,10 @@ const ScheduleItem = ({ schedule, onDelete, onUpdate }) => {
         secondary={
           <Box>
             <Typography variant="body2" component="span">
-              Time: {new Date(schedule.startTime).toLocaleTimeString()} -{" "}
-              {new Date(schedule.endTime).toLocaleTimeString()}
+              Time: {format(new Date(schedule.startTime), "HH:mm")} -{" "}
+              {format(new Date(schedule.endTime), "HH:mm")}
             </Typography>
+            <br />
             <Typography
               variant="body2"
               component="span"
