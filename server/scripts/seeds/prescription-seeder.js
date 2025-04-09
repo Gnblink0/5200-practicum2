@@ -28,7 +28,7 @@ const generatePrescriptions = async () => {
     const appointment = appointments[i % appointments.length]; // Cycle through appointments if needed
 
     // Calculate expiry date based on duration
-    const issuedDate = new Date(appointment.startTime);
+    const issuedDate = appointment.startTime; // Use appointment date directly
     const durationDays = faker.number.int({ min: 7, max: 90 });
     const expiryDate = new Date(issuedDate);
     expiryDate.setDate(expiryDate.getDate() + durationDays);

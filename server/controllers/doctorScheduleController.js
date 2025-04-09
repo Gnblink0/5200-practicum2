@@ -1,4 +1,5 @@
 const DoctorSchedule = require("../models/DoctorSchedule");
+const User = require("../models/User");
 
 // get doctor's all schedules
 const getSchedules = async (req, res) => {
@@ -29,24 +30,77 @@ const createSchedule = async (req, res) => {
         .json({ error: "Only doctors can create schedules" });
     }
 
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      console.log("Doctor not verified:", {
+        doctorId: req.user._id,
+        isVerified: req.user.isVerified,
+        verificationStatus: req.user.verificationStatus,
+      });
+      return res.status(403).json({
+        error: "Only verified doctors can create schedules",
+        verificationStatus: req.user.verificationStatus || "pending",
+        message: "Please wait for admin verification to create schedules",
+        details: {
+          doctorId: req.user._id,
+          isVerified: req.user.isVerified,
+          verificationStatus: req.user.verificationStatus,
+        },
+      });
+    }
+
     const { startTime, endTime } = req.body;
 
-    // check if the time slot conflicts with existing schedules
+    console.log("Creating schedule with times:", {
+      doctorId: req.user._id,
+      isVerified: req.user.isVerified,
+      startTime,
+      endTime,
+      parsedStartTime: new Date(startTime).toISOString(),
+      parsedEndTime: new Date(endTime).toISOString(),
+    });
+
+    // Validate times
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    if (start >= end) {
+      return res
+        .status(400)
+        .json({ error: "End time must be after start time" });
+    }
+
+    // Check if the time slot conflicts with existing schedules
     const conflictingSchedule = await DoctorSchedule.findOne({
       doctorId: req.user._id,
       $or: [
         {
-          startTime: { $lte: startTime },
-          endTime: { $gt: startTime },
+          startTime: { $lte: start },
+          endTime: { $gt: start },
         },
         {
-          startTime: { $lt: endTime },
-          endTime: { $gte: endTime },
+          startTime: { $lt: end },
+          endTime: { $gte: end },
         },
       ],
     });
 
     if (conflictingSchedule) {
+      console.log("Found conflicting schedule:", {
+        existing: {
+          startTime: conflictingSchedule.startTime.toISOString(),
+          endTime: conflictingSchedule.endTime.toISOString(),
+        },
+        new: {
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+        },
+      });
+
       return res.status(400).json({
         error: "This time slot conflicts with an existing schedule",
       });
@@ -54,14 +108,21 @@ const createSchedule = async (req, res) => {
 
     const schedule = new DoctorSchedule({
       doctorId: req.user._id,
-      startTime,
-      endTime,
+      startTime: start,
+      endTime: end,
       isAvailable: true,
     });
 
     await schedule.save();
+    console.log("Created schedule:", {
+      id: schedule._id,
+      startTime: schedule.startTime.toISOString(),
+      endTime: schedule.endTime.toISOString(),
+    });
+
     res.status(201).json(schedule);
   } catch (error) {
+    console.error("Error creating schedule:", error);
     res.status(400).json({ error: error.message });
   }
 };
@@ -73,6 +134,15 @@ const updateSchedule = async (req, res) => {
       return res
         .status(403)
         .json({ error: "Only doctors can update schedules" });
+    }
+
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      return res.status(403).json({
+        error: "Only verified doctors can update schedules",
+        verificationStatus: "pending",
+        message: "Please wait for admin verification to update schedules",
+      });
     }
 
     const { startTime, endTime, isAvailable } = req.body;
@@ -135,6 +205,15 @@ const deleteSchedule = async (req, res) => {
         .json({ error: "Only doctors can delete schedules" });
     }
 
+    // Check if doctor is verified
+    if (!req.user.isVerified) {
+      return res.status(403).json({
+        error: "Only verified doctors can delete schedules",
+        verificationStatus: "pending",
+        message: "Please wait for admin verification to delete schedules",
+      });
+    }
+
     const schedule = await DoctorSchedule.findOneAndDelete({
       _id: req.params.id,
       doctorId: req.user._id,
@@ -150,9 +229,80 @@ const deleteSchedule = async (req, res) => {
   }
 };
 
+// Get available time slots for a specific doctor
+const getAvailableSlots = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { date } = req.query;
+
+    // Validate doctor exists and is active
+    const doctor = await User.findOne({
+      _id: doctorId,
+      role: "Doctor",
+      isActive: true,
+    }).select("firstName lastName specialization");
+
+    if (!doctor) {
+      return res.status(404).json({ error: "Doctor not found or inactive" });
+    }
+
+    // If date is provided, filter by date
+    let query = {
+      doctorId,
+      isAvailable: true,
+      startTime: { $gte: new Date() },
+    };
+
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      query.startTime = {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      };
+    }
+
+    const availableSlots = await DoctorSchedule.find(query)
+      .sort({ startTime: 1 })
+      .lean();
+
+    // Group slots by date while keeping original date format
+    const groupedSlots = availableSlots.reduce((acc, slot) => {
+      const date = slot.startTime.toISOString().split("T")[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push({
+        _id: slot._id,
+        doctorId: slot.doctorId,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isAvailable: slot.isAvailable,
+      });
+      return acc;
+    }, {});
+
+    res.json({
+      doctor: {
+        id: doctor._id,
+        name: `${doctor.firstName} ${doctor.lastName}`,
+        specialization: doctor.specialization,
+      },
+      availableSlots: groupedSlots,
+    });
+  } catch (error) {
+    console.error("Error getting available slots:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getSchedules,
   createSchedule,
   updateSchedule,
   deleteSchedule,
+  getAvailableSlots,
 };

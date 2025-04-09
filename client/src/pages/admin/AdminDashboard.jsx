@@ -27,6 +27,7 @@ import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
+import DoctorVerification from '../../components/admin/DoctorVerification';
 
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState([]);
@@ -126,6 +127,10 @@ export default function AdminDashboard() {
             user={currentUser}
             onEditClick={() => setShowEditProfile(true)}
           />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <DoctorVerification />
         </Box>
 
         <Box>

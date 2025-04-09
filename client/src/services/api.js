@@ -1,58 +1,62 @@
-import { auth } from "../config/firebase";
+import { authService } from "./authService";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-async function getAuthHeaders() {
-  const user = auth.currentUser;
-  if (!user) return { "Content-Type": "application/json" };
-
-  return {
-    "Content-Type": "application/json",
-    "X-User-Email": user.email,
-    "X-User-UID": user.uid,
-  };
-}
+const handleRequest = async (url, options, retries = 0) => {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: authService.getAuthHeaders()
+    });
+    
+    if (response.status === 401 && retries < 2) {
+      // Try to validate auth state
+      const isValid = await authService.validateAuth();
+      if (isValid) {
+        // If validation successful, retry with new headers
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return handleRequest(url, options, retries + 1);
+      }
+    }
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Request failed");
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error("API request failed:", error);
+    throw error;
+  }
+};
 
 export const adminApi = {
   // Get all admins
   async getAllAdmins() {
-    const response = await fetch(`${API_URL}/admins`, {
-      headers: await getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to fetch admins");
-    return response.json();
+    return handleRequest(`${API_URL}/admins`);
   },
 
   // Get single admin
   async getAdmin(id) {
-    const response = await fetch(`${API_URL}/admins/${id}`, {
-      headers: await getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to fetch admin");
-    return response.json();
+    return handleRequest(`${API_URL}/admins/${id}`);
   },
 
   // Update admin permissions
   async updatePermissions(id, permissions) {
-    const response = await fetch(`${API_URL}/admins/${id}/permissions`, {
+    return handleRequest(`${API_URL}/admins/${id}/permissions`, {
       method: "PUT",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({ permissions }),
+      body: JSON.stringify({ permissions })
     });
-    if (!response.ok) throw new Error("Failed to update permissions");
-    return response.json();
   },
 
   // Update admin status
   async updateStatus(id, isActive) {
-    const response = await fetch(`${API_URL}/admins/${id}/status`, {
+    return handleRequest(`${API_URL}/admins/${id}/status`, {
       method: "PUT",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({ isActive }),
+      body: JSON.stringify({ isActive })
     });
-    if (!response.ok) throw new Error("Failed to update status");
-    return response.json();
-  },
+  }
 };
 
 export const userApi = {
@@ -92,44 +96,21 @@ export const userApi = {
     }
   },
 
+  // Get all users
+  async getAllUsers() {
+    return handleRequest(`${API_URL}/users`);
+  },
+
   // Get user profile
-  async getProfile() {
-    const response = await fetch(`${API_URL}/users/profile`, {
-      headers: await getAuthHeaders(),
-    });
-    if (!response.ok) throw new Error("Failed to fetch profile");
-    return response.json();
+  async getUserProfile() {
+    return handleRequest(`${API_URL}/users/profile`);
   },
 
   // Update user profile
-  async updateProfile(userData) {
-    try {
-      const response = await fetch(`${API_URL}/users/profile`, {
-        method: "PUT",
-        headers: await getAuthHeaders(),
-        body: JSON.stringify(userData),
-      });
-    
-      console.log("Request Headers:", await getAuthHeaders());
-      if (!response.ok) {
-        const errorText = await response.text(); 
-        console.error("Error Response Text:", errorText); 
-        throw new Error(`Failed to update profile. Status: ${response.status} - ${errorText}`);
-      }
-      
-      return response.json();
-    } catch (error) {
-      console.error("Update Profile Error:", error); 
-      throw error; 
-    }
-  },
-  
-
-  async getAllUsers() {
-    const response = await fetch(`${API_URL}/users`, {
-      headers: await getAuthHeaders(),
+  async updateUserProfile(userData) {
+    return handleRequest(`${API_URL}/users/profile`, {
+      method: "PUT",
+      body: JSON.stringify(userData)
     });
-    if (!response.ok) throw new Error("Failed to fetch users");
-    return response.json();
-  },
+  }
 };

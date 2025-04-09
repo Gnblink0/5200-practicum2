@@ -1,65 +1,133 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Container, Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Grid } from "@mui/material";
+import { Container, Box, Typography, CircularProgress } from "@mui/material";
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
-import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
-
+import { appointmentService } from "../../services/appointmentService";
+import { prescriptionService } from "../../services/prescriptionService";
+import { doctorService } from "../../services/doctorService";
+import AppointmentManager from "../../components/patient/AppointmentManager";
+import PrescriptionViewer from "../../components/patient/PrescriptionViewer";
 
 export default function PatientDashboard() {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
     if (currentUser) {
       loadAppointments();
       loadPrescriptions();
+      loadDoctors();
     }
   }, [currentUser]);
 
-
   async function loadAppointments() {
     try {
-      // TODO: Replace with actual API call
-      const data = await fetch(
-        `${import.meta.env.VITE_API_URL}/appointments`
-      ).then((res) => res.json());
-      setAppointments(data);
+      setLoading(true);
+      setError("");
+
+      // Validate current user
+      if (!currentUser) {
+        throw new Error('User not authenticated. Please log in again.');
+      }
+
+      // Log loading attempt
+      console.log('Loading appointments for user:', {
+        userId: currentUser._id,
+        email: currentUser.email,
+        role: currentUser.role
+      });
+
+      const userId = currentUser?._id;
+      const data = await appointmentService.getPatientAppointments(userId);
+      
+      // Validate response data
+      if (!Array.isArray(data)) {
+        console.warn('Unexpected appointments data format:', data);
+        setAppointments([]);
+      } else {
+        console.log('Successfully loaded appointments:', data.length);
+        setAppointments(data);
+      }
     } catch (error) {
-      setError("Failed to load appointments: " + error.message);
+      console.error('Error loading appointments:', error);
+      
+      // Handle specific error cases
+      if (error.message.includes('Authentication required')) {
+        setError("Your session has expired. Please log in again.");
+      } else if (error.message.includes('Invalid user ID')) {
+        setError("There was a problem with your account. Please try logging in again.");
+      } else {
+        setError(`Failed to load appointments: ${error.message}`);
+      }
+      
+      // Clear appointments on error
+      setAppointments([]);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function loadPrescriptions() {
     try {
-      // TODO: Replace with actual API call
-      const data = await fetch(
-        `${import.meta.env.VITE_API_URL}/prescriptions`
-      ).then((res) => res.json());
+      const data = await prescriptionService.getPrescriptions(currentUser._id, "Patient");
       setPrescriptions(data);
     } catch (error) {
       setError("Failed to load prescriptions: " + error.message);
     }
   }
 
-  const appointmentColumns = [
-    { id: "date", label: "Date" },
-    { id: "time", label: "Time" },
-    { id: "doctor", label: "Doctor" },
-    { id: "status", label: "Status" },
-  ];
+  async function loadDoctors() {
+    try {
+      const data = await doctorService.getDoctors();
+      setDoctors(data);
+    } catch (error) {
+      setError("Failed to load doctors: " + error.message);
+    }
+  }
 
-  const prescriptionColumns = [
-    { id: "date", label: "Date" },
-    { id: "medication", label: "Medication" },
-    { id: "dosage", label: "Dosage" },
-    { id: "doctor", label: "Prescribed By" },
-  ];
+  async function handleAddAppointment(appointmentData) {
+    try {
+      console.log('Creating appointment with data:', appointmentData);
+      const newAppointment = await appointmentService.createAppointment(appointmentData);
+      console.log('Created appointment:', newAppointment);
+      await loadAppointments();
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      setError("Failed to create appointment: " + error.message);
+    }
+  }
+
+  async function handleUpdateAppointment(id, appointmentData) {
+    try {
+      console.log('Updating appointment:', { id, appointmentData });
+      const result = await appointmentService.updateAppointment(id, appointmentData);
+      console.log('Update result:', result);
+      // Immediately reload appointments after successful update
+      await loadAppointments();
+      return result;
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+      setError("Failed to update appointment: " + error.message);
+      throw error;
+    }
+  }
+
+  async function handleDeleteAppointment(id) {
+    try {
+      await appointmentService.deleteAppointment(id);
+      loadAppointments();
+    } catch (error) {
+      setError("Failed to delete appointment: " + error.message);
+    }
+  }
 
   async function handleLogout() {
     try {
@@ -87,39 +155,23 @@ export default function PatientDashboard() {
         </Box>
 
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            My Appointments
-          </Typography>
-          <DataTable
-            columns={appointmentColumns}
-            data={appointments}
-            renderRow={(appointment) => (
-              <TableRow key={appointment._id}>
-                <TableCell>{appointment.date}</TableCell>
-                <TableCell>{appointment.time}</TableCell>
-                <TableCell>{appointment.doctor.name}</TableCell>
-                <TableCell>{appointment.status}</TableCell>
-              </TableRow>
-            )}
-          />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <AppointmentManager
+              appointments={appointments}
+              doctors={doctors}
+              onAdd={handleAddAppointment}
+              onUpdate={handleUpdateAppointment}
+              onDelete={handleDeleteAppointment}
+            />
+          )}
         </Box>
 
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            My Prescriptions
-          </Typography>
-          <DataTable
-            columns={prescriptionColumns}
-            data={prescriptions}
-            renderRow={(prescription) => (
-              <TableRow key={prescription._id}>
-                <TableCell>{prescription.date}</TableCell>
-                <TableCell>{prescription.medication}</TableCell>
-                <TableCell>{prescription.dosage}</TableCell>
-                <TableCell>{prescription.doctor.name}</TableCell>
-              </TableRow>
-            )}
-          />
+          <PrescriptionViewer prescriptions={prescriptions} />
         </Box>
 
         <ProfileEdit

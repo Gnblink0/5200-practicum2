@@ -100,7 +100,7 @@ const registerUser = async (req, res) => {
           username,
           isActive: true,
           specialization: "",
-          licenseNumber: "",
+          licenseNumber: req.body.licenseNumber || undefined,
           availability: [],
           patients: [],
           appointments: [],
@@ -123,8 +123,54 @@ const registerUser = async (req, res) => {
 // Get current user profile
 const getUserProfile = async (req, res) => {
   try {
-    res.json(req.user);
+    if (!req.user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    // Get complete user data based on role
+    let userWithDetails;
+    switch (req.userRole) {
+      case "Doctor":
+        userWithDetails = await Doctor.findById(req.user._id)
+          .select('-password')
+          .lean();
+        break;
+      case "Patient":
+        userWithDetails = await Patient.findById(req.user._id)
+          .select('-password')
+          .lean();
+        break;
+      case "Admin":
+        userWithDetails = await Admin.findById(req.user._id)
+          .select('-password')
+          .lean();
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid user role" });
+    }
+
+    if (!userWithDetails) {
+      console.error("User details not found:", {
+        userId: req.user._id,
+        role: req.userRole
+      });
+      return res.status(404).json({ error: "User details not found" });
+    }
+
+    // Add role to response
+    userWithDetails.role = req.userRole;
+
+    // Log successful profile fetch
+    console.log('Profile fetched successfully:', {
+      userId: userWithDetails._id,
+      role: userWithDetails.role,
+      email: userWithDetails.email,
+      isActive: userWithDetails.isActive
+    });
+
+    res.json(userWithDetails);
   } catch (error) {
+    console.error("Error in getUserProfile:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -222,10 +268,13 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   deleteUserProfile,
   getAllUsers,
+
 };

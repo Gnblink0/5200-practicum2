@@ -28,8 +28,8 @@ const AppointmentSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
+      required: [true, "Reason is required"],
       trim: true,
-      maxlength: [500, "Reason cannot exceed 500 characters"],
     },
     notes: {
       type: String,
@@ -37,8 +37,12 @@ const AppointmentSchema = new mongoose.Schema(
     },
     mode: {
       type: String,
-      enum: ["in-person", "telehealth"],
+      enum: ["in-person", "video", "phone"],
       default: "in-person",
+    },
+    hasPrescription: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -47,35 +51,70 @@ const AppointmentSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-AppointmentSchema.index({ patientId: 1, doctorId: 1 });
-AppointmentSchema.index({ startTime: 1, status: 1 });
+AppointmentSchema.index({ patientId: 1, status: 1 });
+AppointmentSchema.index({ doctorId: 1, startTime: 1 });
 
-// Add validation to ensure appointment is within doctor's schedule
-AppointmentSchema.pre("validate", async function (next) {
-  if (!this.startTime || !this.endTime || !this.doctorId) {
-    return next();
+// Validation middleware
+AppointmentSchema.pre("save", async function (next) {
+  try {
+    // Skip validation if the appointment status is being updated to confirmed or cancelled
+    if (
+      this.isModified("status") &&
+      (this.status === "cancelled" || this.status === "confirmed")
+    ) {
+      return next();
+    }
+
+    // Time range validation
+    if (this.startTime >= this.endTime) {
+      throw new Error(
+        "Invalid time range: appointment end time must be after start time"
+      );
+    }
+
+    // Check if time is in the future for new appointments
+    if (this.startTime < new Date() && this.isNew) {
+      throw new Error(
+        "Invalid appointment time: cannot create appointments in the past"
+      );
+    }
+
+    // Only check schedule availability for new appointments
+    if (this.isNew) {
+      // Find doctor's schedule
+      const scheduleQuery = {
+        doctorId: this.doctorId,
+        startTime: { $lte: this.startTime },
+        endTime: { $gte: this.endTime },
+        isAvailable: true,
+      };
+
+      console.log("Searching for doctor schedule with query:", scheduleQuery);
+
+      const schedule = await mongoose
+        .model("DoctorSchedule")
+        .findOne(scheduleQuery);
+
+      console.log("Found schedule:", {
+        appointmentId: this._id,
+        scheduleFound: !!schedule,
+        scheduleId: schedule?._id,
+        isAvailable: schedule?.isAvailable,
+        startTime: schedule?.startTime,
+        endTime: schedule?.endTime,
+      });
+
+      if (!schedule) {
+        throw new Error(
+          "No available schedule found for the selected time slot"
+        );
+      }
+    }
+
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  // First check if start time is before end time
-  if (this.startTime >= this.endTime) {
-    return next(new Error("End time must be after start time"));
-  }
-
-  // Find doctor's schedule for this time period
-  const schedule = await DoctorSchedule.findOne({
-    doctorId: this.doctorId,
-    startTime: { $lte: this.startTime },
-    endTime: { $gte: this.endTime },
-    isAvailable: true,
-  });
-
-  if (!schedule) {
-    return next(
-      new Error("Appointment time is not within doctor's available schedule")
-    );
-  }
-
-  next();
 });
 
 // Static method to find appointments by patient
@@ -90,6 +129,11 @@ AppointmentSchema.statics.findByDoctor = function (doctorId) {
 
 AppointmentSchema.methods.duration = function () {
   return this.endTime - this.startTime;
+};
+
+// Instance method to check if appointment can be modified
+AppointmentSchema.methods.canModify = function () {
+  return ["pending", "confirmed"].includes(this.status);
 };
 
 const Appointment = mongoose.model("Appointment", AppointmentSchema);

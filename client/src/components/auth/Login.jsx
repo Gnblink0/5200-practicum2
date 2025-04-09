@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Container,
@@ -10,13 +10,28 @@ import {
   Alert,
 } from "@mui/material";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusSeverity, setStatusSeverity] = useState("info");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Show any messages passed from other components (e.g., after signup)
+  React.useEffect(() => {
+    if (location.state?.message) {
+      setStatusMessage(location.state.message);
+      setStatusSeverity(location.state.severity || "info");
+    }
+  }, [location]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -24,8 +39,33 @@ export default function Login() {
     try {
       setError("");
       setLoading(true);
-      const { role } = await login(email, password);
+      
+      // Authenticate with Firebase and get user data
+      const { userData, role } = await login(formData.email, formData.password);
+      
+      // Show verification status for doctors
+      if (role === 'Doctor') {
+        let message = '';
+        let severity = 'info';
+        
+        if (userData.verificationStatus === 'pending') {
+          message = 'Your account is pending verification. Some features will be limited until verification is complete.';
+          severity = 'warning';
+        } else if (userData.verificationStatus === 'rejected') {
+          message = 'Your verification was rejected. Please contact support for more information.';
+          severity = 'error';
+        } else if (userData.verificationStatus === 'verified') {
+          message = 'Your account is verified. You have full access to all features.';
+          severity = 'success';
+        }
 
+        if (message) {
+          setStatusMessage(message);
+          setStatusSeverity(severity);
+        }
+      }
+
+      // Navigate based on role
       switch (role) {
         case "Admin":
           navigate("/admin-dashboard");
@@ -81,6 +121,11 @@ export default function Login() {
             {error}
           </Alert>
         )}
+        {statusMessage && (
+          <Alert severity={statusSeverity} sx={{ mt: 2, width: "100%" }}>
+            {statusMessage}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <TextField
             margin="normal"
@@ -91,8 +136,8 @@ export default function Login() {
             name="email"
             autoComplete="email"
             autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
           />
           <TextField
             margin="normal"
@@ -103,8 +148,8 @@ export default function Login() {
             type="password"
             id="password"
             autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
           />
           <Button
             type="submit"
@@ -113,7 +158,7 @@ export default function Login() {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
           <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">

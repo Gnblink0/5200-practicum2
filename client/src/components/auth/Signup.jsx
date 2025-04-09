@@ -31,6 +31,7 @@ export default function Signup() {
       state: "",
       zipCode: "",
     },
+    licenseNumber: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,6 +93,11 @@ export default function Signup() {
         role: formData.role,
       };
 
+      // Only include licenseNumber field for doctors, and set it to pending
+      if (formData.role === 'Doctor') {
+        userData.licenseNumber = 'PENDING_VERIFICATION';
+      }
+
       // Create user in backend
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/users/register`,
@@ -120,9 +126,14 @@ export default function Signup() {
       // Store role in localStorage for use in the app
       localStorage.setItem("userRole", formData.role);
 
+      let successMessage = "Account created successfully!";
+      if (formData.role === "Doctor") {
+        successMessage = "Account created successfully! Please check your verification status when you login.";
+      }
+
       navigate("/login", {
         state: {
-          message: "Account created successfully! Please login to continue.",
+          message: successMessage,
           severity: "success",
         },
       });
@@ -166,10 +177,15 @@ export default function Signup() {
                   onChange={handleChange}
                 >
                   <MenuItem value="Patient">Patient</MenuItem>
-                  <MenuItem value="Doctor">Doctor</MenuItem>
+                  <MenuItem value="Doctor">Doctor (Requires Verification)</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
                 </Select>
               </FormControl>
+              {formData.role === "Doctor" && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Note: Doctor accounts require administrator verification before they can be used. You will be notified via email once your account is verified.
+                </Typography>
+              )}
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField

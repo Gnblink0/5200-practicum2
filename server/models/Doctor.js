@@ -12,8 +12,25 @@ const DoctorSchema = User.discriminator(
       },
       licenseNumber: {
         type: String,
-        default: "",
+        sparse: true,
+        default: null
       },
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
+      verificationStatus: {
+        type: String,
+        enum: ['pending', 'verified', 'rejected'],
+        default: 'pending'
+      },
+      verifiedAt: {
+        type: Date,
+      },
+      verifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+      }
     },
     {
       timestamps: true,

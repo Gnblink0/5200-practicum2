@@ -116,7 +116,7 @@ export default function ProfileEdit({ open, onClose, currentUser, onMedicalInfoC
       console.log("Current user:", currentUser);
       console.log("Submitting form data:", JSON.stringify(formData, null, 2));
 
-      const response = await userApi.updateProfile(formData);
+      const response = await userApi.updateUserProfile(formData);
       console.log("Update response:", response);
 
       onClose();
@@ -168,7 +168,15 @@ export default function ProfileEdit({ open, onClose, currentUser, onMedicalInfoC
       }));
     }
 
-    onMedicalInfoChange(name, value);
+    // Only call onMedicalInfoChange if it exists and the field is related to medical info
+    if (onMedicalInfoChange && (
+      name.includes('medicalHistory') || 
+      name.includes('allergies') || 
+      name.includes('medications') || 
+      name.includes('disease')
+    )) {
+      onMedicalInfoChange(name, value);
+    }
   };
 
   const handleDeleteAccount = async () => {
