@@ -104,11 +104,7 @@ export default function ScheduleManager({
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [formError, setFormError] = useState(null);
-  const [formData, setFormData] = useState({
-    startTime: null,
-    endTime: null,
-    isAvailable: true,
-  });
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(true);
 
   const handleClickOpen = () => {
     if (!isVerified) {
@@ -186,30 +182,54 @@ export default function ScheduleManager({
     }
   };
 
+  // 过滤schedules
+  const filteredSchedules = schedules?.filter(
+    (schedule) => !showOnlyAvailable || schedule.isAvailable
+  );
+
   return (
     <Box>
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between" }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="h6">My Schedules</Typography>
-        <Button variant="contained" onClick={handleClickOpen}>
-          Add New Schedule
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showOnlyAvailable}
+                onChange={(e) => setShowOnlyAvailable(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Show only available"
+          />
+          <Button variant="contained" onClick={handleClickOpen}>
+            Add New Schedule
+          </Button>
+        </Box>
       </Box>
 
-      {!schedules || schedules.length === 0 ? (
+      {!filteredSchedules || filteredSchedules.length === 0 ? (
         <Typography variant="body1" color="textSecondary">
-          No schedules found.
+          {schedules?.length > 0
+            ? "No available schedules found."
+            : "No schedules found."}
         </Typography>
       ) : (
         <List>
-          {schedules.map((schedule, index) => (
-            <React.Fragment key={schedule._id}>
-              <ScheduleItem
-                schedule={schedule}
-                onDelete={onDelete}
-                onUpdate={(id, isAvailable) => onUpdate(id, { isAvailable })}
-              />
-              {index < schedules.length - 1 && <Divider />}
-            </React.Fragment>
+          {filteredSchedules.map((schedule) => (
+            <ScheduleItem
+              key={schedule._id}
+              schedule={schedule}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+            />
           ))}
         </List>
       )}
