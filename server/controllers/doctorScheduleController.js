@@ -32,34 +32,32 @@ const createSchedule = async (req, res) => {
 
     // Check if doctor is verified
     if (!req.user.isVerified) {
-      console.log('Doctor not verified:', {
+      console.log("Doctor not verified:", {
         doctorId: req.user._id,
         isVerified: req.user.isVerified,
-        verificationStatus: req.user.verificationStatus
+        verificationStatus: req.user.verificationStatus,
       });
-      return res
-        .status(403)
-        .json({ 
-          error: "Only verified doctors can create schedules",
-          verificationStatus: req.user.verificationStatus || "pending",
-          message: "Please wait for admin verification to create schedules",
-          details: {
-            doctorId: req.user._id,
-            isVerified: req.user.isVerified,
-            verificationStatus: req.user.verificationStatus
-          }
-        });
+      return res.status(403).json({
+        error: "Only verified doctors can create schedules",
+        verificationStatus: req.user.verificationStatus || "pending",
+        message: "Please wait for admin verification to create schedules",
+        details: {
+          doctorId: req.user._id,
+          isVerified: req.user.isVerified,
+          verificationStatus: req.user.verificationStatus,
+        },
+      });
     }
 
     const { startTime, endTime } = req.body;
 
-    console.log('Creating schedule with times:', {
+    console.log("Creating schedule with times:", {
       doctorId: req.user._id,
       isVerified: req.user.isVerified,
       startTime,
       endTime,
       parsedStartTime: new Date(startTime).toISOString(),
-      parsedEndTime: new Date(endTime).toISOString()
+      parsedEndTime: new Date(endTime).toISOString(),
     });
 
     // Validate times
@@ -71,7 +69,9 @@ const createSchedule = async (req, res) => {
     }
 
     if (start >= end) {
-      return res.status(400).json({ error: "End time must be after start time" });
+      return res
+        .status(400)
+        .json({ error: "End time must be after start time" });
     }
 
     // Check if the time slot conflicts with existing schedules
@@ -90,15 +90,15 @@ const createSchedule = async (req, res) => {
     });
 
     if (conflictingSchedule) {
-      console.log('Found conflicting schedule:', {
+      console.log("Found conflicting schedule:", {
         existing: {
           startTime: conflictingSchedule.startTime.toISOString(),
-          endTime: conflictingSchedule.endTime.toISOString()
+          endTime: conflictingSchedule.endTime.toISOString(),
         },
         new: {
           startTime: start.toISOString(),
-          endTime: end.toISOString()
-        }
+          endTime: end.toISOString(),
+        },
       });
 
       return res.status(400).json({
@@ -114,15 +114,15 @@ const createSchedule = async (req, res) => {
     });
 
     await schedule.save();
-    console.log('Created schedule:', {
+    console.log("Created schedule:", {
       id: schedule._id,
       startTime: schedule.startTime.toISOString(),
-      endTime: schedule.endTime.toISOString()
+      endTime: schedule.endTime.toISOString(),
     });
 
     res.status(201).json(schedule);
   } catch (error) {
-    console.error('Error creating schedule:', error);
+    console.error("Error creating schedule:", error);
     res.status(400).json({ error: error.message });
   }
 };
@@ -138,13 +138,11 @@ const updateSchedule = async (req, res) => {
 
     // Check if doctor is verified
     if (!req.user.isVerified) {
-      return res
-        .status(403)
-        .json({ 
-          error: "Only verified doctors can update schedules",
-          verificationStatus: "pending",
-          message: "Please wait for admin verification to update schedules"
-        });
+      return res.status(403).json({
+        error: "Only verified doctors can update schedules",
+        verificationStatus: "pending",
+        message: "Please wait for admin verification to update schedules",
+      });
     }
 
     const { startTime, endTime, isAvailable } = req.body;
@@ -209,13 +207,11 @@ const deleteSchedule = async (req, res) => {
 
     // Check if doctor is verified
     if (!req.user.isVerified) {
-      return res
-        .status(403)
-        .json({ 
-          error: "Only verified doctors can delete schedules",
-          verificationStatus: "pending",
-          message: "Please wait for admin verification to delete schedules"
-        });
+      return res.status(403).json({
+        error: "Only verified doctors can delete schedules",
+        verificationStatus: "pending",
+        message: "Please wait for admin verification to delete schedules",
+      });
     }
 
     const schedule = await DoctorSchedule.findOneAndDelete({
@@ -240,11 +236,11 @@ const getAvailableSlots = async (req, res) => {
     const { date } = req.query;
 
     // Validate doctor exists and is active
-    const doctor = await User.findOne({ 
-      _id: doctorId, 
-      role: "Doctor", 
-      isActive: true 
-    }).select('firstName lastName specialization');
+    const doctor = await User.findOne({
+      _id: doctorId,
+      role: "Doctor",
+      isActive: true,
+    }).select("firstName lastName specialization");
 
     if (!doctor) {
       return res.status(404).json({ error: "Doctor not found or inactive" });
@@ -254,7 +250,7 @@ const getAvailableSlots = async (req, res) => {
     let query = {
       doctorId,
       isAvailable: true,
-      startTime: { $gte: new Date() }
+      startTime: { $gte: new Date() },
     };
 
     if (date) {
@@ -262,10 +258,10 @@ const getAvailableSlots = async (req, res) => {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      
+
       query.startTime = {
         $gte: startOfDay,
-        $lte: endOfDay
+        $lte: endOfDay,
       };
     }
 
@@ -275,7 +271,7 @@ const getAvailableSlots = async (req, res) => {
 
     // Group slots by date while keeping original date format
     const groupedSlots = availableSlots.reduce((acc, slot) => {
-      const date = slot.startTime.toISOString().split('T')[0];
+      const date = slot.startTime.toISOString().split("T")[0];
       if (!acc[date]) {
         acc[date] = [];
       }
@@ -284,7 +280,7 @@ const getAvailableSlots = async (req, res) => {
         doctorId: slot.doctorId,
         startTime: slot.startTime,
         endTime: slot.endTime,
-        isAvailable: slot.isAvailable
+        isAvailable: slot.isAvailable,
       });
       return acc;
     }, {});
@@ -293,12 +289,12 @@ const getAvailableSlots = async (req, res) => {
       doctor: {
         id: doctor._id,
         name: `${doctor.firstName} ${doctor.lastName}`,
-        specialization: doctor.specialization
+        specialization: doctor.specialization,
       },
-      availableSlots: groupedSlots
+      availableSlots: groupedSlots,
     });
   } catch (error) {
-    console.error('Error getting available slots:', error);
+    console.error("Error getting available slots:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -308,5 +304,5 @@ module.exports = {
   createSchedule,
   updateSchedule,
   deleteSchedule,
-  getAvailableSlots
+  getAvailableSlots,
 };

@@ -21,8 +21,8 @@ const DoctorScheduleSchema = new mongoose.Schema(
     },
     version: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -30,8 +30,8 @@ const DoctorScheduleSchema = new mongoose.Schema(
 );
 
 // Increment version on each update
-DoctorScheduleSchema.pre('save', function(next) {
-  if (this.isModified('isAvailable')) {
+DoctorScheduleSchema.pre("save", function (next) {
+  if (this.isModified("isAvailable")) {
     this.version += 1;
   }
   next();
@@ -40,27 +40,24 @@ DoctorScheduleSchema.pre('save', function(next) {
 // Validate startTime and endTime
 DoctorScheduleSchema.pre("validate", function (next) {
   if (this.startTime && this.endTime) {
-    console.log('Validating schedule times:', {
+    console.log("Validating schedule times:", {
       startTime: this.startTime.toISOString(),
       endTime: this.endTime.toISOString(),
-      isValid: this.startTime < this.endTime
+      isValid: this.startTime < this.endTime,
     });
 
     if (this.startTime >= this.endTime) {
-      this.invalidate(
-        "endTime",
-        "End time must be after start time"
-      );
+      this.invalidate("endTime", "End time must be after start time");
     }
 
     // Ensure times are on the same day
     const startDate = new Date(this.startTime).setHours(0, 0, 0, 0);
     const endDate = new Date(this.endTime).setHours(0, 0, 0, 0);
 
-    console.log('Checking same day:', {
+    console.log("Checking same day:", {
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
-      isSameDay: startDate === endDate
+      isSameDay: startDate === endDate,
     });
 
     if (startDate !== endDate) {
