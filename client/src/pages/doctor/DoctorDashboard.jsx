@@ -281,6 +281,88 @@ export default function DoctorDashboard() {
     }
   }
 
+  const appointmentColumns = [
+    { id: "date", label: "Date" },
+    { id: "time", label: "Time" },
+    { id: "patient", label: "Patient" },
+    { id: "reason", label: "Patient's Note" },
+    { id: "mode", label: "Mode" },
+    { id: "status", label: "Status" },
+    { id: "actions", label: "Actions" },
+  ];
+
+  const renderRow = (appointment) => (
+    <TableRow key={appointment._id}>
+      <TableCell>
+        {new Date(appointment.startTime).toLocaleDateString()}
+      </TableCell>
+      <TableCell>
+        {new Date(appointment.startTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </TableCell>
+      <TableCell>
+        {appointment.patientId?.firstName} {appointment.patientId?.lastName}
+      </TableCell>
+      <TableCell>{appointment.reason}</TableCell>
+      <TableCell>{appointment.mode}</TableCell>
+      <TableCell>
+        <Chip
+          label={appointment.status}
+          color={
+            appointment.status === "confirmed"
+              ? "success"
+              : appointment.status === "pending"
+              ? "warning"
+              : appointment.status === "cancelled"
+              ? "error"
+              : "info"
+          }
+          size="small"
+        />
+      </TableCell>
+      <TableCell>
+        {appointment.status === "pending" && (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              size="small"
+              variant="contained"
+              color="success"
+              onClick={() =>
+                handleAppointmentStatusChange(appointment._id, "confirmed")
+              }
+            >
+              Approve
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="error"
+              onClick={() =>
+                handleAppointmentStatusChange(appointment._id, "cancelled")
+              }
+            >
+              Reject
+            </Button>
+          </Box>
+        )}
+        {appointment.status === "confirmed" && (
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            onClick={() =>
+              handleAppointmentStatusChange(appointment._id, "completed")
+            }
+          >
+            Complete
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ flexGrow: 1 }}>
@@ -337,91 +419,7 @@ export default function DoctorDashboard() {
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
-                <TableBody>
-                  {appointments.map((appointment) => (
-                    <TableRow key={appointment._id}>
-                      <TableCell>
-                        {new Date(appointment.startTime).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(appointment.startTime).toLocaleTimeString(
-                          [],
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {appointment.patientId?.firstName}{" "}
-                        {appointment.patientId?.lastName}
-                      </TableCell>
-                      <TableCell>{appointment.reason}</TableCell>
-                      <TableCell>{appointment.mode}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={appointment.status}
-                          color={
-                            appointment.status === "pending"
-                              ? "warning"
-                              : appointment.status === "confirmed"
-                              ? "success"
-                              : appointment.status === "cancelled"
-                              ? "error"
-                              : "default"
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {appointment.status === "pending" && (
-                          <Box sx={{ display: "flex", gap: 1 }}>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
-                              onClick={() =>
-                                handleAppointmentStatusChange(
-                                  appointment._id,
-                                  "confirmed"
-                                )
-                              }
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="error"
-                              onClick={() =>
-                                handleAppointmentStatusChange(
-                                  appointment._id,
-                                  "cancelled"
-                                )
-                              }
-                            >
-                              Reject
-                            </Button>
-                          </Box>
-                        )}
-                        {appointment.status === "confirmed" && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                            onClick={() =>
-                              handleAppointmentStatusChange(
-                                appointment._id,
-                                "completed"
-                              )
-                            }
-                          >
-                            Complete
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                <TableBody>{appointments.map(renderRow)}</TableBody>
               </Table>
             </TableContainer>
           </Box>
@@ -436,6 +434,13 @@ export default function DoctorDashboard() {
               isVerified={isVerified}
             />
           </Box>
+
+          <PrescriptionManager
+            prescriptions={prescriptions}
+            onAdd={handleAddPrescription}
+            onUpdate={handleUpdatePrescription}
+            onDelete={handleDeletePrescription}
+          />
 
           <ProfileEdit
             open={showEditProfile}
