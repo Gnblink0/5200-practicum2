@@ -107,7 +107,7 @@ const createPrescription = async (req, res) => {
       appointmentId: appointment._id,
       medications,
       diagnosis,
-      issuedDate: new Date(),
+      issuedDate: appointment.startTime,
       expiryDate: expiry,
       status: "active",
     });

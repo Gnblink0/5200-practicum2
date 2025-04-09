@@ -273,15 +273,42 @@ const updateAppointment = async (req, res) => {
 
     // Special handling for status updates
     if (req.body.status) {
-      // Doctor can approve/reject pending appointments
+      // Doctor can approve/reject pending appointments and complete confirmed appointments
       if (isDoctor) {
-        if (appointment.status !== "pending") {
-          return res
-            .status(400)
-            .json({ error: "Can only approve/reject pending appointments" });
-        }
-        if (["confirmed", "cancelled"].includes(req.body.status)) {
+        if (req.body.status === "completed") {
+          if (appointment.status !== "confirmed") {
+            return res
+              .status(400)
+              .json({ error: "Can only complete confirmed appointments" });
+          }
+          appointment.status = "completed";
+        } else if (["confirmed", "cancelled"].includes(req.body.status)) {
+          if (appointment.status !== "pending") {
+            return res
+              .status(400)
+              .json({ error: "Can only approve/reject pending appointments" });
+          }
           appointment.status = req.body.status;
+
+          // If doctor cancels the appointment, mark the schedule as available again
+          if (req.body.status === "cancelled") {
+            const schedule = await DoctorSchedule.findOneAndUpdate(
+              {
+                doctorId: appointment.doctorId,
+                startTime: appointment.startTime,
+                endTime: appointment.endTime,
+                isAvailable: false,
+              },
+              { isAvailable: true },
+              { new: true }
+            );
+
+            console.log("Schedule updated after doctor cancellation:", {
+              appointmentId: appointment._id,
+              scheduleFound: !!schedule,
+              isAvailable: schedule?.isAvailable,
+            });
+          }
         } else {
           return res.status(400).json({ error: "Invalid status update" });
         }
