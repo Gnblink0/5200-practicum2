@@ -49,6 +49,7 @@ export default function AppointmentManager({
     reason: "",
     mode: "in-person",
   });
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Add status constants
   const APPOINTMENT_STATUS = {
@@ -92,6 +93,15 @@ export default function AppointmentManager({
         return [];
     }
   };
+
+  // Add status filters
+  const STATUS_FILTERS = [
+    { value: "all", label: "All Appointments" },
+    { value: APPOINTMENT_STATUS.PENDING, label: "Pending" },
+    { value: APPOINTMENT_STATUS.CONFIRMED, label: "Confirmed" },
+    { value: APPOINTMENT_STATUS.COMPLETED, label: "Completed" },
+    { value: APPOINTMENT_STATUS.CANCELLED, label: "Cancelled" },
+  ];
 
   // Modify StatusActions component
   const StatusActions = ({ appointment, onCancel }) => {
@@ -404,6 +414,12 @@ export default function AppointmentManager({
     return options;
   };
 
+  // Add filtering logic
+  const filteredAppointments = appointments.filter(
+    (appointment) =>
+      statusFilter === "all" || appointment.status === statusFilter
+  );
+
   return (
     <Box>
       <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between" }}>
@@ -411,6 +427,22 @@ export default function AppointmentManager({
         <Button variant="contained" onClick={() => setOpen(true)}>
           Book Appointment
         </Button>
+      </Box>
+
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          select
+          label="Filter by Status"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          sx={{ minWidth: 200 }}
+        >
+          {STATUS_FILTERS.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
       </Box>
 
       {success && (
@@ -429,11 +461,10 @@ export default function AppointmentManager({
               <TableCell>Reason</TableCell>
               <TableCell>Mode</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {appointments.map((appointment) => (
+            {filteredAppointments.map((appointment) => (
               <TableRow
                 key={appointment._id}
                 sx={{

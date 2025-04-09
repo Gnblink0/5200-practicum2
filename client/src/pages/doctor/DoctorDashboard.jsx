@@ -15,6 +15,8 @@ import {
   TableContainer,
   TableHead,
   Paper,
+  TextField,
+  MenuItem,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -48,6 +50,7 @@ export default function DoctorDashboard() {
     currentUser?.isVerified || false
   );
   const [success, setSuccess] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const needsVerificationCheck = useRef(true);
 
@@ -232,6 +235,19 @@ export default function DoctorDashboard() {
     { id: "status", label: "Status" },
   ];
 
+  const STATUS_FILTERS = [
+    { value: "all", label: "All Appointments" },
+    { value: "pending", label: "Pending" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "completed", label: "Completed" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
+
+  const filteredAppointments = appointments.filter(
+    (appointment) =>
+      statusFilter === "all" || appointment.status === statusFilter
+  );
+
   async function handleLogout() {
     try {
       await logout();
@@ -326,106 +342,126 @@ export default function DoctorDashboard() {
                 No appointments found.
               </Typography>
             ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Time</TableCell>
-                      <TableCell>Patient</TableCell>
-                      <TableCell>Patient's Note</TableCell>
-                      <TableCell>Mode</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {appointments.map((appointment) => (
-                      <TableRow key={appointment._id}>
-                        <TableCell>
-                          {new Date(appointment.startTime).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(appointment.startTime).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {appointment.patientId?.firstName}{" "}
-                          {appointment.patientId?.lastName}
-                        </TableCell>
-                        <TableCell>{appointment.reason}</TableCell>
-                        <TableCell>{appointment.mode}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={appointment.status}
-                            color={
-                              appointment.status === "pending"
-                                ? "warning"
-                                : appointment.status === "confirmed"
-                                ? "success"
-                                : appointment.status === "cancelled"
-                                ? "error"
-                                : "default"
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {appointment.status === "pending" && (
-                            <Box sx={{ display: "flex", gap: 1 }}>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="success"
-                                onClick={() =>
-                                  handleAppointmentStatusChange(
-                                    appointment._id,
-                                    "confirmed"
-                                  )
-                                }
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="error"
-                                onClick={() =>
-                                  handleAppointmentStatusChange(
-                                    appointment._id,
-                                    "cancelled"
-                                  )
-                                }
-                              >
-                                Reject
-                              </Button>
-                            </Box>
-                          )}
-                          {appointment.status === "confirmed" && (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="primary"
-                              onClick={() =>
-                                handleAppointmentStatusChange(
-                                  appointment._id,
-                                  "completed"
-                                )
-                              }
-                            >
-                              Complete
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
+              <>
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    select
+                    label="Filter by Status"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    sx={{ minWidth: 200 }}
+                  >
+                    {STATUS_FILTERS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
                     ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                  </TextField>
+                </Box>
+
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Time</TableCell>
+                        <TableCell>Patient</TableCell>
+                        <TableCell>Patient's Note</TableCell>
+                        <TableCell>Mode</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredAppointments.map((appointment) => (
+                        <TableRow key={appointment._id}>
+                          <TableCell>
+                            {new Date(
+                              appointment.startTime
+                            ).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(appointment.startTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.patientId?.firstName}{" "}
+                            {appointment.patientId?.lastName}
+                          </TableCell>
+                          <TableCell>{appointment.reason}</TableCell>
+                          <TableCell>{appointment.mode}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={appointment.status}
+                              color={
+                                appointment.status === "pending"
+                                  ? "warning"
+                                  : appointment.status === "confirmed"
+                                  ? "success"
+                                  : appointment.status === "cancelled"
+                                  ? "error"
+                                  : "default"
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {appointment.status === "pending" && (
+                              <Box sx={{ display: "flex", gap: 1 }}>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  color="success"
+                                  onClick={() =>
+                                    handleAppointmentStatusChange(
+                                      appointment._id,
+                                      "confirmed"
+                                    )
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  color="error"
+                                  onClick={() =>
+                                    handleAppointmentStatusChange(
+                                      appointment._id,
+                                      "cancelled"
+                                    )
+                                  }
+                                >
+                                  Reject
+                                </Button>
+                              </Box>
+                            )}
+                            {appointment.status === "confirmed" && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="primary"
+                                onClick={() =>
+                                  handleAppointmentStatusChange(
+                                    appointment._id,
+                                    "completed"
+                                  )
+                                }
+                              >
+                                Complete
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
             )}
           </Box>
 
