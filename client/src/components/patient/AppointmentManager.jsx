@@ -333,6 +333,7 @@ export default function AppointmentManager({
 
       await onUpdate(appointmentId, {
         status: APPOINTMENT_STATUS.CANCELLED,
+        reason: appointment.reason || "Appointment cancelled by patient"
       });
 
       setSuccess("Appointment cancelled successfully");

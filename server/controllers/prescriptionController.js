@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const Prescription = require("../models/Prescription");
 const Appointment = require("../models/Appointment");
+const { ValidationError, TransactionError, AuthorizationError, ERROR_CODES } = require("../utils/errors");
+const { validateMedication, validateDates } = require("../utils/validation");
+const transactionLogger = require("../utils/transactionLogger");
 
 // Get prescriptions for a user (doctor or patient)
 const getPrescriptions = async (req, res) => {
@@ -47,24 +50,37 @@ const getPrescriptions = async (req, res) => {
 
 // Create a new prescription with transaction
 const createPrescription = async (req, res) => {
-  // Start a session for transaction
+  let transactionId;
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    console.log("Starting prescription creation transaction");
+    // Start transaction logging
+    transactionId = transactionLogger.start('createPrescription', {
+      doctorId: req.user._id,
+      role: req.user.role
+    });
 
     // Authorization check
     if (req.user.role !== "Doctor") {
-      throw new Error("Only doctors can create prescriptions");
+      throw new AuthorizationError(
+        "Only doctors can create prescriptions",
+        { userId: req.user._id, role: req.user.role }
+      );
     }
 
     const { appointmentId, medications, diagnosis, expiryDate } = req.body;
 
-    // Validation checks
+    // Validate required fields
     if (!appointmentId || !medications || !diagnosis || !expiryDate) {
-      throw new Error("Missing required fields");
+      throw new ValidationError(
+        "Missing required fields",
+        { fields: { appointmentId, medications, diagnosis, expiryDate } }
+      );
     }
+
+    // Validate medications
+    medications.forEach(validateMedication);
 
     // Verify the appointment exists and belongs to the doctor
     const appointment = await Appointment.findOne({
@@ -76,90 +92,128 @@ const createPrescription = async (req, res) => {
       .session(session);
 
     if (!appointment) {
-      throw new Error(
-        "Appointment not found, unauthorized, or not completed yet. Please complete the appointment first before creating a prescription."
+      throw new ValidationError(
+        "Appointment not found, unauthorized, or not completed yet",
+        { appointmentId, doctorId: req.user._id }
       );
     }
 
-    console.log("Found valid appointment:", {
-      appointmentId: appointment._id,
-      patientId: appointment.patientId._id,
-      doctorId: appointment.doctorId,
-    });
+    // Validate dates
+    validateDates(appointment.startTime, expiryDate);
 
-    // Validate expiry date
-    const expiry = new Date(expiryDate);
-    if (expiry <= new Date()) {
-      throw new Error("Expiry date must be in the future");
+    // Create and save the prescription with retry logic for concurrent transactions
+    let retryCount = 0;
+    const maxRetries = 3;
+    let prescription;
+
+    while (retryCount < maxRetries) {
+      try {
+        // Check if prescription already exists for this appointment
+        const existingPrescription = await Prescription.findOne({
+          appointmentId: appointment._id
+        }).session(session);
+
+        if (existingPrescription) {
+          throw new ValidationError(
+            "A prescription already exists for this appointment",
+            { code: 'DUPLICATE_PRESCRIPTION' }
+          );
+        }
+
+        prescription = new Prescription({
+          doctorId: req.user._id,
+          patientId: appointment.patientId._id,
+          appointmentId: appointment._id,
+          medications,
+          diagnosis,
+          issuedDate: appointment.startTime,
+          expiryDate: new Date(expiryDate),
+          status: "active",
+        });
+
+        await prescription.save({ session });
+
+        // Update appointment hasPrescription flag
+        await Appointment.findByIdAndUpdate(
+          appointment._id,
+          { hasPrescription: true },
+          { session }
+        );
+
+        // If we get here, the transaction was successful
+        break;
+      } catch (error) {
+        // Handle duplicate key error
+        if (error.code === 11000) {
+          throw new ValidationError(
+            "A prescription already exists for this appointment",
+            { code: 'DUPLICATE_PRESCRIPTION' }
+          );
+        }
+        if (error.code === 112 && retryCount < maxRetries - 1) {
+          // Write conflict, retry
+          retryCount++;
+          await session.abortTransaction();
+          session.startTransaction();
+          continue;
+        }
+        throw error;
+      }
     }
-
-    // Check if a prescription already exists for this appointment
-    const existingPrescription = await Prescription.findOne({
-      appointmentId: appointment._id,
-    }).session(session);
-
-    if (existingPrescription) {
-      throw new Error("A prescription already exists for this appointment");
-    }
-
-    // Create and save the prescription
-    const prescription = new Prescription({
-      doctorId: req.user._id,
-      patientId: appointment.patientId._id,
-      appointmentId: appointment._id,
-      medications,
-      diagnosis,
-      issuedDate: appointment.startTime,
-      expiryDate: expiry,
-      status: "active",
-    });
-
-    await prescription.save({ session });
-
-    // Update appointment hasPrescription flag without triggering validation
-    await Appointment.findByIdAndUpdate(
-      appointment._id,
-      { hasPrescription: true },
-      { session }
-    );
 
     // Commit the transaction
     await session.commitTransaction();
-    console.log("Prescription creation transaction committed successfully");
+    
+    // Log successful transaction
+    transactionLogger.success(transactionId, {
+      prescriptionId: prescription._id,
+      appointmentId: appointment._id
+    });
 
-    // Populate the prescription with patient and doctor info before sending response
+    // Populate and transform the prescription
     const populatedPrescription = await Prescription.findById(prescription._id)
-      .populate({
-        path: "patientId",
-        select: "firstName lastName email",
-      })
-      .populate({
-        path: "doctorId",
-        select: "firstName lastName specialization",
-      })
-      .populate({
-        path: "appointmentId",
-        select: "startTime endTime reason mode status",
-      });
+      .populate("patientId", "firstName lastName email")
+      .populate("doctorId", "firstName lastName email")
+      .populate("appointmentId", "startTime endTime reason");
 
-    // Transform the data to include patient and doctor names
-    const transformedPrescription = {
-      ...populatedPrescription.toObject(),
-      patient: populatedPrescription.patientId,
-      doctor: populatedPrescription.doctorId,
-    };
-
-    res.status(201).json(transformedPrescription);
+    res.status(201).json({
+      success: true,
+      data: populatedPrescription,
+    });
   } catch (error) {
     // Abort transaction on error
     await session.abortTransaction();
-    console.error("Error in createPrescription transaction:", {
-      error: error.message,
-      stack: error.stack,
-    });
-    res.status(400).json({ error: error.message });
+    
+    // Log error
+    transactionLogger.error(transactionId, error);
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+        code: error.context?.code || 'VALIDATION_ERROR'
+      });
+    } else if (error instanceof AuthorizationError) {
+      res.status(403).json({
+        success: false,
+        error: error.message,
+        code: 'AUTHORIZATION_ERROR'
+      });
+    } else if (error instanceof TransactionError) {
+      res.status(409).json({
+        success: false,
+        error: error.message,
+        code: 'TRANSACTION_ERROR'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        code: 'INTERNAL_ERROR'
+      });
+    }
   } finally {
-    // End session
     session.endSession();
   }
 };
