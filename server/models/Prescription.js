@@ -15,6 +15,7 @@ const PrescriptionSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: "Appointment",
       required: [true, "Appointment ID is required"],
+      unique: true
     },
     medications: [{
         name: {
