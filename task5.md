@@ -42,6 +42,10 @@
     ]);
 ```
 #### Results:
+<p align="center">
+  <img src="https://example.com/image.png" alt="Patient Appointment History" width="300"/>
+</p>
+
 
 #### Business Value:
 
@@ -105,6 +109,10 @@
         ]);
 ```
 #### Results:
+<p align="center">
+  <img src="https://example.com/image.png" alt="Top Doctors by Completed Appointments" width="300"/>
+</p>
+
 
 #### Business Value:
 
@@ -179,6 +187,10 @@
       ]);
 ```
 #### Results:
+<p align="center">
+  <img src="https://example.com/image.png" alt=" Average Appointment Duration by Specialization" width="300"/>
+</p>
+
 
 #### Business Value:
 
@@ -235,6 +247,10 @@
     ]);
 ```
 #### Results:
+<p align="center">
+  <img src="https://example.com/image.png" alt="Prescriptions Issued per Month" width="300"/>
+</p>
+
 
 #### Business Value:
 
@@ -271,6 +287,10 @@
     ]);
 ```
 #### Results:
+<p align="center">
+  <img src="https://example.com/image.png" alt="Appointment Count by Status" width="300"/>
+</p>
+
 
 #### Business Value:
 
