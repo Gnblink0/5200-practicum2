@@ -32,7 +32,7 @@ import AppointmentMonitor from "../../components/admin/AppointmentMonitor";
 import StatsDashboard from "../../components/admin/StatsDashboard";
 import AvgAppointmentDuration from "../../components/admin/AvgAppointmentDuration";
 import PrescriptionsByMonth from "../../components/admin/PrescriptionsByMonth";
-import PendingDoctorsAppointments from "../../components/admin/PendingDoctorsAppointments";
+import AppointmentStatusCounts from "../../components/admin/AppointmentStatusCounts";
 
 export default function AdminDashboard() {
   const [error, setError] = useState("");
@@ -86,8 +86,9 @@ export default function AdminDashboard() {
         <Box sx={{ mb: 4 }}>
           <PrescriptionsByMonth />
         </Box>
+
         <Box sx={{ mb: 4 }}>
-          <PendingDoctorsAppointments />
+          <AppointmentStatusCounts />
         </Box>
 
         <ProfileEdit

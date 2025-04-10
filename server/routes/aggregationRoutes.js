@@ -5,18 +5,8 @@ const {
     getPatientAppointmentHistory,
     getAverageAppointmentDurationBySpecialization,
     getPrescriptionsIssuedPerMonth,
-    getPendingDoctorsWithAppointments
+    getAppointmentCountByStatus
 } = require('../controllers/aggregationController');
-
-// Import authentication middleware (assuming you have one, adjust path as needed)
-// const { protect, authorize } = require('../middleware/auth'); 
-// const isAdmin = authorize('Admin'); // Example: Middleware to check if user is Admin
-
-// Apply middleware if needed, e.g., protect, isAdmin
-// router.use(protect); 
-// router.use(isAdmin); 
-
-// --- Aggregation Routes --- //
 
 // GET /api/v1/aggregate/stats/top-doctors
 router.get('/stats/top-doctors', getTopDoctorsByAppointments);
@@ -31,7 +21,10 @@ router.get('/stats/avg-appointment-duration', getAverageAppointmentDurationBySpe
 // GET /api/v1/aggregate/stats/prescriptions-by-month
 router.get('/stats/prescriptions-by-month', getPrescriptionsIssuedPerMonth);
 
-// GET /api/v1/aggregate/admin/pending-doctors-appointments
-router.get('/admin/pending-doctors-appointments', getPendingDoctorsWithAppointments);
+// GET /api/v1/aggregate/stats/appointment-counts
+router.get('/stats/appointment-counts', getAppointmentCountByStatus);
+
+// GET /api/v1/aggregate/admin/pending-doctors-appointments - REMOVED
+// router.get('/admin/pending-doctors-appointments', getPendingDoctorsWithAppointments);
 
 module.exports = router; 

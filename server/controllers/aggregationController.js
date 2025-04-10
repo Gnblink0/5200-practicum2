@@ -246,75 +246,57 @@ exports.getPrescriptionsIssuedPerMonth = async (req, res, next) => {
   }
 };
 
-
-// 5. Get Doctors Pending Verification with Upcoming Appointments
-exports.getPendingDoctorsWithAppointments = async (req, res, next) => {
+// 5. Get Appointment Count by Status
+exports.getAppointmentCountByStatus = async (req, res, next) => {
   try {
-    const pendingDoctors = await User.aggregate([
+    const appointmentCounts = await Appointment.aggregate([
       {
-        // Find users who are doctors and pending verification
-        $match: {
-          role: "Doctor",
-          verificationStatus: "pending",
-        },
+        $group: {
+          _id: "$status", // Group by the status field
+          count: { $sum: 1 } // Count documents in each group
+        }
       },
       {
-        // Lookup their appointments
-        $lookup: {
-          from: "appointments", // The actual collection name for Appointments
-          localField: "_id",
-          foreignField: "doctorId",
-          as: "appointments",
-        },
-      },
-      {
-        // Filter doctors who have at least one upcoming/current appointment
-        $match: {
-          "appointments.status": { $in: ["pending", "confirmed"] },
-          //"appointments.startTime": { $gte: new Date() } // Optional: Only future appointments
-        },
-      },
-       {
-        // Optionally unwind if you need to process each appointment individually later
-        // $unwind: "$appointments"
-      },
-      {
-        // Project the desired output
         $project: {
-          _id: 1,
-          firstName: 1,
-          lastName: 1,
-          email: 1,
-          specialization: 1,
-          licenseNumber: 1, // Added field
-          verificationStatus: 1,
-          // Filter appointments directly in projection if not unwound
-          upcomingAppointments: {
-            $filter: {
-               input: "$appointments",
-               as: "appointment",
-               cond: {
-                   $and: [
-                       { $in: ["$$appointment.status", ["pending", "confirmed"]] },
-                       //{ $gte: ["$$appointment.startTime", new Date()] } // Optional: Only future
-                   ]
-               }
-            }
-          }
-        },
+          _id: 0, // Exclude the default _id field
+          status: "$_id", // Rename _id to status
+          count: 1 // Include the count
+        }
       },
-       {
-          // Ensure we only return doctors that actually have appointments after filtering
-          $match: { "upcomingAppointments.0": { $exists: true } }
-       }
+      {
+        $sort: { status: 1 } // Sort alphabetically by status (optional)
+      }
     ]);
+
+    // Ensure all statuses are present, even if count is 0 (optional, but good for UI)
+    const statuses = ["pending", "confirmed", "cancelled", "completed"];
+    const statusMap = appointmentCounts.reduce((map, item) => {
+        map[item.status] = item.count;
+        return map;
+    }, {});
+
+    const fullCounts = statuses.map(status => ({
+        status,
+        count: statusMap[status] || 0
+    }));
 
     res.status(200).json({
       success: true,
-      count: pendingDoctors.length,
-      data: pendingDoctors,
+      data: fullCounts,
     });
   } catch (error) {
-    next(error);
+    console.error("Error in getAppointmentCountByStatus:", error);
+    res.status(500).json({
+        success: false,
+        message: "Server error fetching appointment counts by status.",
+        error: error.message 
+    });
   }
+};
+
+// 5. Get Doctors Pending Verification with Upcoming Appointments - REMOVED
+/*
+exports.getPendingDoctorsWithAppointments = async (req, res, next) => {
+  // ... function code ...
 }; 
+*/ 
