@@ -303,3 +303,54 @@
      - Can only create appointments for self
      - Validates doctor availability and status
      - Prevents double booking
+
+## MongoDB Security Implementation
+
+### Database-Level Access Control
+1. Schema-Level Query Middleware
+   - File: server/models/Prescription.js
+   - Implementation Details:
+     - Automatically filters data based on user role
+     - Enforces access restrictions at the database query level
+     - Prevents unauthorized data access across all queries
+   ```javascript
+   // Pre-find middleware for Prescriptions
+   PrescriptionSchema.pre('find', function() {
+     if (!this.getQuery().bypassAccessControl) {
+       const user = this.getQuery().user;
+       if (user?.role === 'Patient') {
+         this.where({ patientId: user._id });
+       } else if (user?.role === 'Doctor') {
+         this.where({ doctorId: user._id });
+       }
+     }
+   });
+   ```
+   - Security Benefits:
+     - Ensures patients can only access their own prescriptions
+     - Ensures doctors can only access prescriptions they created
+     - Prevents accidental data leaks through query mistakes
+     - Maintains data isolation between different users
+
+2. Appointment Access Control
+   - File: server/models/Appointment.js
+   - Implementation Details:
+     - Enforces role-based access at database level
+     - Automatically filters appointments based on user role
+   ```javascript
+   // Pre-find middleware for Appointments
+   AppointmentSchema.pre(['find', 'findOne'], function() {
+     if (!this.getQuery().bypassAccessControl) {
+       const user = this.getQuery().user;
+       if (user?.role === 'Patient') {
+         this.where({ patientId: user._id });
+       } else if (user?.role === 'Doctor') {
+         this.where({ doctorId: user._id });
+       }
+     }
+   });
+   ```
+   - Security Benefits:
+     - Ensures patients can only access their own appointments
+     - Ensures doctors can only access appointments they are involved in
+     - Maintains data privacy at the database level

@@ -136,6 +136,17 @@ AppointmentSchema.methods.canModify = function () {
   return ["pending", "confirmed"].includes(this.status);
 };
 
+AppointmentSchema.pre(["find", "findOne"], function () {
+  if (!this.getQuery().bypassAccessControl) {
+    const user = this.getQuery().user;
+    if (user?.role === "Patient") {
+      this.where({ patientId: user._id });
+    } else if (user?.role === "Doctor") {
+      this.where({ doctorId: user._id });
+    }
+  }
+});
+
 const Appointment = mongoose.model("Appointment", AppointmentSchema);
 
 module.exports = Appointment;
