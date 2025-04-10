@@ -301,4 +301,53 @@ export const appointmentService = {
       throw error;
     }
   },
+
+  // Get all appointments (admin only)
+  getAllAppointments: async (filters = {}) => {
+    try {
+      // Get and validate auth headers
+      const headers = authService.getAuthHeaders();
+      const email = headers["X-User-Email"];
+      const uid = headers["X-User-UID"];
+
+      if (!email || !uid) {
+        console.error("Missing auth headers:", { email: !!email, uid: !!uid });
+        throw new Error("Authentication required. Please log in again.");
+      }
+
+      // Build query string from filters
+      const queryParams = new URLSearchParams();
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+
+      const url = `${API_URL}/appointments/all?${queryParams.toString()}`;
+
+      const response = await fetch(url, {
+        headers: {
+          "Content-Type": "application/json",
+          ...headers,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Appointments fetch error:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+        });
+        throw new Error(
+          errorData.message ||
+            `Failed to fetch appointments: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error in getAllAppointments:", error);
+      throw error;
+    }
+  },
 };

@@ -1,4 +1,4 @@
-import { auth } from "../config/firebase";
+import { getAuth } from "firebase/auth";
 
 class AuthService {
   constructor() {
@@ -6,7 +6,7 @@ class AuthService {
       isAuthenticated: false,
       user: null,
       role: null,
-      lastValidated: null
+      lastValidated: null,
     };
     this.init();
   }
@@ -24,7 +24,7 @@ class AuthService {
           isAuthenticated: true,
           user: storedUserData ? JSON.parse(storedUserData) : { email, uid },
           role,
-          lastValidated: new Date()
+          lastValidated: new Date(),
         };
         return true;
       }
@@ -43,20 +43,28 @@ class AuthService {
       const uid = localStorage.getItem("userUID");
 
       if (!email || !uid) {
-        console.error("Auth validation failed: Missing credentials in localStorage");
+        console.error(
+          "Auth validation failed: Missing credentials in localStorage"
+        );
         return false;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-User-Email": email,
-          "X-User-UID": uid
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/profile`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": email,
+            "X-User-UID": uid,
+          },
         }
-      });
+      );
 
       if (!response.ok) {
-        console.error("Auth validation failed: Backend returned", response.status);
+        console.error(
+          "Auth validation failed: Backend returned",
+          response.status
+        );
         return false;
       }
 
@@ -76,17 +84,20 @@ class AuthService {
         isAuthenticated: true,
         user: userData,
         role: userData.role,
-        lastValidated: new Date()
+        lastValidated: new Date(),
       };
-      
+
       // Store complete user data
       localStorage.setItem("userEmail", userData.email);
       localStorage.setItem("userUID", userData.uid);
       localStorage.setItem("userRole", userData.role);
-      localStorage.setItem("userData", JSON.stringify({
-        ...userData,
-        lastUpdated: new Date().toISOString()
-      }));
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          ...userData,
+          lastUpdated: new Date().toISOString(),
+        })
+      );
     } catch (error) {
       console.error("Error updating auth state:", error);
       this.clearAuth();
@@ -108,17 +119,25 @@ class AuthService {
   // Clear auth state
   async clearAuth() {
     try {
-      this.authState = {
-        isAuthenticated: false,
-        user: null,
-        role: null,
-        lastValidated: null
-      };
+      // 清除所有localStorage数据
       localStorage.removeItem("userEmail");
       localStorage.removeItem("userUID");
       localStorage.removeItem("userRole");
       localStorage.removeItem("userData");
-      await auth.signOut();
+
+      // 重置authState
+      this.authState = {
+        isAuthenticated: false,
+        user: null,
+        role: null,
+        lastValidated: null,
+      };
+
+      // 登出Firebase
+      const auth = getAuth();
+      if (auth.currentUser) {
+        await auth.signOut();
+      }
     } catch (error) {
       console.error("Error clearing auth state:", error);
     }
@@ -129,7 +148,7 @@ class AuthService {
     try {
       const email = localStorage.getItem("userEmail");
       const uid = localStorage.getItem("userUID");
-      
+
       if (!email || !uid) {
         throw new Error("Missing auth credentials");
       }
@@ -137,12 +156,12 @@ class AuthService {
       return {
         "Content-Type": "application/json",
         "X-User-Email": email,
-        "X-User-UID": uid
+        "X-User-UID": uid,
       };
     } catch (error) {
       console.error("Error getting auth headers:", error);
       return {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       };
     }
   }
@@ -152,7 +171,7 @@ class AuthService {
     if (!this.authState.isAuthenticated || !this.authState.lastValidated) {
       return false;
     }
-    
+
     // Check if validation was done in the last 5 minutes
     const validationAge = new Date() - new Date(this.authState.lastValidated);
     return validationAge < 5 * 60 * 1000; // 5 minutes
@@ -164,4 +183,4 @@ class AuthService {
   }
 }
 
-export const authService = new AuthService(); 
+export const authService = new AuthService();

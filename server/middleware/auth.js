@@ -31,7 +31,7 @@ const cacheUser = (email, uid, user) => {
   const key = `${email.toLowerCase()}:${uid}`;
   userCache.set(key, {
     user,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 };
 
@@ -41,49 +41,46 @@ const auth = async (req, res, next) => {
     const uid = req.header("X-User-UID");
 
     if (!email || !uid) {
-      console.error("Auth failed: Missing headers", { email: !!email, uid: !!uid });
       return res.status(401).json({ error: "Missing authentication headers" });
     }
 
-    // Check cache first
-    let user = findUserInCache(email, uid);
+    // first clear the user data in cache, force to get the latest data
+    const key = `${email.toLowerCase()}:${uid}`;
+    userCache.delete(key);
+
+    // find user
+    const [admin, patient, doctor] = await Promise.all([
+      Admin.findOne({
+        email: { $regex: new RegExp(`^${email}$`, "i") },
+        uid,
+      }),
+      Patient.findOne({
+        email: { $regex: new RegExp(`^${email}$`, "i") },
+        uid,
+      }),
+      Doctor.findOne({
+        email: { $regex: new RegExp(`^${email}$`, "i") },
+        uid,
+      }),
+    ]);
+
+    const user = admin || patient || doctor;
 
     if (!user) {
-      // Find user in any collection with case-insensitive email
-      const [admin, patient, doctor] = await Promise.all([
-        Admin.findOne({ 
-          email: { $regex: new RegExp(`^${email}$`, 'i') },
-          uid 
-        }),
-        Patient.findOne({ 
-          email: { $regex: new RegExp(`^${email}$`, 'i') },
-          uid 
-        }),
-        Doctor.findOne({ 
-          email: { $regex: new RegExp(`^${email}$`, 'i') },
-          uid 
-        })
-      ]);
-
-      user = admin || patient || doctor;
-
-      if (user) {
-        // Cache the found user
-        cacheUser(email, uid, user);
-      }
-    }
-
-    if (!user) {
-      console.error("Auth failed: User not found", { email });
       return res.status(401).json({ error: "User not found" });
     }
 
     if (!user.isActive) {
-      console.error("Auth failed: Inactive user", { email, userId: user._id });
-      return res.status(401).json({ error: "User account is inactive" });
+      return res.status(401).json({
+        error: "User account is inactive",
+        message:
+          "Your account has been deactivated. Please contact an administrator.",
+      });
     }
 
-    // Add user and role info to request
+    // if user exists and active, then add to cache
+    cacheUser(email, uid, user);
+
     req.user = user;
     req.userRole = user.constructor.modelName;
 
@@ -91,24 +88,27 @@ const auth = async (req, res, next) => {
     console.log("Auth successful:", {
       email,
       role: req.userRole,
-      permissions: user.permissions || []
+      permissions: user.permissions || [],
     });
 
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    res.status(401).json({ error: error.message || "Please authenticate" });
+    res.status(401).json({ error: "Authentication failed" });
   }
 };
 
 const requirePermission = (permission) => {
   return (req, res, next) => {
     // Check if user is admin and has the required permission
-    if (req.userRole !== "Admin" || !req.user.permissions?.includes(permission)) {
+    if (
+      req.userRole !== "Admin" ||
+      !req.user.permissions?.includes(permission)
+    ) {
       console.error("Permission denied:", {
         userRole: req.userRole,
         requiredPermission: permission,
-        userPermissions: req.user.permissions || []
+        userPermissions: req.user.permissions || [],
       });
       return res.status(403).json({ error: "Permission denied" });
     }

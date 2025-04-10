@@ -41,7 +41,6 @@ const registerUser = async (req, res) => {
           uid,
           username,
           isActive: true,
-          permissions: ["user_management"], // Default permission
           activityLog: [
             {
               action: "account_created",
@@ -72,15 +71,15 @@ const registerUser = async (req, res) => {
             coverageDetails: "",
           },
           emergencyContacts: {
-            name:"",
-            relationship:"",
-            phone:""
+            name: "",
+            relationship: "",
+            phone: "",
           },
           medicalHistory: {
-            disease:"",
-            medications:"",
-            allergies:"",
-            familyHistory:""
+            disease: "",
+            medications: "",
+            allergies: "",
+            familyHistory: "",
           },
           appointments: [],
         });
@@ -132,17 +131,17 @@ const getUserProfile = async (req, res) => {
     switch (req.userRole) {
       case "Doctor":
         userWithDetails = await Doctor.findById(req.user._id)
-          .select('-password')
+          .select("-password")
           .lean();
         break;
       case "Patient":
         userWithDetails = await Patient.findById(req.user._id)
-          .select('-password')
+          .select("-password")
           .lean();
         break;
       case "Admin":
         userWithDetails = await Admin.findById(req.user._id)
-          .select('-password')
+          .select("-password")
           .lean();
         break;
       default:
@@ -152,7 +151,7 @@ const getUserProfile = async (req, res) => {
     if (!userWithDetails) {
       console.error("User details not found:", {
         userId: req.user._id,
-        role: req.userRole
+        role: req.userRole,
       });
       return res.status(404).json({ error: "User details not found" });
     }
@@ -161,11 +160,11 @@ const getUserProfile = async (req, res) => {
     userWithDetails.role = req.userRole;
 
     // Log successful profile fetch
-    console.log('Profile fetched successfully:', {
+    console.log("Profile fetched successfully:", {
       userId: userWithDetails._id,
       role: userWithDetails.role,
       email: userWithDetails.email,
-      isActive: userWithDetails.isActive
+      isActive: userWithDetails.isActive,
     });
 
     res.json(userWithDetails);
@@ -192,7 +191,13 @@ const updateUserProfile = async (req, res) => {
     }
 
     if (req.user.role === "Patient") {
-      allowedUpdates.push("dateOfBirth", "gender", "insuranceInfo", "emergencyContacts", "medicalHistory");
+      allowedUpdates.push(
+        "dateOfBirth",
+        "gender",
+        "insuranceInfo",
+        "emergencyContacts",
+        "medicalHistory"
+      );
     }
 
     console.log("Allowed updates:", allowedUpdates);
@@ -256,19 +261,99 @@ const deleteUserProfile = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    // check if the user has user_management permission
-    if (!req.user.permissions.includes("user_management")) {
+    // check if it's the admin user and has read_all_users permission
+    if (!req.user.permissions.includes("READ_ALL_USERS")) {
       return res.status(403).json({ error: "Permission denied" });
     }
 
-    const users = await User.find({});
+    // get all users (except password field)
+    const [patients, doctors] = await Promise.all([
+      Patient.find({}, "-password"),
+      Doctor.find({}, "-password"),
+    ]);
+
+    const users = [...patients, ...doctors].map((user) => ({
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.constructor.modelName,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+    }));
+
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
+// update user status (active/inactive)
+const updateUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isActive } = req.body;
 
+    // check if it's the admin user and has manage_user_status permission
+    if (!req.user.permissions.includes("MANAGE_USER_STATUS")) {
+      return res.status(403).json({ error: "Permission denied" });
+    }
+
+    // prevent admin from modifying other admin's status
+    const targetUser = await Admin.findById(userId);
+    if (targetUser) {
+      return res.status(403).json({
+        error: "Cannot modify admin status",
+      });
+    }
+
+    // find and update user status
+    const [patient, doctor] = await Promise.all([
+      Patient.findById(userId),
+      Doctor.findById(userId),
+    ]);
+
+    const user = patient || doctor;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // update user status
+    user.isActive = isActive;
+
+    // record activity log
+    const admin = await Admin.findById(req.user._id);
+    admin.activityLog.push({
+      action: isActive ? "user_activated" : "user_deactivated",
+      timestamp: new Date(),
+      details: {
+        targetUser: {
+          id: user._id,
+          email: user.email,
+          role: user.constructor.modelName,
+        },
+      },
+    });
+
+    // save changes
+    await Promise.all([user.save(), admin.save()]);
+
+    res.json({
+      message: `User ${isActive ? "activated" : "deactivated"} successfully`,
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.constructor.modelName,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -276,5 +361,5 @@ module.exports = {
   updateUserProfile,
   deleteUserProfile,
   getAllUsers,
-
+  updateUserStatus,
 };
