@@ -43,7 +43,7 @@
 ```
 #### Results:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1e8a16f1-1d8a-4d78-85e7-1527aa7c1592" alt="Patient Appointment History" width="300"/>
+  <img src="https://github.com/user-attachments/assets/1e8a16f1-1d8a-4d78-85e7-1527aa7c1592" alt="Patient Appointment History" width="800"/>
 </p>
 
 
@@ -110,7 +110,7 @@
 ```
 #### Results:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/3bfcd796-f04b-4e58-95fe-61a527b37415" alt="Top Doctors by Completed Appointments" width="300"/>
+  <img src="https://github.com/user-attachments/assets/3bfcd796-f04b-4e58-95fe-61a527b37415" alt="Top Doctors by Completed Appointments" width="800"/>
 </p>
 
 
@@ -188,7 +188,7 @@
 ```
 #### Results:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/6b0e49c1-7fc1-4e57-a731-f8d8049c8946" alt=" Average Appointment Duration by Specialization" width="300"/>
+  <img src="https://github.com/user-attachments/assets/6b0e49c1-7fc1-4e57-a731-f8d8049c8946" alt=" Average Appointment Duration by Specialization" width="800"/>
 </p>
 
 
@@ -248,7 +248,7 @@
 ```
 #### Results:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b868c647-33de-420c-aaa1-f4db81244463"  alt="Prescriptions Issued per Month" width="300"/>
+  <img src="https://github.com/user-attachments/assets/b868c647-33de-420c-aaa1-f4db81244463"  alt="Prescriptions Issued per Month" width="800"/>
 </p>
 
 
@@ -288,7 +288,7 @@
 ```
 #### Results:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/98126a13-9cf1-4d1e-84b0-61e254272abd" alt="Appointment Count by Status" width="300"/>
+  <img src="https://github.com/user-attachments/assets/98126a13-9cf1-4d1e-84b0-61e254272abd" alt="Appointment Count by Status" width="800"/>
 </p>
 
 
