@@ -7,7 +7,6 @@ const auth = require("./middleware/auth");
 
 // Import routes
 const userRoutes = require("./routes/userRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const doctorScheduleRoutes = require("./routes/doctorScheduleRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
@@ -108,7 +107,6 @@ mongoose.connection.on("disconnected", () => {
 
 // API routes
 app.use("/api/users", userRoutes);
-app.use("/api/admins", adminRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/schedules", doctorScheduleRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);

@@ -11,7 +11,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { userApi } from "../../services/api";
+import { userService } from "../../services/userService";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -116,7 +116,7 @@ export default function ProfileEdit({ open, onClose, currentUser, onMedicalInfoC
       console.log("Current user:", currentUser);
       console.log("Submitting form data:", JSON.stringify(formData, null, 2));
 
-      const response = await userApi.updateUserProfile(formData);
+      const response = await userService.updateUserProfile(formData);
       console.log("Update response:", response);
 
       onClose();

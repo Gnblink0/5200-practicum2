@@ -8,6 +8,7 @@ const {
   updateUserProfile,
   deleteUserProfile,
   getAllUsers,
+  updateUserStatus,
 } = require("../controllers/userController");
 
 // Register route (no auth required)
@@ -18,7 +19,13 @@ router.get("/profile", auth, getUserProfile);
 router.put("/profile", auth, updateUserProfile);
 router.delete("/profile", auth, deleteUserProfile);
 
-// Admin routes (require user_management permission)
-router.get("/", auth, requirePermission("user_management"), getAllUsers);
+// Admin routes (require read_all_users permission)
+router.get("/", auth, requirePermission("READ_ALL_USERS"), getAllUsers);
+router.put(
+  "/users/:userId/status",
+  auth,
+  requirePermission("MANAGE_USER_STATUS"),
+  updateUserStatus
+);
 
 module.exports = router;

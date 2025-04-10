@@ -6,24 +6,22 @@ const handleRequest = async (url, options, retries = 0) => {
   try {
     const response = await fetch(url, {
       ...options,
-      headers: authService.getAuthHeaders()
+      headers: authService.getAuthHeaders(),
     });
-    
+
     if (response.status === 401 && retries < 2) {
-      // Try to validate auth state
       const isValid = await authService.validateAuth();
       if (isValid) {
-        // If validation successful, retry with new headers
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return handleRequest(url, options, retries + 1);
       }
     }
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || "Request failed");
     }
-    
+
     return response.json();
   } catch (error) {
     console.error("API request failed:", error);
@@ -31,39 +29,10 @@ const handleRequest = async (url, options, retries = 0) => {
   }
 };
 
-export const adminApi = {
-  // Get all admins
-  async getAllAdmins() {
-    return handleRequest(`${API_URL}/admins`);
-  },
-
-  // Get single admin
-  async getAdmin(id) {
-    return handleRequest(`${API_URL}/admins/${id}`);
-  },
-
-  // Update admin permissions
-  async updatePermissions(id, permissions) {
-    return handleRequest(`${API_URL}/admins/${id}/permissions`, {
-      method: "PUT",
-      body: JSON.stringify({ permissions })
-    });
-  },
-
-  // Update admin status
-  async updateStatus(id, isActive) {
-    return handleRequest(`${API_URL}/admins/${id}/status`, {
-      method: "PUT",
-      body: JSON.stringify({ isActive })
-    });
-  }
-};
-
-export const userApi = {
+export const userService = {
   // Register new user
   async register(userData) {
     console.log("Registering user with data:", userData);
-    console.log("API URL:", API_URL);
     try {
       const response = await fetch(`${API_URL}/users/register`, {
         method: "POST",
@@ -110,7 +79,15 @@ export const userApi = {
   async updateUserProfile(userData) {
     return handleRequest(`${API_URL}/users/profile`, {
       method: "PUT",
-      body: JSON.stringify(userData)
+      body: JSON.stringify(userData),
     });
-  }
+  },
+
+  // Update user status (active/inactive)
+  async updateUserStatus(userId, isActive) {
+    return handleRequest(`${API_URL}/users/${userId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ isActive }),
+    });
+  },
 };

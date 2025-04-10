@@ -8,12 +8,17 @@ const AdminSchema = User.discriminator(
       permissions: {
         type: [String],
         enum: [
-          "user_management",
-          "appointment_management",
-          "prescription_management",
-          "audit_logs",
+          "READ_ALL_USERS",
+          "MANAGE_USER_STATUS",
+          "VERIFY_DOCTORS",
+          "VIEW_ALL_APPOINTMENTS",
         ],
-        default: [],
+        default: [
+          "READ_ALL_USERS",
+          "MANAGE_USER_STATUS",
+          "VERIFY_DOCTORS",
+          "VIEW_ALL_APPOINTMENTS",
+        ],
       },
       activityLog: [
         {

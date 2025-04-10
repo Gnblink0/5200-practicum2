@@ -225,38 +225,6 @@ Base path: `/api/users`
     }
     ```
 
-### Admin Routes
-Base path: `/api/admins`
-
-### Admin Management
-- **GET** `/`
-  - Auth: Required
-  - Get all admins
-
-- **GET** `/:id`
-  - Auth: Required
-  - Get single admin by ID
-
-- **PUT** `/:id/permissions`
-  - Auth: Required
-  - Update admin permissions
-  - Body:
-    ```json
-    {
-      "permissions": ["user_management", "appointment_management", "prescription_management", "audit_logs"]
-    }
-    ```
-
-- **PUT** `/:id/status`
-  - Auth: Required
-  - Update admin active status
-  - Body:
-    ```json
-    {
-      "isActive": true
-    }
-    ```
-
 ### Doctor Schedule Routes
 Base path: `/api/schedules`
 
