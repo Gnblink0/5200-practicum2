@@ -16,11 +16,20 @@
 ### 2. Doctor
 - Description: Healthcare providers who manage patient care
 - Responsibilities:
-  - Manage their own profile
-  - View and manage their patient records
-  - Create and update medical records
-  - Schedule appointments
-- Access Level: Limited to their assigned patients and own profile
+  - Manage personal profile (specialization, license number)
+  - Manage appointments with assigned patients
+    - View own appointments
+    - Create and update prescriptions for completed appointments
+  - Manage schedules and availability
+    - Create and update time slots (requires verification)
+    - Set availability status
+  - Access patient medical records (limited to assigned patients)
+- Access Level Restrictions:
+  - Can only access own profile and schedule
+  - Can only view and manage appointments with assigned patients
+  - Can only create prescriptions for completed appointments
+  - Must be verified to create/update schedules
+  - Cannot access other doctors' or unassigned patients' data
 
 ### 3. Patient
 - Description: End users receiving medical care
@@ -144,3 +153,106 @@
        - Date range filtering
        - Detailed appointment view
        - Responsive table layout
+
+## Doctor Role Implementation
+
+1. MANAGE_PROFILE Permission
+   - File: server/controllers/userController.js
+   - Function: updateUserProfile()
+   - Implementation Details:
+     - Manages doctor's personal information
+     - Base fields available to all users: firstName, lastName, phone, address
+     - Doctor-specific field: specialization
+     - License number is read-only, managed through admin verification
+   - Request Parameters:
+     - Updates can include any combination of allowed fields
+   - Error Handling:
+     - 400: Invalid updates (attempting to update restricted fields)
+     - 500: Server error
+   - Security:
+     - Requires doctor role for specialization field
+     - License number can only be updated through admin verification process
+
+2. MANAGE_APPOINTMENTS Permission
+   - File: server/controllers/appointmentController.js
+   - Function: getDoctorAppointments()
+   - Implementation Details:
+     - Retrieves doctor's own appointments
+     - Requires doctor role
+     - Returns appointments with basic doctor and patient information
+   - Error Handling:
+     - 401: Authentication required
+     - 403: Only doctors can access this endpoint
+     - 404: No appointments found
+     - 500: Server error
+   - Security:
+     - Requires doctor role
+     - Can only access own appointments (filtered by doctorId)
+
+3. MANAGE_PRESCRIPTIONS Permission
+   - File: server/controllers/prescriptionController.js
+   - Function: createPrescription()
+   - Implementation Details:
+     - Creates prescriptions for completed appointments
+     - Requires doctor role
+     - Uses transaction to ensure data consistency
+     - Validates appointment ownership and completion status
+   - Request Parameters:
+     - appointmentId: ID of the completed appointment
+     - medications: List of prescribed medications
+     - diagnosis: Medical diagnosis
+     - expiryDate: Prescription expiry date
+   - Error Handling:
+     - 400: Missing required fields or validation errors
+     - 403: Only doctors can create prescriptions
+     - 409: Transaction conflicts
+     - 500: Server error
+   - Security:
+     - Requires doctor role
+     - Can only create prescriptions for own completed appointments
+     - Validates all input data
+     - Uses transactions for data consistency
+
+4. MANAGE_SCHEDULES Permission
+   - File: server/controllers/doctorScheduleController.js
+   - Functions: 
+     - getSchedules(): View own schedules
+     - createSchedule(): Create new time slots
+     - updateSchedule(): Update existing time slots
+   - Implementation Details:
+     - Manages doctor's schedule and availability
+     - Requires doctor role and verified status
+     - Validates time slots for conflicts
+     - Handles availability status
+   - Request Parameters:
+     - startTime: Schedule start time
+     - endTime: Schedule end time
+     - isAvailable: Availability status
+   - Error Handling:
+     - 400: Invalid time format or conflicting schedules
+     - 403: Only verified doctors can manage schedules
+     - 404: Schedule not found
+     - 500: Server error
+   - Security:
+     - Requires doctor role
+     - Requires verified status
+     - Can only manage own schedules
+     - Validates time slots for conflicts
+     - Prevents overlapping schedules
+
+## Patient Role Implementation
+
+1. MANAGE_PROFILE Permission
+   - File: server/controllers/userController.js
+   - Function: updateUserProfile()
+   - Implementation Details:
+     - Manages patient's personal information
+     - Base fields available to all users: firstName, lastName, phone, address
+     - Patient-specific fields: dateOfBirth, gender, insuranceInfo, emergencyContacts, medicalHistory
+   - Request Parameters:
+     - Updates can include any combination of allowed fields
+   - Error Handling:
+     - 400: Invalid updates (attempting to update restricted fields)
+     - 500: Server error
+   - Security:
+     - Requires patient role for patient-specific fields
