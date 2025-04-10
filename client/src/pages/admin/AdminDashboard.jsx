@@ -29,6 +29,7 @@ import ProfileEdit from "../../components/shared/ProfileEdit";
 import DoctorVerification from "../../components/admin/DoctorVerification";
 import UserManagement from "../../components/admin/UserManagement";
 import AppointmentMonitor from "../../components/admin/AppointmentMonitor";
+import StatsDashboard from "../../components/admin/StatsDashboard";
 
 export default function AdminDashboard() {
   const [error, setError] = useState("");
@@ -70,6 +71,10 @@ export default function AdminDashboard() {
 
         <Box sx={{ mb: 4 }}>
           <AppointmentMonitor />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <StatsDashboard />
         </Box>
 
         <ProfileEdit

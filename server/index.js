@@ -11,6 +11,7 @@ const doctorRoutes = require("./routes/doctorRoutes");
 const doctorScheduleRoutes = require("./routes/doctorScheduleRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
+const aggregationRoutes = require('./routes/aggregationRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -111,6 +112,7 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/schedules", doctorScheduleRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use('/api/v1/aggregate', aggregationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
