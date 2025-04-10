@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/shared/PrivateRoute";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
+import CreateAdmin from "./components/auth/CreateAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import PatientDashboard from "./pages/patient/PatientDashboard";
@@ -22,6 +23,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/create-admin" element={<CreateAdmin />} />
             <Route
               path="/admin-dashboard"
               element={
