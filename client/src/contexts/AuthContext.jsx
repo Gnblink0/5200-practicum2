@@ -100,6 +100,10 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     try {
+      // 1. clear auth
+      await authService.clearAuth();
+
+      // 2. Firebase auth
       const auth = getAuth();
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -107,26 +111,49 @@ export function AuthProvider({ children }) {
         password
       );
 
-      localStorage.setItem("userEmail", email);
-      localStorage.setItem("userUID", userCredential.user.uid);
-
       try {
-        const userData = await refreshUserData(userCredential.user.uid, email);
+        // 3. get user data
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/profile`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-User-Email": email,
+              "X-User-UID": userCredential.user.uid,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          // if failed to get user data, clear auth
+          await authService.clearAuth();
+          if (response.status === 401) {
+            throw new Error(
+              "Your account has been deactivated. Please contact an administrator."
+            );
+          }
+          throw new Error("Failed to refresh user data");
+        }
+
+        const userData = await response.json();
+
+        // 4. if user data is successfully fetched, set localStorage
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userUID", userCredential.user.uid);
+        localStorage.setItem("userData", JSON.stringify(userData));
+
         return {
           userData,
           role: userData.role,
         };
       } catch (error) {
-        if (error.message === "User account is inactive") {
-          await authService.clearAuth();
-          throw new Error(
-            "Your account has been deactivated. Please contact an administrator."
-          );
-        }
+        // ensure clear all auth states
+        await authService.clearAuth();
         throw error;
       }
     } catch (error) {
       console.error("Login error:", error);
+      await authService.clearAuth();
       throw error;
     }
   }
