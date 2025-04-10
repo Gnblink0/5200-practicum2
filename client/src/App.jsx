@@ -11,41 +11,45 @@ import Signup from "./components/auth/Signup";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import PatientDashboard from "./pages/patient/PatientDashboard";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <PrivateRoute allowedRoles={["Admin"]}>
-                <AdminDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/doctor-dashboard"
-            element={
-              <PrivateRoute allowedRoles={["Doctor"]}>
-                <DoctorDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/patient-dashboard"
-            element={
-              <PrivateRoute allowedRoles={["Patient"]}>
-                <PatientDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" />} />
-        </Routes>
-      </AuthProvider>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/admin-dashboard"
+              element={
+                <PrivateRoute allowedRoles={["Admin"]}>
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/doctor-dashboard"
+              element={
+                <PrivateRoute allowedRoles={["Doctor"]}>
+                  <DoctorDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/patient-dashboard"
+              element={
+                <PrivateRoute allowedRoles={["Patient"]}>
+                  <PatientDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/login" />} />
+          </Routes>
+        </AuthProvider>
+      </LocalizationProvider>
     </Router>
   );
 }

@@ -28,6 +28,7 @@ import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
 import DoctorVerification from "../../components/admin/DoctorVerification";
 import UserManagement from "../../components/admin/UserManagement";
+import AppointmentMonitor from "../../components/admin/AppointmentMonitor";
 
 export default function AdminDashboard() {
   const [error, setError] = useState("");
@@ -65,6 +66,10 @@ export default function AdminDashboard() {
 
         <Box sx={{ mb: 4 }}>
           <UserManagement />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <AppointmentMonitor />
         </Box>
 
         <ProfileEdit

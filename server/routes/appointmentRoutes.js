@@ -6,7 +6,8 @@ const {
   getDoctorAppointments,
   createAppointment,
   updateAppointment,
-  deleteAppointment
+  deleteAppointment,
+  getAllAppointments,
 } = require("../controllers/appointmentController");
 
 // Get doctor's appointments (specific route for doctors)
@@ -17,6 +18,9 @@ router.get("/doctors/appointments", auth, getDoctorAppointments);
 // Get appointments for a user (doctor or patient)
 router.get("/:role/:userId", auth, getAppointments);
 
+// Get all appointments (admin only)
+router.get("/all", auth, getAllAppointments);
+
 // Create a new appointment
 router.post("/", auth, createAppointment);
 
@@ -26,4 +30,4 @@ router.put("/:id", auth, updateAppointment);
 // Delete an appointment
 router.delete("/:id", auth, deleteAppointment);
 
-module.exports = router; 
+module.exports = router;

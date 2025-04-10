@@ -2,6 +2,7 @@ const Appointment = require("../models/Appointment");
 const DoctorSchedule = require("../models/DoctorSchedule");
 const User = require("../models/User");
 const mongoose = require("mongoose");
+const Admin = require("../models/Admin");
 
 // Get doctor's appointments
 const getDoctorAppointments = async (req, res) => {
@@ -210,7 +211,7 @@ const createAppointment = async (req, res) => {
       return res.status(201).json(appointment);
     } catch (error) {
       await session.abortTransaction();
-      
+
       // Handle write conflict
       if (error.code === 112) {
         retryCount++;
@@ -219,10 +220,10 @@ const createAppointment = async (req, res) => {
       }
 
       // Handle other errors
-      if (error.name === 'ValidationError') {
+      if (error.name === "ValidationError") {
         return res.status(400).json({ error: error.message });
       }
-      
+
       console.error("Error in createAppointment:", error);
       return res.status(500).json({ error: error.message });
     } finally {
@@ -232,9 +233,9 @@ const createAppointment = async (req, res) => {
 
   // If we get here, all retries failed
   console.error("Max retries reached in createAppointment:", lastError);
-  return res.status(500).json({ 
+  return res.status(500).json({
     error: "Failed to create appointment after multiple attempts",
-    details: lastError?.message 
+    details: lastError?.message,
   });
 };
 
@@ -244,7 +245,9 @@ const updateAppointment = async (req, res) => {
   session.startTransaction();
 
   try {
-    const appointment = await Appointment.findById(req.params.id).session(session);
+    const appointment = await Appointment.findById(req.params.id).session(
+      session
+    );
 
     if (!appointment) {
       await session.abortTransaction();
@@ -252,14 +255,24 @@ const updateAppointment = async (req, res) => {
     }
 
     // Check authorization
-    if (req.user.role === "Patient" && appointment.patientId.toString() !== req.user._id.toString()) {
+    if (
+      req.user.role === "Patient" &&
+      appointment.patientId.toString() !== req.user._id.toString()
+    ) {
       await session.abortTransaction();
-      return res.status(403).json({ error: "Not authorized to update this appointment" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to update this appointment" });
     }
 
-    if (req.user.role === "Doctor" && appointment.doctorId.toString() !== req.user._id.toString()) {
+    if (
+      req.user.role === "Doctor" &&
+      appointment.doctorId.toString() !== req.user._id.toString()
+    ) {
       await session.abortTransaction();
-      return res.status(403).json({ error: "Not authorized to update this appointment" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to update this appointment" });
     }
 
     // Handle status updates
@@ -267,13 +280,17 @@ const updateAppointment = async (req, res) => {
       if (req.body.status === "completed") {
         if (appointment.status !== "confirmed") {
           await session.abortTransaction();
-          return res.status(400).json({ error: "Can only complete confirmed appointments" });
+          return res
+            .status(400)
+            .json({ error: "Can only complete confirmed appointments" });
         }
         appointment.status = "completed";
       } else if (["confirmed", "cancelled"].includes(req.body.status)) {
         if (appointment.status !== "pending") {
           await session.abortTransaction();
-          return res.status(400).json({ error: "Can only approve/reject pending appointments" });
+          return res
+            .status(400)
+            .json({ error: "Can only approve/reject pending appointments" });
         }
         appointment.status = req.body.status;
         // Ensure reason is included when updating status
@@ -354,10 +371,64 @@ const deleteAppointment = async (req, res) => {
   }
 };
 
+// Get all appointments (admin only)
+const getAllAppointments = async (req, res) => {
+  try {
+    // Validate user is authenticated and is an admin
+    if (!req.user || req.user.role !== "Admin") {
+      return res
+        .status(403)
+        .json({ error: "Only administrators can access this endpoint" });
+    }
+
+    // Check if user has the required permission
+    if (!req.user.permissions.includes("VIEW_ALL_APPOINTMENTS")) {
+      return res
+        .status(403)
+        .json({ error: "You don't have permission to view all appointments" });
+    }
+
+    // Build query based on filters
+    const query = {};
+
+    // Status filter
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
+    // Date range filter
+    if (req.query.startDate) {
+      query.startTime = { $gte: new Date(req.query.startDate) };
+    }
+    if (req.query.endDate) {
+      query.endTime = { $lte: new Date(req.query.endDate) };
+    }
+
+    // Get appointments with proper error handling
+    const appointments = await Appointment.find(query)
+      .populate("doctorId", "firstName lastName specialization email")
+      .populate("patientId", "firstName lastName email")
+      .sort({ startTime: -1 }) // Sort by start time, newest first
+      .catch((err) => {
+        console.error("Database error:", err);
+        throw new Error("Failed to fetch appointments");
+      });
+
+    res.json(appointments);
+  } catch (error) {
+    console.error("Error in getAllAppointments:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAppointments,
   getDoctorAppointments,
   createAppointment,
   updateAppointment,
   deleteAppointment,
+  getAllAppointments,
 };
