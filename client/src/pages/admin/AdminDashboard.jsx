@@ -4,20 +4,6 @@ import {
   Container,
   Box,
   Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Switch,
-  Chip,
-  Alert,
-  AppBar,
-  Toolbar,
-  IconButton,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
@@ -78,6 +64,10 @@ export default function AdminDashboard() {
         </Box>
 
         <Box sx={{ mb: 4 }}>
+          <PatientHistoryViewer />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
           <StatsDashboard />
         </Box>
 
@@ -90,10 +80,6 @@ export default function AdminDashboard() {
 
         <Box sx={{ mb: 4 }}>
           <AppointmentStatusCounts />
-        </Box>
-
-        <Box sx={{ mb: 4 }}>
-          <PatientHistoryViewer />
         </Box>
 
         <ProfileEdit

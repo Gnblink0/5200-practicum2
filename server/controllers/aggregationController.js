@@ -59,52 +59,61 @@ exports.getTopDoctorsByAppointments = async (req, res, next) => {
   }
 };
 
-// 2. Get Patient Appointment History by Name or Username
+// 2. Get Patient Appointment History by Full Name or Email
 exports.getPatientAppointmentHistory = async (req, res, next) => {
   try {
-    const { searchTerm } = req.query; // Get searchTerm from query parameters
+    const { searchTerm } = req.query;
 
     if (!searchTerm) {
-      return res.status(400).json({ success: false, message: "Search term (username or name) is required." });
+      return res.status(400).json({ success: false, message: "Search term (full name or email) is required." });
     }
 
-    // Create a case-insensitive regex for searching
-    // Escape special regex characters in the search term to avoid errors
-    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\\]\]/g, '\\$&'); 
-    const searchRegex = new RegExp(escapedSearchTerm, 'i');
+    let patient = null;
+    const trimmedSearchTerm = searchTerm.trim();
 
-    // Find the patient by username, firstName, or lastName (case-insensitive)
-    // Using findOne will return the *first* match if multiple patients share a name.
-    const patient = await User.findOne({
-        role: 'Patient',
-        $or: [
-            { username: searchRegex },
-            { firstName: searchRegex },
-            { lastName: searchRegex }
-        ]
-    }).lean(); // Use lean() for potentially better performance if mongoose object features aren't needed
+    // Basic email format check (you might want a more robust regex)
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (emailRegex.test(trimmedSearchTerm)) {
+      // Search by email (case-insensitive)
+      patient = await User.findOne({ 
+        email: { $regex: new RegExp(`^${trimmedSearchTerm}$`, 'i') }, // Exact match, case-insensitive
+        role: 'Patient' 
+      }).lean();
+    } else {
+      // Attempt to search by full name (First Last format)
+      const nameParts = trimmedSearchTerm.split(/\s+/); // Split by whitespace
+      if (nameParts.length >= 2) {
+        const firstNameRegex = new RegExp(`^${nameParts[0]}$`, 'i');
+        const lastNameRegex = new RegExp(`^${nameParts.slice(1).join(' ')}$`, 'i'); // Handle last names with spaces
+        
+        patient = await User.findOne({
+          firstName: firstNameRegex,
+          lastName: lastNameRegex,
+          role: 'Patient'
+        }).lean();
+      }
+      // If only one name part, we could optionally search just firstName OR lastName, 
+      // but based on the request, we focus on full name or email.
+    }
 
     if (!patient) {
-        // Use the original searchTerm in the message for clarity
-        return res.status(404).json({ success: false, message: `Patient matching '${searchTerm}' not found.` });
+        return res.status(404).json({ success: false, message: `Patient matching '${trimmedSearchTerm}' not found.` });
     }
 
-    // Now use the found patient._id for the aggregation
-    const patientId = patient._id; 
+    const patientId = patient._id;
 
     const appointmentHistory = await Appointment.aggregate([
-      { $match: { patientId: patientId } }, // Use the found patientId
-      { $sort: { startTime: -1 } }, // Show most recent first
+      { $match: { patientId: patientId } }, 
+      { $sort: { startTime: -1 } }, 
       {
         $lookup: {
-          from: "users", // Collection name for User model
+          from: "users", 
           localField: "doctorId",
           foreignField: "_id",
           as: "doctorInfo",
         },
       },
       {
-        // Use $unwind with preserveNullAndEmptyArrays to handle cases where doctor might not be found
         $unwind: { 
            path: "$doctorInfo", 
            preserveNullAndEmptyArrays: true 
@@ -119,7 +128,6 @@ exports.getPatientAppointmentHistory = async (req, res, next) => {
           reason: 1,
           mode: 1,
           notes: 1,
-          // Safely access doctor info
           "doctor.firstName": { $ifNull: ["$doctorInfo.firstName", "N/A"] }, 
           "doctor.lastName": { $ifNull: ["$doctorInfo.lastName", ""] },
           "doctor.specialization": { $ifNull: ["$doctorInfo.specialization", "N/A"] },
@@ -130,12 +138,10 @@ exports.getPatientAppointmentHistory = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: appointmentHistory.length,
-      // Include the found patient's info in the response for confirmation
       foundPatient: { username: patient.username, firstName: patient.firstName, lastName: patient.lastName },
       data: appointmentHistory,
     });
   } catch (error) {
-    // Add specific logging for this function
     console.error("Error in getPatientAppointmentHistory:", error);
     res.status(500).json({
         success: false,

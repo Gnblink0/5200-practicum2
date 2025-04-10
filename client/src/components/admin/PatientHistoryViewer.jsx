@@ -37,7 +37,7 @@ export default function PatientHistoryViewer() {
 
   const handleFetchHistory = async () => {
     if (!searchTerm.trim()) {
-      setError('Please enter a Patient Username or Name.');
+      setError('Please enter a Patient Full Name (First Last) or Email.');
       setHistoryData(null);
       setFoundPatientInfo(null);
       return;
@@ -90,19 +90,20 @@ export default function PatientHistoryViewer() {
   return (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-        View Patient Appointment History by Name or Username
+        View Patient Appointment History by Full Name or Email
       </Typography>
       <Paper sx={{ p: 2 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
           <Grid item xs={12} sm={8} md={6}>
             <TextField
               fullWidth
-              label="Patient Username or Name"
+              label="Patient Full Name or Email"
               variant="outlined"
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => { if (e.key === 'Enter') handleFetchHistory(); }}
+              helperText="Enter full name (e.g., John Doe) or email address."
             />
           </Grid>
           <Grid item xs={12} sm={4} md={3}>
