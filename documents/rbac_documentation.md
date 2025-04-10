@@ -34,11 +34,15 @@
 ### 3. Patient
 - Description: End users receiving medical care
 - Responsibilities:
-  - Manage their own profile
-  - View their own medical records
+  - Manage personal profile
+  - View own medical records
+    - Access own prescriptions
+    - Access own appointments
   - Schedule appointments with doctors
-  - Update personal information
-- Access Level: Limited to own records and profile
+- Access Level Restrictions:
+  - Can only access and update own profile
+  - Can only view own prescriptions and appointments
+  - Can only create appointments for self
 
 ## Admin Role Implementation
 
@@ -256,3 +260,46 @@
      - 500: Server error
    - Security:
      - Requires patient role for patient-specific fields
+
+2. VIEW_PRESCRIPTIONS Permission
+   - File: server/controllers/prescriptionController.js
+   - Function: getPrescriptions()
+   - Implementation Details:
+     - Retrieves patient's own prescriptions
+     - Includes doctor and appointment information
+     - Sorted by issue date
+   - Response Data:
+     - List of prescriptions with:
+       - Doctor information (name, specialization)
+       - Appointment details (time, reason, status)
+       - Prescription details (medications, diagnosis)
+   - Error Handling:
+     - 400: Invalid role
+     - 500: Server error
+   - Security:
+     - Access limited to own prescriptions (filtered by patientId)
+
+3. MANAGE_APPOINTMENTS Permission
+   - File: server/controllers/appointmentController.js
+   - Functions:
+     - getAppointments(): View own appointments
+     - createAppointment(): Schedule new appointments
+   - Implementation Details:
+     - View and manage own appointments
+     - Create appointments with available doctors
+     - Includes validation for time slots
+   - Request Parameters (for creation):
+     - doctorId: Selected doctor's ID
+     - scheduleId: Selected time slot ID
+     - reason: Appointment reason
+     - mode: Appointment mode (default: "in-person")
+   - Error Handling:
+     - 400: Missing fields or validation errors
+     - 403: Only patients can create appointments
+     - 404: Doctor not found or not verified
+     - 500: Server error
+   - Security:
+     - Can only view own appointments
+     - Can only create appointments for self
+     - Validates doctor availability and status
+     - Prevents double booking
