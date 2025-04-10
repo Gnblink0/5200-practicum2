@@ -22,7 +22,7 @@ router.delete("/profile", auth, deleteUserProfile);
 // Admin routes (require read_all_users permission)
 router.get("/", auth, requirePermission("READ_ALL_USERS"), getAllUsers);
 router.put(
-  "/users/:userId/status",
+  "/:userId/status",
   auth,
   requirePermission("MANAGE_USER_STATUS"),
   updateUserStatus

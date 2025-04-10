@@ -19,6 +19,12 @@ const handleRequest = async (url, options, retries = 0) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error("Request failed:", {
+        status: response.status,
+        error: errorData.error,
+        url,
+        method: options?.method,
+      });
       throw new Error(errorData.error || "Request failed");
     }
 
@@ -87,6 +93,9 @@ export const userService = {
   async updateUserStatus(userId, isActive) {
     return handleRequest(`${API_URL}/users/${userId}/status`, {
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ isActive }),
     });
   },

@@ -318,8 +318,25 @@ const updateUserStatus = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // update user status
     user.isActive = isActive;
-    await user.save();
+
+    // record activity log
+    const admin = await Admin.findById(req.user._id);
+    admin.activityLog.push({
+      action: isActive ? "user_activated" : "user_deactivated",
+      timestamp: new Date(),
+      details: {
+        targetUser: {
+          id: user._id,
+          email: user.email,
+          role: user.constructor.modelName,
+        },
+      },
+    });
+
+    // save changes
+    await Promise.all([user.save(), admin.save()]);
 
     res.json({
       message: `User ${isActive ? "activated" : "deactivated"} successfully`,
@@ -333,6 +350,7 @@ const updateUserStatus = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Error updating user status:", error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -25,32 +25,35 @@ export function AuthProvider({ children }) {
 
   async function refreshUserData(uid, email) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Email': email || localStorage.getItem('userEmail'),
-          'X-User-UID': uid || localStorage.getItem('userUID'),
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/profile`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": email || localStorage.getItem("userEmail"),
+            "X-User-UID": uid || localStorage.getItem("userUID"),
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to refresh user data');
+        throw new Error("Failed to refresh user data");
       }
 
       const userData = await response.json();
-      
+
       // Update localStorage with latest data
-      localStorage.setItem('userData', JSON.stringify(userData));
-      
+      localStorage.setItem("userData", JSON.stringify(userData));
+
       // Update current user state
-      setCurrentUser(prevUser => ({
+      setCurrentUser((prevUser) => ({
         ...prevUser,
-        ...userData
+        ...userData,
       }));
 
       return userData;
     } catch (error) {
-      console.error('Error refreshing user data:', error);
+      console.error("Error refreshing user data:", error);
       throw error;
     }
   }
@@ -98,19 +101,30 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     try {
       const auth = getAuth();
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Store auth tokens
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('userUID', userCredential.user.uid);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-      // Get fresh user data
-      const userData = await refreshUserData(userCredential.user.uid, email);
-      
-      return {
-        userData,
-        role: userData.role
-      };
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userUID", userCredential.user.uid);
+
+      try {
+        const userData = await refreshUserData(userCredential.user.uid, email);
+        return {
+          userData,
+          role: userData.role,
+        };
+      } catch (error) {
+        if (error.message === "User account is inactive") {
+          await authService.clearAuth();
+          throw new Error(
+            "Your account has been deactivated. Please contact an administrator."
+          );
+        }
+        throw error;
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -134,24 +148,27 @@ export function AuthProvider({ children }) {
       await user.delete();
 
       // Delete from backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Email': user.email,
-          'X-User-UID': user.uid,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/profile`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-User-Email": user.email,
+            "X-User-UID": user.uid,
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete user from backend');
+        throw new Error("Failed to delete user from backend");
       }
 
       // Clear auth state
       await authService.clearAuth();
       setCurrentUser(null);
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error("Error deleting account:", error);
       throw error;
     }
   }
@@ -161,7 +178,7 @@ export function AuthProvider({ children }) {
     let validationInterval;
     let retryCount = 0;
     const MAX_RETRIES = 3;
-    
+
     const validateAuthState = async () => {
       if (currentUser && !authService.isAuthValid()) {
         try {
@@ -205,7 +222,7 @@ export function AuthProvider({ children }) {
         if (user) {
           // Try to initialize from localStorage first
           const hasStoredAuth = authService.init();
-          
+
           if (hasStoredAuth) {
             // Validate stored auth
             const isValid = await authService.validateAuth();
@@ -252,19 +269,21 @@ export function AuthProvider({ children }) {
 
   // Add periodic verification check for doctors
   useEffect(() => {
-    if (currentUser?.role === 'Doctor') {
+    if (currentUser?.role === "Doctor") {
       const checkVerification = async () => {
         try {
           const userData = await refreshUserData();
-          
+
           // If verification status changed, notify user
           if (userData.isVerified !== currentUser.isVerified) {
-            alert('Your verification status has changed. Please log out and log back in to apply changes.');
+            alert(
+              "Your verification status has changed. Please log out and log back in to apply changes."
+            );
             await logout();
-            navigate('/login');
+            navigate("/login");
           }
         } catch (error) {
-          console.error('Error checking verification:', error);
+          console.error("Error checking verification:", error);
         }
       };
 
@@ -280,7 +299,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     refreshUserData,
-    deleteAccount
+    deleteAccount,
   };
 
   return (

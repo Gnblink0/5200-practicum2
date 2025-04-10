@@ -4,7 +4,9 @@ const Doctor = require("../models/Doctor");
 const getDoctors = async (req, res) => {
   try {
     const doctors = await Doctor.find({ isActive: true })
-      .select("firstName lastName specialization licenseNumber verificationStatus")
+      .select(
+        "firstName lastName specialization licenseNumber verificationStatus"
+      )
       .sort({ lastName: 1 });
     res.json(doctors);
   } catch (error) {
@@ -15,8 +17,9 @@ const getDoctors = async (req, res) => {
 // Get doctor by ID
 const getDoctorById = async (req, res) => {
   try {
-    const doctor = await Doctor.findById(req.params.id)
-      .select("firstName lastName specialization licenseNumber availability verificationStatus");
+    const doctor = await Doctor.findById(req.params.id).select(
+      "firstName lastName specialization licenseNumber availability verificationStatus"
+    );
     if (!doctor) {
       return res.status(404).json({ error: "Doctor not found" });
     }
@@ -31,15 +34,17 @@ const getPendingDoctors = async (req, res) => {
   try {
     // Check if user is admin
     if (req.user.role !== "Admin") {
-      return res.status(403).json({ error: "Only administrators can view pending doctors" });
+      return res
+        .status(403)
+        .json({ error: "Only administrators can view pending doctors" });
     }
 
-    const doctors = await Doctor.find({ 
-      verificationStatus: 'pending',
-      isActive: true 
+    const doctors = await Doctor.find({
+      verificationStatus: "pending",
+      isActive: true,
     })
-    .select("firstName lastName email specialization licenseNumber createdAt")
-    .sort({ createdAt: 1 });
+      .select("firstName lastName email specialization licenseNumber createdAt")
+      .sort({ createdAt: 1 });
 
     res.json(doctors);
   } catch (error) {
@@ -66,7 +71,8 @@ const verifyDoctor = async (req, res) => {
     if (!licenseNumberRegex.test(licenseNumber)) {
       return res.status(400).json({
         error: "Invalid license number format",
-        message: "License number must be in format: MD-[TIMESTAMP]-[RANDOM_ID] (e.g., MD-1743978088805-83J17YQMN)"
+        message:
+          "License number must be in format: MD-[TIMESTAMP]-[RANDOM_ID] (e.g., MD-1743978088805-83J17YQMN)",
       });
     }
 
@@ -86,8 +92,8 @@ const verifyDoctor = async (req, res) => {
       doctor: {
         id: doctor._id,
         isVerified: doctor.isVerified,
-        licenseNumber: doctor.licenseNumber
-      }
+        licenseNumber: doctor.licenseNumber,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -98,5 +104,5 @@ module.exports = {
   getDoctors,
   getDoctorById,
   getPendingDoctors,
-  verifyDoctor
-}; 
+  verifyDoctor,
+};

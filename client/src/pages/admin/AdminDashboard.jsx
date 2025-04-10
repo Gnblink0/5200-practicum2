@@ -27,29 +27,13 @@ import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
 import DataTable from "../../components/shared/DataTable";
 import ProfileEdit from "../../components/shared/ProfileEdit";
-import DoctorVerification from '../../components/admin/DoctorVerification';
+import DoctorVerification from "../../components/admin/DoctorVerification";
+import UserManagement from "../../components/admin/UserManagement";
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
-
-  useEffect(() => {
-    if (currentUser) {
-      loadUsers();
-    }
-  }, [currentUser]);
-
-
-  async function loadUsers() {
-    try {
-      const data = await userService.getAllUsers();
-      setUsers(data);
-    } catch (error) {
-      setError("Failed to load users: " + error.message);
-    }
-  }
 
   async function handleLogout() {
     try {
@@ -58,14 +42,6 @@ export default function AdminDashboard() {
       setError("Failed to log out: " + error.message);
     }
   }
-
-  const userColumns = [
-    { id: "name", label: "Name" },
-    { id: "email", label: "Email" },
-    { id: "phone", label: "Phone" },
-    { id: "address", label: "Address" },
-    { id: "role", label: "Role" },
-  ];
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -88,28 +64,8 @@ export default function AdminDashboard() {
           <DoctorVerification />
         </Box>
 
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            User Management
-          </Typography>
-          <DataTable
-            columns={userColumns}
-            data={users}
-            renderRow={(user) => (
-              <TableRow key={user._id}>
-                <TableCell>
-                  {user.firstName} {user.lastName}
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>
-                  {user.address?.street}, {user.address?.city},{" "}
-                  {user.address?.state} {user.address?.zipCode}
-                </TableCell>
-                <TableCell>{user.role}</TableCell>
-              </TableRow>
-            )}
-          />
+        <Box sx={{ mb: 4 }}>
+          <UserManagement />
         </Box>
 
         <ProfileEdit
