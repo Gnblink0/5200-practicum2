@@ -59,22 +59,42 @@ exports.getTopDoctorsByAppointments = async (req, res, next) => {
   }
 };
 
-// 2. Get Patient Appointment History
+// 2. Get Patient Appointment History by Name or Username
 exports.getPatientAppointmentHistory = async (req, res, next) => {
   try {
-    const { patientId } = req.params;
+    const { searchTerm } = req.query; // Get searchTerm from query parameters
 
-    if (!mongoose.Types.ObjectId.isValid(patientId)) {
-      return res.status(400).json({ success: false, message: "Invalid Patient ID" });
+    if (!searchTerm) {
+      return res.status(400).json({ success: false, message: "Search term (username or name) is required." });
     }
 
+    // Create a case-insensitive regex for searching
+    // Escape special regex characters in the search term to avoid errors
+    const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\\]\]/g, '\\$&'); 
+    const searchRegex = new RegExp(escapedSearchTerm, 'i');
+
+    // Find the patient by username, firstName, or lastName (case-insensitive)
+    // Using findOne will return the *first* match if multiple patients share a name.
+    const patient = await User.findOne({
+        role: 'Patient',
+        $or: [
+            { username: searchRegex },
+            { firstName: searchRegex },
+            { lastName: searchRegex }
+        ]
+    }).lean(); // Use lean() for potentially better performance if mongoose object features aren't needed
+
+    if (!patient) {
+        // Use the original searchTerm in the message for clarity
+        return res.status(404).json({ success: false, message: `Patient matching '${searchTerm}' not found.` });
+    }
+
+    // Now use the found patient._id for the aggregation
+    const patientId = patient._id; 
+
     const appointmentHistory = await Appointment.aggregate([
-      {
-        $match: { patientId: new mongoose.Types.ObjectId(patientId) },
-      },
-      {
-        $sort: { startTime: -1 }, // Show most recent first
-      },
+      { $match: { patientId: patientId } }, // Use the found patientId
+      { $sort: { startTime: -1 } }, // Show most recent first
       {
         $lookup: {
           from: "users", // Collection name for User model
@@ -84,7 +104,11 @@ exports.getPatientAppointmentHistory = async (req, res, next) => {
         },
       },
       {
-        $unwind: "$doctorInfo",
+        // Use $unwind with preserveNullAndEmptyArrays to handle cases where doctor might not be found
+        $unwind: { 
+           path: "$doctorInfo", 
+           preserveNullAndEmptyArrays: true 
+        }
       },
       {
         $project: {
@@ -95,9 +119,10 @@ exports.getPatientAppointmentHistory = async (req, res, next) => {
           reason: 1,
           mode: 1,
           notes: 1,
-          "doctor.firstName": "$doctorInfo.firstName",
-          "doctor.lastName": "$doctorInfo.lastName",
-          "doctor.specialization": "$doctorInfo.specialization",
+          // Safely access doctor info
+          "doctor.firstName": { $ifNull: ["$doctorInfo.firstName", "N/A"] }, 
+          "doctor.lastName": { $ifNull: ["$doctorInfo.lastName", ""] },
+          "doctor.specialization": { $ifNull: ["$doctorInfo.specialization", "N/A"] },
         },
       },
     ]);
@@ -105,10 +130,18 @@ exports.getPatientAppointmentHistory = async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: appointmentHistory.length,
+      // Include the found patient's info in the response for confirmation
+      foundPatient: { username: patient.username, firstName: patient.firstName, lastName: patient.lastName },
       data: appointmentHistory,
     });
   } catch (error) {
-    next(error);
+    // Add specific logging for this function
+    console.error("Error in getPatientAppointmentHistory:", error);
+    res.status(500).json({
+        success: false,
+        message: "Server error fetching patient appointment history.",
+        error: error.message
+    });
   }
 };
 
@@ -232,7 +265,6 @@ exports.getPrescriptionsIssuedPerMonth = async (req, res, next) => {
               year: "$_id.year",
               month: "$_id.month",
               totalPrescriptions: "$count",
-              // Add more fields here if needed after lookups
           }
       }
     ]);
@@ -293,10 +325,3 @@ exports.getAppointmentCountByStatus = async (req, res, next) => {
     });
   }
 };
-
-// 5. Get Doctors Pending Verification with Upcoming Appointments - REMOVED
-/*
-exports.getPendingDoctorsWithAppointments = async (req, res, next) => {
-  // ... function code ...
-}; 
-*/ 

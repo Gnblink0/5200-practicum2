@@ -11,9 +11,9 @@ const {
 // GET /api/v1/aggregate/stats/top-doctors
 router.get('/stats/top-doctors', getTopDoctorsByAppointments);
 
-// GET /api/v1/aggregate/patients/:patientId/appointment-history 
+// GET /api/v1/aggregate/patients/appointment-history?username=xxx
 // Note: Access control might be needed here depending on who can view whose history
-router.get('/patients/:patientId/appointment-history', getPatientAppointmentHistory);
+router.get('/patients/appointment-history', getPatientAppointmentHistory);
 
 // GET /api/v1/aggregate/stats/avg-appointment-duration
 router.get('/stats/avg-appointment-duration', getAverageAppointmentDurationBySpecialization);
