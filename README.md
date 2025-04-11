@@ -93,6 +93,20 @@ npm start
 - Visit http://localhost:5173
 - You should see the login page
 
+### Admin Access
+
+There are two ways to access the admin functionality:
+
+1. Use the pre-configured admin account:
+```bash
+Email: admin5@qq.com
+Password: 123456
+```
+
+2. Create a new admin account:
+- Visit http://localhost:5173/create-admin
+- Follow the registration process to create a new admin account
+
 ### Troubleshooting
 
 If ports are in use:
@@ -156,8 +170,7 @@ npm run lint
 
 ## Project Structure
 
-```
-healthcare-appointment-system/
+```healthcare-appointment-system/
 ├── client/          # Frontend React application
 │   ├── src/
 │   │   ├── components/    # React components
@@ -245,3 +258,4 @@ Base path: `/api/schedules`
 - **DELETE** `/:id`
   - Auth: Required
   - Delete doctor schedule
+
