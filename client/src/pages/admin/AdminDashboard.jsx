@@ -4,20 +4,6 @@ import {
   Container,
   Box,
   Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Switch,
-  Chip,
-  Alert,
-  AppBar,
-  Toolbar,
-  IconButton,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
@@ -29,6 +15,11 @@ import ProfileEdit from "../../components/shared/ProfileEdit";
 import DoctorVerification from "../../components/admin/DoctorVerification";
 import UserManagement from "../../components/admin/UserManagement";
 import AppointmentMonitor from "../../components/admin/AppointmentMonitor";
+import StatsDashboard from "../../components/admin/StatsDashboard";
+import AvgAppointmentDuration from "../../components/admin/AvgAppointmentDuration";
+import PrescriptionsByMonth from "../../components/admin/PrescriptionsByMonth";
+import AppointmentStatusCounts from "../../components/admin/AppointmentStatusCounts";
+import PatientHistoryViewer from "../../components/admin/PatientHistoryViewer";
 
 export default function AdminDashboard() {
   const [error, setError] = useState("");
@@ -70,6 +61,25 @@ export default function AdminDashboard() {
 
         <Box sx={{ mb: 4 }}>
           <AppointmentMonitor />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <PatientHistoryViewer />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <StatsDashboard />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <AvgAppointmentDuration />
+        </Box>
+        <Box sx={{ mb: 4 }}>
+          <PrescriptionsByMonth />
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <AppointmentStatusCounts />
         </Box>
 
         <ProfileEdit

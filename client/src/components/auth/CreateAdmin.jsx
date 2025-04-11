@@ -16,7 +16,7 @@ import {
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../config/firebase";
 
-export default function Signup() {
+export default function CreateAdmin() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,7 +24,7 @@ export default function Signup() {
     firstName: "",
     lastName: "",
     phone: "",
-    role: "Patient", // Default role
+    role: "Admin", 
     address: {
       street: "",
       city: "",
@@ -93,11 +93,6 @@ export default function Signup() {
         role: formData.role,
       };
 
-      // Only include licenseNumber field for doctors, and set it to pending
-      if (formData.role === 'Doctor') {
-        userData.licenseNumber = 'PENDING_VERIFICATION';
-      }
-
       // Create user in backend
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/users/register`,
@@ -165,27 +160,6 @@ export default function Signup() {
         )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel id="role-select-label">Account Type</InputLabel>
-                <Select
-                  labelId="role-select-label"
-                  id="role-select"
-                  name="role"
-                  value={formData.role}
-                  label="Account Type"
-                  onChange={handleChange}
-                >
-                  <MenuItem value="Patient">Patient</MenuItem>
-                  <MenuItem value="Doctor">Doctor (Requires Verification)</MenuItem>
-                </Select>
-              </FormControl>
-              {formData.role === "Doctor" && (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  Note: Doctor accounts require administrator verification before they can be used. You will be notified via email once your account is verified.
-                </Typography>
-              )}
-            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 required
