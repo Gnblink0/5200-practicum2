@@ -2,9 +2,9 @@ require('dotenv').config({ path: '../../.env' });
 const mongoose = require('mongoose');
 const { faker } = require('@faker-js/faker');
 
-// 连接到MongoDB
+// Connect to MongoDB
 async function connectToDatabase() {
-  // 硬编码本地MongoDB URI
+  // Hardcoded local MongoDB URI
   const MONGODB_URI = 'mongodb://127.0.0.1:27017/healthcare';
   
   try {
@@ -19,26 +19,26 @@ async function connectToDatabase() {
   }
 }
 
-// 生成特定数量的测试数据
+// Generate a specific amount of test data
 async function generateTestData(db, count = 1000) {
   console.log(`Generating test records (target appointments: ${count})...`);
 
-  // 生成医生数据 (固定数量，或根据count调整)
+  // Generate doctor data (fixed amount or adjusted by count)
   const doctorCount = 50;
   const doctors = await generateDoctors(db, doctorCount);
   console.log(`Generated ${doctors.length} doctors`);
 
-  // 生成患者数据 (固定数量，或根据count调整)
+  // Generate patient data (fixed amount or adjusted by count)
   const patientCount = 200;
   const patients = await generatePatients(db, patientCount);
   console.log(`Generated ${patients.length} patients`);
 
-  // 生成预约数据
+  // Generate appointment data
   const appointmentCount = count;
   const appointments = await generateAppointments(db, appointmentCount, doctors, patients);
   console.log(`Generated ${appointments.length} appointments`);
 
-  // 生成医生日程数据 (为每个医生生成未来30天的日程)
+  // Generate doctor schedule data (generate schedules for the next 30 days for each doctor)
   const scheduleCount = await generateSchedules(db, doctors);
   console.log(`Generated ${scheduleCount} schedule slots`);
 
@@ -50,7 +50,7 @@ async function generateTestData(db, count = 1000) {
   };
 }
 
-// 生成医生数据
+// Generate doctor data
 async function generateDoctors(db, count) {
   const doctors = [];
   const specializations = [
@@ -87,7 +87,7 @@ async function generateDoctors(db, count) {
   return doctors;
 }
 
-// 生成患者数据
+// Generate patient data
 async function generatePatients(db, count) {
   const patients = [];
   
@@ -125,17 +125,17 @@ async function generatePatients(db, count) {
   return patients;
 }
 
-// 生成预约数据
+// Generate appointment data
 async function generateAppointments(db, count, doctors, patients) {
   const appointments = [];
   const statuses = ['scheduled', 'completed', 'cancelled', 'no-show'];
   
-  // 确保所有医生和患者都有一些预约
+  // Ensure all doctors and patients have some appointments
   for (let i = 0; i < count; i++) {
     const doctor = doctors[i % doctors.length];
     const patient = patients[i % patients.length];
     
-    // 生成一个随机日期，从6个月前到6个月后
+    // Generate a random date, from 6 months ago to 6 months later
     const date = faker.date.between({
       from: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
       to: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)
@@ -147,7 +147,7 @@ async function generateAppointments(db, count, doctors, patients) {
       patientId: patient._id.toString(),
       date: date,
       time: `${faker.number.int({ min: 9, max: 17 })}:${faker.helpers.arrayElement(['00', '30'])}`,
-      duration: 30, // 默认30分钟
+      duration: 30, // Default 30 minutes
       status: faker.helpers.arrayElement(statuses),
       reason: faker.lorem.sentence(),
       notes: faker.lorem.paragraph(),
@@ -161,7 +161,7 @@ async function generateAppointments(db, count, doctors, patients) {
   return appointments;
 }
 
-// --- 新增：生成医生日程数据 ---
+// --- New: Generate doctor schedule data ---
 async function generateSchedules(db, doctors) {
   const schedules = [];
   const today = new Date();
@@ -203,35 +203,35 @@ function calculateEndTime(startTime) {
     date.setHours(hour, minute + 30, 0, 0);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
-// --- 结束新增部分 ---
+// --- End of new section ---
 
-// 删除所有测试数据
+// Delete all test data
 async function clearTestData(db) {
   console.log('Clearing existing test data...');
   await db.collection('doctors').deleteMany({});
   await db.collection('patients').deleteMany({});
   await db.collection('appointments').deleteMany({});
-  await db.collection('schedules').deleteMany({}); // 清除日程数据
+  await db.collection('schedules').deleteMany({}); // Clear schedule data
   console.log('Test data cleared');
 }
 
-// 主函数
+// Main function
 async function main() {
   const dataCount = process.argv[2] || 5000; // Target number of appointments
   const db = await connectToDatabase();
 
   try {
-    // 先清除现有测试数据
+    // First clear existing test data
     await clearTestData(db);
 
-    // 生成新的测试数据
+    // Generate new test data
     const result = await generateTestData(db, parseInt(dataCount));
 
     console.log('Test data generation completed:');
     console.log(`- ${result.doctorCount} doctors`);
     console.log(`- ${result.patientCount} patients`);
     console.log(`- ${result.appointmentCount} appointments`);
-    console.log(`- ${result.scheduleCount} schedule slots`); // 显示生成的日程数量
+    console.log(`- ${result.scheduleCount} schedule slots`); // Show generated schedule count
 
   } catch (error) {
     console.error('Error generating test data:', error);
@@ -241,5 +241,5 @@ async function main() {
   }
 }
 
-// 运行主函数
+// Run main function
 main(); 

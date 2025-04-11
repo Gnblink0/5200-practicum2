@@ -3,7 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const { performance } = require('perf_hooks');
 
-// --- 配置 ---
+// --- Configuration ---
 const REPORT_TEMPLATE_PATH_MD = path.join(__dirname, 'optimization-report.md');
 const REPORT_TEMPLATE_PATH_EN = path.join(__dirname, 'optimization-report-en.md');
 const OUTPUT_REPORT_PATH_MD = path.join(__dirname, 'optimization-report-final.md');
@@ -12,7 +12,7 @@ const MONGODB_URI = 'mongodb://127.0.0.1:27017/healthcare';
 const DB_NAME = 'healthcare';
 // -----------
 
-// 连接到MongoDB
+// Connect to MongoDB
 async function connectToDatabase() {
   try {
     await mongoose.connect(MONGODB_URI, { dbName: DB_NAME });
@@ -24,7 +24,7 @@ async function connectToDatabase() {
   }
 }
 
-// 测量查询性能
+// Measure query performance
 async function measureQueryPerformance(db, collectionName, query, options = {}) {
     const collection = db.collection(collectionName);
     let explainPlan = {};
@@ -32,11 +32,11 @@ async function measureQueryPerformance(db, collectionName, query, options = {}) 
     let startTime, endTime;
 
     try {
-        // 尝试获取explain plan
+        // Try to get explain plan
         explainPlan = await collection.find(query, options).explain('executionStats');
     } catch (e) {
         console.warn(`Warning: Could not get explain plan for query on ${collectionName}:`, e.message);
-        // 如果 explain 失败（例如集合为空），提供默认结构
+        // If explain fails (e.g., collection is empty), provide default structure
         explainPlan = { 
             executionStats: { totalDocsExamined: 0 },
             queryPlanner: { winningPlan: { stage: 'NO_PLAN_AVAILABLE' } }
@@ -44,14 +44,14 @@ async function measureQueryPerformance(db, collectionName, query, options = {}) 
     }
 
     try {
-        // 测量实际执行时间
+        // Measure actual execution time
         startTime = performance.now();
         results = await collection.find(query, options).toArray();
         endTime = performance.now();
     } catch (e) {
         console.error(`Error executing query on ${collectionName}:`, e);
         startTime = performance.now();
-        endTime = startTime; // 设为0执行时间
+        endTime = startTime; // Set execution time to 0
     }
 
     return {
@@ -63,7 +63,7 @@ async function measureQueryPerformance(db, collectionName, query, options = {}) 
     };
 }
 
-// 创建索引 (如果已存在，会静默处理)
+// Create index (silently handle if it already exists)
 async function createIndex(db, collectionName, indexDefinition, indexOptions = {}) {
   const collection = db.collection(collectionName);
   try {
@@ -78,7 +78,7 @@ async function createIndex(db, collectionName, indexDefinition, indexOptions = {
   }
 }
 
-// 删除索引 (如果不存在，会静默处理)
+// Drop index (silently handle if it doesn't exist)
 async function dropIndex(db, collectionName, indexName) {
   const collection = db.collection(collectionName);
   try {
@@ -91,13 +91,13 @@ async function dropIndex(db, collectionName, indexName) {
   }
 }
 
-// 填充报告模板
+// Populate report template
 function populateTemplate(templateContent, results) {
   let populatedContent = templateContent;
   for (const key in results) {
     const placeholder = `{{${key}}}`;
     let value = results[key];
-    // 特殊处理查询计划的JSON格式化
+    // Special handling for JSON formatting of query plans
     if (key.endsWith('_PLAN')) {
       value = JSON.stringify(value, null, 2);
     }
@@ -106,14 +106,14 @@ function populateTemplate(templateContent, results) {
   return populatedContent;
 }
 
-// 计算性能提升百分比
+// Calculate performance improvement percentage
 function calculateImprovement(beforeTime, afterTime) {
-    if (beforeTime === 0 && afterTime === 0) return '0.00'; // 避免 NaN
-    if (beforeTime === 0) return 'N/A (Before was 0ms)'; // 如果之前是0，无法计算百分比
+    if (beforeTime === 0 && afterTime === 0) return '0.00'; // Avoid NaN
+    if (beforeTime === 0) return 'N/A (Before was 0ms)'; // Cannot calculate percentage if before was 0
     return (( (beforeTime - afterTime) / beforeTime ) * 100).toFixed(2);
 }
 
-// 获取集合文档数量
+// Get document counts for collections
 async function getCollectionCounts(db) {
     const counts = {};
     const collections = ['doctors', 'patients', 'appointments', 'schedules'];
@@ -128,14 +128,14 @@ async function getCollectionCounts(db) {
     return counts;
 }
 
-// --- 主执行函数 ---
+// --- Main execution function ---
 async function main() {
   const db = await connectToDatabase();
   console.log('Running query optimization tests and generating report...');
 
-  const results = {}; // 用于存储所有测试结果
+  const results = {}; // Used to store all test results
 
-  // --- 获取测试 ID 和数据规模 ---
+  // --- Get test IDs and data scale ---
   const testDoctor = await db.collection('doctors').findOne({});
   const testPatient = await db.collection('patients').findOne({});
   const testDoctorId = testDoctor ? testDoctor._id.toString() : "no-doctor-found";
@@ -151,7 +151,7 @@ async function main() {
   // ---------------------------
 
   try {
-    // ===== 测试用例1: Doctor Schedule Lookup =====
+    // ===== Test Case 1: Doctor Schedule Lookup =====
     console.log('\n\n===== Running Test Case 1: Doctor Schedule Lookup =====');
     const scheduleLookupQuery = { 
       doctorId: testDoctorId, 
@@ -178,7 +178,7 @@ async function main() {
     results['CASE1_IMPROVEMENT'] = calculateImprovement(before1.executionTimeMs, after1.executionTimeMs);
     results['CASE1_TIME_COMPARISON'] = `${before1.executionTimeMs.toFixed(2)}ms -> ${after1.executionTimeMs.toFixed(2)}ms`;
 
-    // ===== 测试用例2: Patient Appointment History =====
+    // ===== Test Case 2: Patient Appointment History =====
     console.log('\n\n===== Running Test Case 2: Patient Appointment History =====');
     const patientHistoryQuery = { patientId: testPatientId };
     const patientHistorySortOptions = { sort: { date: -1 } };
@@ -199,7 +199,7 @@ async function main() {
     results['CASE2_IMPROVEMENT'] = calculateImprovement(before2.executionTimeMs, after2.executionTimeMs);
     results['CASE2_TIME_COMPARISON'] = `${before2.executionTimeMs.toFixed(2)}ms -> ${after2.executionTimeMs.toFixed(2)}ms`;
 
-    // ===== 测试用例3: Doctor Availability Check =====
+    // ===== Test Case 3: Doctor Availability Check =====
     console.log('\n\n===== Running Test Case 3: Doctor Availability Check =====');
     const availabilityQuery = {
       doctorId: testDoctorId,
@@ -224,7 +224,7 @@ async function main() {
     results['CASE3_IMPROVEMENT'] = calculateImprovement(before3.executionTimeMs, after3.executionTimeMs);
     results['CASE3_TIME_COMPARISON'] = `${before3.executionTimeMs.toFixed(2)}ms -> ${after3.executionTimeMs.toFixed(2)}ms`;
 
-    // --- 读取模板并填充结果 ---
+    // --- Read templates and populate results ---
     console.log('\nPopulating report templates...');
     const templateMd = fs.readFileSync(REPORT_TEMPLATE_PATH_MD, 'utf8');
     const finalReportMd = populateTemplate(templateMd, results);
@@ -239,11 +239,11 @@ async function main() {
   } catch (error) {
     console.error('\nError during optimization tests or report generation:', error);
   } finally {
-    // 关闭连接
+    // Close connection
     await mongoose.connection.close();
     console.log('\nMongoDB connection closed');
   }
 }
 
-// 运行主函数
+// Run main function
 main(); 
