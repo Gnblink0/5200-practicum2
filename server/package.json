@@ -10,7 +10,8 @@
         "lint": "eslint .",
         "seed": "node scripts/seeds/index.js",
         "test": "jest",
-        "test:log": "npm test | tee test_results.log"
+        "test:log": "npm test | tee test_results.log",
+        "test:replication": "node scripts/replication/test_production_replication.js"
     },
     "keywords": [
         "healthcare",
