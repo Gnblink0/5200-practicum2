@@ -10,6 +10,7 @@ import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import CreateAdmin from "./components/auth/CreateAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import DataAnalytics from "./pages/admin/DataAnalytics";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import PatientDashboard from "./pages/patient/PatientDashboard";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -29,6 +30,14 @@ function App() {
               element={
                 <PrivateRoute allowedRoles={["Admin"]}>
                   <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <PrivateRoute>
+                  <DataAnalytics />
                 </PrivateRoute>
               }
             />
