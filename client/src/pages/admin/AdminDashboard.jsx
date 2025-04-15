@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Box,
   Typography,
+  Button,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
+import BarChartIcon from '@mui/icons-material/BarChart';
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import UserProfileCard from "../../components/shared/UserProfileCard";
 import ErrorAlert from "../../components/shared/ErrorAlert";
@@ -20,11 +23,14 @@ import AvgAppointmentDuration from "../../components/admin/AvgAppointmentDuratio
 import PrescriptionsByMonth from "../../components/admin/PrescriptionsByMonth";
 import AppointmentStatusCounts from "../../components/admin/AppointmentStatusCounts";
 import PatientHistoryViewer from "../../components/admin/PatientHistoryViewer";
+import DataVisualization from "../../components/admin/DataVisualization";
 
 export default function AdminDashboard() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showDataVisualization, setShowDataVisualization] = useState(false);
+  const navigate = useNavigate();
 
   async function handleLogout() {
     try {
@@ -41,15 +47,30 @@ export default function AdminDashboard() {
       <Container sx={{ mt: 4 }}>
         <ErrorAlert error={error} />
 
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5">Current User</Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<BarChartIcon />}
+            onClick={() => navigate("/admin/analytics")}
+          >
+            View Analytics
+          </Button>
+        </Box>
+
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Current User
-          </Typography>
           <UserProfileCard
             user={currentUser}
             onEditClick={() => setShowEditProfile(true)}
           />
         </Box>
+
+        {showDataVisualization && (
+          <Box sx={{ mb: 4 }}>
+            <DataVisualization />
+          </Box>
+        )}
 
         <Box sx={{ mb: 4 }}>
           <DoctorVerification />
@@ -74,6 +95,7 @@ export default function AdminDashboard() {
         <Box sx={{ mb: 4 }}>
           <AvgAppointmentDuration />
         </Box>
+
         <Box sx={{ mb: 4 }}>
           <PrescriptionsByMonth />
         </Box>
