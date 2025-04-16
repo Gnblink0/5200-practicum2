@@ -11,6 +11,15 @@ import PropTypes from 'prop-types';
 
 // 更现代的配色方案
 const COLORS = ['#2196F3', '#4CAF50', '#FFC107', '#FF5722', '#9C27B0'];
+
+// 预约状态的颜色，与AppointmentStatusCounts组件保持一致
+const STATUS_COLORS = {
+  pending: '#ff9800',   // warning (橙色)
+  confirmed: '#4caf50', // success (绿色)
+  completed: '#2196f3', // primary (蓝色)
+  cancelled: '#f44336', // error (红色)
+};
+
 const CHART_COLORS = {
   primary: '#2196F3',
   success: '#4CAF50',
@@ -51,16 +60,20 @@ const getHeatMapColor = (value, maxValue) => {
 const GradientDefs = () => (
   <defs>
     <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#4CAF50" stopOpacity={0.1}/>
+      <stop offset="5%" stopColor={STATUS_COLORS.completed} stopOpacity={0.8}/>
+      <stop offset="95%" stopColor={STATUS_COLORS.completed} stopOpacity={0.1}/>
     </linearGradient>
     <linearGradient id="colorConfirmed" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#2196F3" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#2196F3" stopOpacity={0.1}/>
+      <stop offset="5%" stopColor={STATUS_COLORS.confirmed} stopOpacity={0.8}/>
+      <stop offset="95%" stopColor={STATUS_COLORS.confirmed} stopOpacity={0.1}/>
     </linearGradient>
     <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="5%" stopColor="#FF5722" stopOpacity={0.8}/>
-      <stop offset="95%" stopColor="#FF5722" stopOpacity={0.1}/>
+      <stop offset="5%" stopColor={STATUS_COLORS.cancelled} stopOpacity={0.8}/>
+      <stop offset="95%" stopColor={STATUS_COLORS.cancelled} stopOpacity={0.1}/>
+    </linearGradient>
+    <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="5%" stopColor={STATUS_COLORS.pending} stopOpacity={0.8}/>
+      <stop offset="95%" stopColor={STATUS_COLORS.pending} stopOpacity={0.1}/>
     </linearGradient>
   </defs>
 );
@@ -338,10 +351,10 @@ function fillTimeSeries(data, type = 'week', count = 12) {
       found = data.find(d => monthNameToEn(d.name) === label);
     }
     if (found) {
-      const { confirmed = 0, completed = 0, cancelled = 0, total = 0 } = found;
-      return { name: label, confirmed, completed, cancelled, total };
+      const { confirmed = 0, completed = 0, cancelled = 0, pending = 0, total = 0 } = found;
+      return { name: label, confirmed, completed, cancelled, pending, total };
     }
-    return { name: label, confirmed: 0, completed: 0, cancelled: 0, total: 0 };
+    return { name: label, confirmed: 0, completed: 0, cancelled: 0, pending: 0, total: 0 };
   });
 }
 
@@ -566,32 +579,37 @@ export default function DataVisualization() {
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend verticalAlign="top" height={36} />
-                  <Area
-                    type="monotone"
-                    dataKey="confirmed"
+                  <Area 
+                    type="monotone" 
+                    dataKey="confirmed" 
+                    name="Confirmed" 
                     stackId="1"
-                    stroke={CHART_COLORS.primary}
-                    fill="url(#colorConfirmed)"
-                    strokeWidth={3}
-                    name="Confirmed"
+                    stroke={STATUS_COLORS.confirmed}
+                    fill="url(#colorConfirmed)" 
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="completed"
+                  <Area 
+                    type="monotone" 
+                    dataKey="completed" 
+                    name="Completed" 
                     stackId="1"
-                    stroke={CHART_COLORS.success}
-                    fill="url(#colorCompleted)"
-                    strokeWidth={3}
-                    name="Completed"
+                    stroke={STATUS_COLORS.completed}
+                    fill="url(#colorCompleted)" 
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="cancelled"
+                  <Area 
+                    type="monotone" 
+                    dataKey="cancelled" 
+                    name="Canceled" 
                     stackId="1"
-                    stroke={CHART_COLORS.error}
-                    fill="url(#colorCancelled)"
-                    strokeWidth={3}
-                    name="Cancelled"
+                    stroke={STATUS_COLORS.cancelled}
+                    fill="url(#colorCancelled)" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="pending" 
+                    name="Pending" 
+                    stackId="1"
+                    stroke={STATUS_COLORS.pending}
+                    fill="url(#colorPending)" 
                   />
                 </AreaChart>
               </ResponsiveContainer>
