@@ -80,6 +80,7 @@ export default function AdminDashboard() {
           <UserManagement />
         </Box>
 
+
         <Box sx={{ mb: 4 }}>
           <AppointmentMonitor />
         </Box>
@@ -98,10 +99,6 @@ export default function AdminDashboard() {
 
         <Box sx={{ mb: 4 }}>
           <PrescriptionsByMonth />
-        </Box>
-
-        <Box sx={{ mb: 4 }}>
-          <AppointmentStatusCounts />
         </Box>
 
         <ProfileEdit

@@ -5,10 +5,13 @@ import {
   Box,
   Typography,
   IconButton,
+  Grid,
+  Divider,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DashboardHeader from "../../components/shared/DashboardHeader";
 import DataVisualization from "../../components/admin/DataVisualization";
+import AppointmentStatusCounts from "../../components/admin/AppointmentStatusCounts";
 
 export default function DataAnalytics() {
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ export default function DataAnalytics() {
           <IconButton 
             color="inherit" 
             onClick={() => navigate("/admin-dashboard")}
+            aria-label="Back to Admin Dashboard"
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
@@ -38,9 +42,27 @@ export default function DataAnalytics() {
           </Typography>
         </Box>
 
-        <Box sx={{ mb: 4 }}>
-          <DataVisualization />
-        </Box>
+        <Grid container spacing={3}>
+          {/* Appointment Status Over Time Chart */}
+          <Grid item xs={12}>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Appointment Status Trends
+            </Typography>
+            <AppointmentStatusCounts />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+          </Grid>
+          
+          {/* Other Data Visualizations */}
+          <Grid item xs={12}>
+            <Typography variant="h5" component="h2" gutterBottom>
+              Detailed Analytics
+            </Typography>
+            <DataVisualization />
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );

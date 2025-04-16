@@ -36,7 +36,7 @@ function App() {
             <Route
               path="/admin/analytics"
               element={
-                <PrivateRoute>
+                <PrivateRoute allowedRoles={["Admin"]}>
                   <DataAnalytics />
                 </PrivateRoute>
               }
