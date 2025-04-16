@@ -232,7 +232,16 @@ const DepartmentDistributionPie = ({ data }) => {
     );
   }
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28BFF', '#FF6B6B', '#4ECDC4', '#C7F464'];
+  // 使用预约状态颜色映射 - 用于饼图
+  const getStatusColor = (status) => {
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('pending')) return STATUS_COLORS.pending;
+    if (statusLower.includes('confirmed')) return STATUS_COLORS.confirmed;
+    if (statusLower.includes('completed')) return STATUS_COLORS.completed;
+    if (statusLower.includes('cancelled') || statusLower.includes('canceled')) return STATUS_COLORS.cancelled;
+    // 默认颜色
+    return '#9e9e9e';
+  };
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
     const RADIAN = Math.PI / 180;
@@ -262,11 +271,18 @@ const DepartmentDistributionPie = ({ data }) => {
             nameKey="name"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={getStatusColor(entry.name)} />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => [`${value} appointments`, 'Count']} />
-          <Legend layout="vertical" verticalAlign="middle" align="right" />
+          <Tooltip formatter={(value, name) => {
+            // 格式化状态名称的首字母大写
+            const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+            return [`${value} appointments`, formattedName];
+          }} />
+          <Legend layout="vertical" verticalAlign="middle" align="right" formatter={(value) => {
+            // 格式化图例名称的首字母大写
+            return value.charAt(0).toUpperCase() + value.slice(1);
+          }} />
         </PieChart>
       </ResponsiveContainer>
     </Box>
@@ -628,7 +644,10 @@ export default function DataVisualization() {
 
         <Grid item xs={12} md={6}>
           {chartCard("Appointment Status Distribution", (
-            <DepartmentDistributionPie data={data.appointmentStatus.map(d => ({ name: d.name, value: d.value }))} />
+            <DepartmentDistributionPie data={data.appointmentStatus.map(d => ({ 
+              name: d.status || d.name, 
+              value: d.count || d.value 
+            }))} />
           ))}
         </Grid>
 

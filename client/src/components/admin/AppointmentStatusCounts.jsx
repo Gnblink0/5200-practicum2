@@ -111,7 +111,6 @@ export default function AppointmentStatusCounts() {
       <Paper sx={{ p: 2 }}>
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6">
-            Appointment Status Over Time
           </Typography>
         </Box>
         

@@ -80,9 +80,6 @@ export default function AdminDashboard() {
           <UserManagement />
         </Box>
 
-        <Box sx={{ mb: 4 }}>
-          <AppointmentStatusCounts />
-        </Box>
 
         <Box sx={{ mb: 4 }}>
           <AppointmentMonitor />
