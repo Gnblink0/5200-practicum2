@@ -6,7 +6,8 @@ const {
     getAverageAppointmentDurationBySpecialization,
     getPrescriptionsIssuedPerMonth,
     getAppointmentCountByStatus,
-    getAppointmentStatusTimeSeries
+    getAppointmentStatusTimeSeries,
+    getAppointmentHeatmapData
 } = require('../controllers/aggregationController');
 
 // GET /api/v1/aggregate/stats/top-doctors
@@ -27,6 +28,9 @@ router.get('/stats/appointment-counts', getAppointmentCountByStatus);
 
 // GET /api/v1/aggregate/stats/appointment-time-series
 router.get('/stats/appointment-time-series', getAppointmentStatusTimeSeries);
+
+// GET /api/v1/aggregate/stats/appointment-heatmap
+router.get('/stats/appointment-heatmap', getAppointmentHeatmapData);
 
 // GET /api/v1/aggregate/admin/pending-doctors-appointments - REMOVED
 // router.get('/admin/pending-doctors-appointments', getPendingDoctorsWithAppointments);

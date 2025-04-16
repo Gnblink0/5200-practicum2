@@ -546,3 +546,65 @@ exports.getAppointmentStatusTimeSeries = async (req, res, next) => {
     });
   }
 };
+
+// 7. Get Appointment Heatmap Data
+exports.getAppointmentHeatmapData = async (req, res, next) => {
+  try {
+    // 聚合查询，按星期几和小时分组
+    const heatmapData = await Appointment.aggregate([
+      {
+        $project: {
+          // 提取星期几 (1=Monday, 7=Sunday)
+          dayOfWeek: { $dayOfWeek: "$startTime" },
+          // 提取小时 (0-23)
+          hour: { $hour: "$startTime" }
+        }
+      },
+      {
+        $group: {
+          _id: { dayOfWeek: "$dayOfWeek", hour: "$hour" },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { "_id.dayOfWeek": 1, "_id.hour": 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          // MongoDB dayOfWeek: 1=Sunday, 2=Monday, ..., 7=Saturday
+          // 转换为: 1=Monday, ..., 7=Sunday
+          day: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$_id.dayOfWeek", 1] }, then: 7 }, // Sunday -> 7
+                { case: { $eq: ["$_id.dayOfWeek", 2] }, then: 1 }, // Monday -> 1
+                { case: { $eq: ["$_id.dayOfWeek", 3] }, then: 2 }, // Tuesday -> 2
+                { case: { $eq: ["$_id.dayOfWeek", 4] }, then: 3 }, // Wednesday -> 3
+                { case: { $eq: ["$_id.dayOfWeek", 5] }, then: 4 }, // Thursday -> 4
+                { case: { $eq: ["$_id.dayOfWeek", 6] }, then: 5 }, // Friday -> 5
+                { case: { $eq: ["$_id.dayOfWeek", 7] }, then: 6 }, // Saturday -> 6
+              ],
+              default: 0
+            }
+          },
+          hour: "$_id.hour",
+          value: "$count"
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: heatmapData.length,
+      data: heatmapData
+    });
+  } catch (error) {
+    console.error("Error in getAppointmentHeatmapData:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching appointment heatmap data.",
+      error: error.message
+    });
+  }
+};

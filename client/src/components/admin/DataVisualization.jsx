@@ -80,6 +80,8 @@ const GradientDefs = () => (
 
 // WorkTimeHeatmap组件（完全按照用户给定实现）
 const WorkTimeHeatmap = ({ data }) => {
+  console.log('WorkTimeHeatmap received data:', data);
+  
   if (!data || data.length === 0) {
     return (
       <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -99,6 +101,31 @@ const WorkTimeHeatmap = ({ data }) => {
     { dataKey: 'day6', name: 'Saturday' },
     { dataKey: 'day7', name: 'Sunday' }
   ];
+
+  // 检查数据格式是否符合预期
+  const isValidData = data.every(slot => {
+    return slot.time && days.every(day => typeof slot[day.dataKey] !== 'undefined');
+  });
+
+  if (!isValidData) {
+    console.error('Invalid heatmap data format:', data);
+    return (
+      <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          Invalid appointment time data format
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 计算最大值，用于颜色强度
+  const maxValue = Math.max(
+    ...data.flatMap(timeSlot => 
+      days.map(day => timeSlot[day.dataKey] || 0)
+    )
+  );
+
+  console.log('Heatmap max value:', maxValue);
 
   return (
     <Box sx={{ width: '100%', overflowX: 'auto' }}>
@@ -136,7 +163,11 @@ const WorkTimeHeatmap = ({ data }) => {
               {/* Data cells */}
               {days.map((day, dayIndex) => {
                 const count = timeSlot[day.dataKey] || 0;
-                const intensity = Math.min(count / 10, 1); // Scale for coloring
+                // 改进颜色计算，避免所有数据都很低时看不清
+                const intensity = maxValue > 0 ? 
+                  Math.min(Math.max(0.1, count / maxValue), 1) : 
+                  (count > 0 ? 0.5 : 0.1);
+                
                 return (
                   <Box 
                     key={dayIndex}
@@ -231,8 +262,6 @@ const DepartmentDistributionPie = ({ data }) => {
       </Box>
     );
   }
-
-  // 使用预约状态颜色映射 - 用于饼图
   const getStatusColor = (status) => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes('pending')) return STATUS_COLORS.pending;
@@ -299,34 +328,88 @@ DepartmentDistributionPie.propTypes = {
 
 // 工具函数：将原始heatmapData转换为WorkTimeHeatmap需要的结构
 function convertHeatmapData(raw) {
+  console.log('convertHeatmapData input:', JSON.stringify(raw));
+  
+  // 检查是否是API响应格式，提取真正的数据数组
+  if (raw && typeof raw === 'object' && raw.success && Array.isArray(raw.data)) {
+    console.log('Detected API response format, extracting data array');
+    raw = raw.data;
+  }
+  
+  // 如果没有数据或数据不是数组，返回空数组
+  if (!raw || !Array.isArray(raw) || raw.length === 0) {
+    console.warn('No valid heatmap data provided');
+    return generateEmptyHeatmapData();
+  }
+  
   // raw: [{ day: 'Monday', hour: 0, value: 2 }, ...]
   // 目标：[{ time: '08:00', day1: 2, ..., day7: 0 }, ...] 只保留08:00-18:00
   const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8~18
   // 中英文都支持
   const dayMap = {
-    'Monday': 'day1', '周一': 'day1',
-    'Tuesday': 'day2', '周二': 'day2',
-    'Wednesday': 'day3', '周三': 'day3',
-    'Thursday': 'day4', '周四': 'day4',
-    'Friday': 'day5', '周五': 'day5',
-    'Saturday': 'day6', '周六': 'day6',
-    'Sunday': 'day7', '周日': 'day7',
+    'Monday': 'day1', '周一': 'day1', 'monday': 'day1', 'Mon': 'day1',
+    'Tuesday': 'day2', '周二': 'day2', 'tuesday': 'day2', 'Tue': 'day2',
+    'Wednesday': 'day3', '周三': 'day3', 'wednesday': 'day3', 'Wed': 'day3',
+    'Thursday': 'day4', '周四': 'day4', 'thursday': 'day4', 'Thu': 'day4',
+    'Friday': 'day5', '周五': 'day5', 'friday': 'day5', 'Fri': 'day5',
+    'Saturday': 'day6', '周六': 'day6', 'saturday': 'day6', 'Sat': 'day6',
+    'Sunday': 'day7', '周日': 'day7', 'sunday': 'day7', 'Sun': 'day7',
+    // 添加字符串形式的数字（不添加数字类型以避免重复键）
+    '1': 'day1', '2': 'day2', '3': 'day3', '4': 'day4', '5': 'day5', '6': 'day6', '7': 'day7'
   };
+  
+  // 检查数据中的day和hour字段
+  const sampleItem = raw[0];
+  console.log('Sample heatmap item:', sampleItem);
+  
   // 初始化每小时一行
   const result = hours.map(h => {
     const row = { time: `${h.toString().padStart(2, '0')}:00` };
     Object.values(dayMap).forEach(dk => { row[dk] = 0; });
     return row;
   });
+  
   // 填充数据
+  let validItemsCount = 0;
+  let invalidItems = [];
+  
   raw.forEach(item => {
-    const hourIdx = item.hour;
-    const dayKey = dayMap[item.day];
+    // 尝试获取小时和日期
+    const hourIdx = item.hour !== undefined ? item.hour : 
+                   (item.time ? parseInt(item.time) : null);
+    const dayKey = item.day !== undefined ? dayMap[item.day] : 
+                  (item.dayOfWeek ? dayMap[item.dayOfWeek] : null);
+    
+    // 获取值
+    const itemValue = item.value !== undefined ? item.value : 
+                     (item.count !== undefined ? item.count : 0);
+    
     if (typeof hourIdx === 'number' && dayKey && hourIdx >= 8 && hourIdx <= 18) {
-      result[hourIdx - 8][dayKey] = item.value;
+      result[hourIdx - 8][dayKey] = itemValue;
+      validItemsCount++;
+    } else {
+      invalidItems.push({item, reason: `Invalid hour (${hourIdx}) or day (${item.day})`});
     }
   });
+  
+  console.log(`Processed ${raw.length} items, ${validItemsCount} valid, ${invalidItems.length} invalid`);
+  if (invalidItems.length > 0) {
+    console.log('Sample invalid items:', invalidItems.slice(0, 3));
+  }
+  
   return result;
+}
+
+// 生成空的热力图数据（用于没有数据时）
+function generateEmptyHeatmapData() {
+  const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8~18
+  const dayColumns = ['day1', 'day2', 'day3', 'day4', 'day5', 'day6', 'day7'];
+  
+  return hours.map(h => {
+    const row = { time: `${h.toString().padStart(2, '0')}:00` };
+    dayColumns.forEach(dk => { row[dk] = 0; });
+    return row;
+  });
 }
 
 // 工具函数：补全最近N周/最近N月的数据，没有的补0
@@ -447,12 +530,16 @@ export default function DataVisualization() {
         axios.get('/api/admin/analytics/appointments/daily'),
         axios.get('/api/admin/analytics/appointments/weekly'),
         axios.get('/api/admin/analytics/appointments/monthly'),
-        axios.get('/api/admin/analytics/appointments/heatmap')
+        axios.get('/api/v1/aggregate/stats/appointment-heatmap')
       ]);
 
-      console.log('heatmapData raw:', heatmapResponse.data);
-      console.log('weeklyStats:', weeklyResponse.data);
-      console.log('monthlyStats:', monthlyResponse.data);
+      // 增加热力图数据的详细日志
+      console.log('heatmapData raw (full):', JSON.stringify(heatmapResponse.data));
+      console.log('heatmapData length:', heatmapResponse.data ? heatmapResponse.data.length : 0);
+      
+      // 测试转换函数
+      const convertedHeatmapData = convertHeatmapData(heatmapResponse.data || []);
+      console.log('Converted heatmap data:', convertedHeatmapData);
 
       setData({
         appointmentStatus: statusResponse.data,
@@ -652,7 +739,11 @@ export default function DataVisualization() {
         </Grid>
 
         <Grid item xs={12}>
-          {chartCard("Appointment Time Distribution (Heatmap)", <WorkTimeHeatmap data={convertHeatmapData(data.heatmapData)} />)}
+          {chartCard("Appointment Time Distribution (Heatmap)", 
+            <WorkTimeHeatmap 
+              data={convertHeatmapData(data.heatmapData)} 
+            />
+          )}
         </Grid>
       </Grid>
     </Box>
