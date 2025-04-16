@@ -298,4 +298,30 @@ Results:
 Test Suites: 3 passed, 3 total
 Tests:       15 passed, 15 total
 Time:        5.547s
-``` 
+```
+
+1. Atomicity
+
+The system ensures that all parts of a transaction are completed successfully as a whole.
+For example, when creating a prescription, all related data (medications, diagnosis, appointment reference) must be saved together.
+If any part fails (such as an invalid expiry date), the entire transaction is rolled back, and no partial data is saved. This confirms the all-or-nothing behavior of atomic transactions.
+
+2. Consistency
+
+The system maintains data integrity by enforcing:
+	•	Validation rules: Invalid input, such as an empty medication name, is rejected to protect the structure and logic of the data.
+	•	Business rules: Conflicting operations, like double-booking an appointment time slot, are prevented to ensure logical correctness.
+
+These checks ensure the database remains in a valid and consistent state before and after every transaction.
+
+3. Isolation
+
+We tested concurrent operations (e.g., multiple users attempting to create the same prescription or book the same time slot simultaneously).
+The system handles these race conditions correctly — only one transaction succeeds, while others are blocked or fail gracefully.
+This confirms that transactions are properly isolated and do not interfere with each other, preserving data accuracy in concurrent scenarios.
+
+4. Durability
+
+After a transaction is committed, the data remains permanently stored, even if the server restarts or crashes.
+This ensures that once users receive confirmation of a successful action (like prescription creation), the data is reliably retained.
+We verified this by checking that saved records persist after restarting the system.
