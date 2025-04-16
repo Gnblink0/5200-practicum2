@@ -251,7 +251,7 @@ DoctorRankingBarChart.propTypes = {
   )
 };
 
-// DepartmentDistributionPie组件
+// DepartmentDistributionPie
 const DepartmentDistributionPie = ({ data }) => {
   if (!data || data.length === 0) {
     return (
@@ -304,12 +304,10 @@ const DepartmentDistributionPie = ({ data }) => {
             ))}
           </Pie>
           <Tooltip formatter={(value, name) => {
-            // 格式化状态名称的首字母大写
             const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
             return [`${value} appointments`, formattedName];
           }} />
           <Legend layout="vertical" verticalAlign="middle" align="right" formatter={(value) => {
-            // 格式化图例名称的首字母大写
             return value.charAt(0).toUpperCase() + value.slice(1);
           }} />
         </PieChart>
@@ -326,26 +324,20 @@ DepartmentDistributionPie.propTypes = {
   )
 };
 
-// 工具函数：将原始heatmapData转换为WorkTimeHeatmap需要的结构
 function convertHeatmapData(raw) {
   console.log('convertHeatmapData input:', JSON.stringify(raw));
   
-  // 检查是否是API响应格式，提取真正的数据数组
   if (raw && typeof raw === 'object' && raw.success && Array.isArray(raw.data)) {
     console.log('Detected API response format, extracting data array');
     raw = raw.data;
   }
   
-  // 如果没有数据或数据不是数组，返回空数组
   if (!raw || !Array.isArray(raw) || raw.length === 0) {
     console.warn('No valid heatmap data provided');
     return generateEmptyHeatmapData();
   }
-  
-  // raw: [{ day: 'Monday', hour: 0, value: 2 }, ...]
-  // 目标：[{ time: '08:00', day1: 2, ..., day7: 0 }, ...] 只保留08:00-18:00
   const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8~18
-  // 中英文都支持
+
   const dayMap = {
     'Monday': 'day1', '周一': 'day1', 'monday': 'day1', 'Mon': 'day1',
     'Tuesday': 'day2', '周二': 'day2', 'tuesday': 'day2', 'Tue': 'day2',
@@ -354,33 +346,28 @@ function convertHeatmapData(raw) {
     'Friday': 'day5', '周五': 'day5', 'friday': 'day5', 'Fri': 'day5',
     'Saturday': 'day6', '周六': 'day6', 'saturday': 'day6', 'Sat': 'day6',
     'Sunday': 'day7', '周日': 'day7', 'sunday': 'day7', 'Sun': 'day7',
-    // 添加字符串形式的数字（不添加数字类型以避免重复键）
     '1': 'day1', '2': 'day2', '3': 'day3', '4': 'day4', '5': 'day5', '6': 'day6', '7': 'day7'
   };
   
-  // 检查数据中的day和hour字段
   const sampleItem = raw[0];
   console.log('Sample heatmap item:', sampleItem);
   
-  // 初始化每小时一行
   const result = hours.map(h => {
     const row = { time: `${h.toString().padStart(2, '0')}:00` };
     Object.values(dayMap).forEach(dk => { row[dk] = 0; });
     return row;
   });
   
-  // 填充数据
+
   let validItemsCount = 0;
   let invalidItems = [];
   
   raw.forEach(item => {
-    // 尝试获取小时和日期
     const hourIdx = item.hour !== undefined ? item.hour : 
                    (item.time ? parseInt(item.time) : null);
     const dayKey = item.day !== undefined ? dayMap[item.day] : 
                   (item.dayOfWeek ? dayMap[item.dayOfWeek] : null);
     
-    // 获取值
     const itemValue = item.value !== undefined ? item.value : 
                      (item.count !== undefined ? item.count : 0);
     
@@ -400,7 +387,6 @@ function convertHeatmapData(raw) {
   return result;
 }
 
-// 生成空的热力图数据（用于没有数据时）
 function generateEmptyHeatmapData() {
   const hours = Array.from({ length: 11 }, (_, i) => i + 8); // 8~18
   const dayColumns = ['day1', 'day2', 'day3', 'day4', 'day5', 'day6', 'day7'];
@@ -412,7 +398,6 @@ function generateEmptyHeatmapData() {
   });
 }
 
-// 工具函数：补全最近N周/最近N月的数据，没有的补0
 function fillTimeSeries(data, type = 'week', count = 12) {
   const now = new Date();
   let labels = [];
@@ -433,16 +418,14 @@ function fillTimeSeries(data, type = 'week', count = 12) {
       labels.push(`${monthNames[month]} ${year}`);
     }
   }
-  // 先用英文label补全数据，强制name为英文label
   let convertedData = data;
   if (type === 'week') {
     convertedData = data.map(d => ({ ...d, name: weekNameToEn(d.name) }));
   } else if (type === 'month') {
     convertedData = data.map(d => ({ ...d, name: monthNameToEn(d.name) }));
   }
-  // 用labels补全数据，强制name为英文label
+
   return labels.map(label => {
-    // 在后端数据中找：week用weekNameToEn，month用monthNameToEn
     let found;
     if (type === 'week') {
       found = data.find(d => weekNameToEn(d.name) === label);
@@ -457,7 +440,6 @@ function fillTimeSeries(data, type = 'week', count = 12) {
   });
 }
 
-// 获取某日期在当年第几周
 function getWeekNumber(d) {
   d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
@@ -467,7 +449,6 @@ function getWeekNumber(d) {
 }
 
 function weekNameToEn(name) {
-  // 例："2025年第15周" => "2025-W15"
   const match = name.match(/(\d{4})年第(\d+)周/);
   if (match) {
     const year = match[1];
@@ -478,7 +459,6 @@ function weekNameToEn(name) {
 }
 
 function monthNameToEn(name) {
-  // 例："2025年4月" => "Apr 2025"
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const match = name.match(/(\d{4})年(\d+)月/);
   if (match) {
@@ -497,12 +477,8 @@ export default function DataVisualization() {
     prescriptionTrend: [],
     appointmentTrend: [],
     specializationDuration: [],
-    dailyStats: [],
-    weeklyStats: [],
-    monthlyStats: [],
     heatmapData: []
   });
-  const [timeRange, setTimeRange] = useState('daily');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -517,9 +493,6 @@ export default function DataVisualization() {
         prescriptionResponse,
         trendResponse,
         durationResponse,
-        dailyResponse,
-        weeklyResponse,
-        monthlyResponse,
         heatmapResponse
       ] = await Promise.all([
         axios.get('/api/admin/analytics/appointments/status'),
@@ -527,17 +500,10 @@ export default function DataVisualization() {
         axios.get('/api/admin/analytics/prescriptions/monthly'),
         axios.get('/api/admin/analytics/appointments/trend'),
         axios.get('/api/admin/analytics/specialization/duration'),
-        axios.get('/api/admin/analytics/appointments/daily'),
-        axios.get('/api/admin/analytics/appointments/weekly'),
-        axios.get('/api/admin/analytics/appointments/monthly'),
         axios.get('/api/v1/aggregate/stats/appointment-heatmap')
       ]);
-
-      // 增加热力图数据的详细日志
       console.log('heatmapData raw (full):', JSON.stringify(heatmapResponse.data));
       console.log('heatmapData length:', heatmapResponse.data ? heatmapResponse.data.length : 0);
-      
-      // 测试转换函数
       const convertedHeatmapData = convertHeatmapData(heatmapResponse.data || []);
       console.log('Converted heatmap data:', convertedHeatmapData);
 
@@ -547,9 +513,6 @@ export default function DataVisualization() {
         prescriptionTrend: prescriptionResponse.data,
         appointmentTrend: trendResponse.data,
         specializationDuration: durationResponse.data,
-        dailyStats: dailyResponse.data,
-        weeklyStats: weeklyResponse.data,
-        monthlyStats: monthlyResponse.data,
         heatmapData: heatmapResponse.data
       });
       setLoading(false);
@@ -567,16 +530,6 @@ export default function DataVisualization() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (!loading && !error) {
-      setData(prev => ({
-        ...prev,
-        weeklyStats: fillTimeSeries(prev.weeklyStats, 'week', 12),
-        monthlyStats: fillTimeSeries(prev.monthlyStats, 'month', 12)
-      }));
-    }
-  }, [loading, error]);
-
   const chartCard = (title, chart) => (
     <Card 
       sx={{ 
@@ -593,41 +546,26 @@ export default function DataVisualization() {
       }}
     >
       <CardContent>
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <TrendingUpIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-            {title}
-          </Typography>
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <TrendingUpIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+            <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+              {title}
+            </Typography>
+          </Box>
+          <Button
+            startIcon={<RefreshIcon />}
+            onClick={fetchData}
+            disabled={refreshing}
+            size="small"
+          >
+            Refresh
+          </Button>
         </Box>
         {chart}
       </CardContent>
     </Card>
   );
-
-  const getTimeRangeData = () => {
-    switch (timeRange) {
-      case 'daily':
-        return {
-          data: data.dailyStats,
-          title: 'Daily Appointments (Last 30 Days)'
-        };
-      case 'weekly':
-        return {
-          data: data.weeklyStats,
-          title: 'Weekly Appointments (Last 12 Weeks)'
-        };
-      case 'monthly':
-        return {
-          data: data.monthlyStats,
-          title: 'Monthly Appointments (Last 12 Months)'
-        };
-      default:
-        return {
-          data: data.dailyStats,
-          title: 'Daily Appointments'
-        };
-    }
-  };
 
   if (loading) return (
     <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -643,83 +581,7 @@ export default function DataVisualization() {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <ToggleButtonGroup
-          value={timeRange}
-          exclusive
-          onChange={(e, newValue) => newValue && setTimeRange(newValue)}
-          aria-label="time range"
-        >
-          <ToggleButton value="daily" aria-label="daily">
-            Daily
-          </ToggleButton>
-          <ToggleButton value="weekly" aria-label="weekly">
-            Weekly
-          </ToggleButton>
-          <ToggleButton value="monthly" aria-label="monthly">
-            Monthly
-          </ToggleButton>
-        </ToggleButtonGroup>
-
-        <Button
-          startIcon={<RefreshIcon />}
-          onClick={fetchData}
-          disabled={refreshing}
-        >
-          Refresh Data
-        </Button>
-      </Box>
-
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          {chartCard(getTimeRangeData().title, (
-            <Box sx={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={getTimeRangeData().data}>
-                  <GradientDefs />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend verticalAlign="top" height={36} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="confirmed" 
-                    name="Confirmed" 
-                    stackId="1"
-                    stroke={STATUS_COLORS.confirmed}
-                    fill="url(#colorConfirmed)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="completed" 
-                    name="Completed" 
-                    stackId="1"
-                    stroke={STATUS_COLORS.completed}
-                    fill="url(#colorCompleted)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="cancelled" 
-                    name="Canceled" 
-                    stackId="1"
-                    stroke={STATUS_COLORS.cancelled}
-                    fill="url(#colorCancelled)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="pending" 
-                    name="Pending" 
-                    stackId="1"
-                    stroke={STATUS_COLORS.pending}
-                    fill="url(#colorPending)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Box>
-          ))}
-        </Grid>
-
         <Grid item xs={12} md={6}>
           {(() => {
             console.log('topDoctors data:', data.topDoctors);
