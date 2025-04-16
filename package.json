@@ -8,7 +8,6 @@
     "server"
   ],
   "scripts": {
-    
     "install:all": "npm install && npm run install:client && npm run install:server",
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
@@ -35,6 +34,7 @@
     "@mui/x-data-grid": "^7.28.3",
     "@mui/x-date-pickers": "^7.28.3",
     "date-fns": "^4.1.0",
-    "firebase": "^11.6.0"
+    "firebase": "^11.6.0",
+    "recharts": "^2.15.2"
   }
 }
