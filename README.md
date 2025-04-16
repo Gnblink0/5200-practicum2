@@ -63,13 +63,6 @@ npm run dev
 # Update CORS_ORIGIN in server/.env if different
 ```
 
-### Seed the Database (Optional)
-```bash
-cd server
-npm run seed
-# This will generate 20 fake users
-```
-
 ### Start the Application
 
 Development mode (runs both frontend and backend):
